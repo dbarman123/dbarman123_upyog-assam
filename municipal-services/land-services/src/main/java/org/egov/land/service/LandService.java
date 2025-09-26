@@ -51,7 +51,7 @@ public class LandService {
 		}
 		
 		//landValidator.validateLandInfo(landRequest,mdmsData);
-		userService.manageUser(landRequest);
+		userService.manageCreateUser(landRequest);
 		
 		enrichmentService.enrichCreateLandInfo(landRequest);
 
@@ -83,18 +83,17 @@ public class LandService {
 		landValidator.validateLandInfo(landRequest, mdmsData);
 
 		// Below method will compare the owner info except mobile number and uuid, if changed then update the table else just convert the ownerInfo to ownerinfoV2
-		userService.manageUser(landRequest);
+		userService.manageUpdateUser(landRequest);
 
 		// Make sure updated owners are back in LandInfo
-		landInfo.setOwners(landRequest.getLandInfo().getOwners());
+	//	landInfo.setOwners(landRequest.getLandInfo().getOwners());
 
 		enrichmentService.enrichUpdateLandInfo(landRequest);
-		
-			landRequest.getLandInfo().getOwners().forEach(owner -> {
+
+		landRequest.getLandInfo().getOwners().forEach(owner -> {
 			if (owner.getActive()) {
 				owner.setStatus(true);
-			}else
-			{
+			} else {
 				owner.setStatus(false);
 			}
 		});

@@ -34,10 +34,11 @@ public class ServiceRequestRepository {
 	 */
 	public Object fetchResult(StringBuilder uri, Object request) {
 		Object response = null;
-		log.debug("URI: " + uri.toString());
+		log.info("URI: " + uri.toString());
 		try {
-			log.debug("Request: " + mapper.writeValueAsString(request));
+			log.info("Request: " + mapper.writeValueAsString(request));
 			response = restTemplate.postForObject(uri.toString(), request, Map.class);
+			log.info("Response : {}", mapper.writeValueAsString(response));
 		} catch (HttpClientErrorException e) {
 			log.error("External Service threw an Exception: ", e);
 			throw new ServiceCallException(e.getResponseBodyAsString());
