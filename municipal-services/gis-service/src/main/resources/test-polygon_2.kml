@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>Test Polygon_2</name>
+    <Placemark>
+      <name>Test polygon for WFS intersect</name>
+      <Polygon>
+        <outerBoundaryIs>
+          <LinearRing>
+            <coordinates>
+-97.71,30.26
+ -97.71,30.30
+ -97.75,30.30
+ -97.75,30.26
+ -97.71,30.26
+</coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+  </Document>
+</kml>

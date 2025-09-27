@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>Test Point Geometry</name>
+    <description>Test KML file containing a Point geometry for GIS service testing</description>
+    <Placemark>
+      <name>Test Point</name>
+      <description>A simple point for testing Point geometry parsing</description>
+      <Point>
+        <coordinates>-97.73,30.25,0</coordinates>
+      </Point>
+    </Placemark>
+  </Document>
+</kml>
