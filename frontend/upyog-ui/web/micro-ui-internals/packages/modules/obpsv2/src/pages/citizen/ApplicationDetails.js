@@ -25,7 +25,7 @@ import {
   import { useParams } from "react-router-dom";
   import get from "lodash/get";
   import { isError, useQueryClient } from "react-query";
-  // import WFApplicationTimeline from "../../pageComponents/WFApplicationTimeline";
+  import WFApplicationTimeline from "../../pageComponents/WFApplicationTimeline";
   // import getBPAAcknowledgementData from "../../utils/getBPAAcknowledgementData";
   
   /**
@@ -74,10 +74,10 @@ import {
     const [toast, setToast] = useState(false);
     const [oldRTPName, setOldRTPName] = useState();
     const [ newRTPName, setNewRTPName ] = useState();
-    const bpaApplicationDetail = get(data, "BPA", []);
+    const bpaApplicationDetail = get(data, "bpa", []);
     const [comments, setComments] = useState("");
     const [uploadedFile, setUploadedFile] = useState(null);
-    const bpaId = get(data, "BPA[0].applicationNo", []);
+    const bpaId = get(data, "bpa[0].applicationNo", []);
     const [loader, setLoader] = useState(false);
     let bpa_details = (bpaApplicationDetail && bpaApplicationDetail.length > 0 && bpaApplicationDetail[0]) || {};
     const application = bpa_details;
@@ -242,6 +242,15 @@ import {
       });
     }
   
+    // Extract data from response structure
+    const landInfo = bpa_details?.landInfo || {};
+    const owners = landInfo?.owners || [];
+    const primaryOwner = owners.length > 0 ? owners[0] : {};
+    const address = landInfo?.address || {};
+    const permanentAddress = primaryOwner?.permanentAddress || {};
+    const additionalDetails = bpa_details?.additionalDetails || {};
+    const adjoiningOwners = additionalDetails?.adjoiningOwners || {};
+  
     return (
       <React.Fragment>
         <div>
@@ -265,35 +274,35 @@ import {
             <StatusTable>
               <Row
                 label={t("BPA_APPLICANT_NAME")}
-                text={bpa_details?.applicant?.applicantName || t("CS_NA")}
+                text={primaryOwner?.name || t("CS_NA")}
               />
               <Row
                 label={t("BPA_MOBILE_NO")}
-                text={bpa_details?.applicant?.mobileNumber || t("CS_NA")}
+                text={primaryOwner?.mobileNumber || t("CS_NA")}
               />
               <Row
                 label={t("BPA_ALT_MOBILE_NO")}
-                text={bpa_details?.applicant?.alternateNumber || t("CS_NA")}
+                text={primaryOwner?.altContactNumber || t("CS_NA")}
               />
               <Row
                 label={t("BPA_EMAIL_ID")}
-                text={bpa_details?.applicant?.emailId || t("CS_NA")}
+                text={primaryOwner?.emailId || t("CS_NA")}
               />
               <Row
                 label={t("BPA_FATHER_NAME")}
-                text={bpa_details?.applicant?.fatherName || t("CS_NA")}
+                text={primaryOwner?.fatherOrHusbandName || t("CS_NA")}
               />
               <Row
                 label={t("BPA_MOTHER_NAME")}
-                text={bpa_details?.applicant?.motherName || t("CS_NA")}
+                text={primaryOwner?.motherName || t("CS_NA")}
               />
               <Row
                 label={t("BPA_PAN_CARD")}
-                text={bpa_details?.applicant?.panCardNumber || t("CS_NA")}
+                text={primaryOwner?.pan || t("CS_NA")}
               />
               <Row
                 label={t("BPA_AADHAAR_CARD")}
-                text={bpa_details?.applicant?.aadhaarNumber || t("CS_NA")}
+                text={primaryOwner?.aadhaarNumber || t("CS_NA")}
               />
             </StatusTable>
   
@@ -302,40 +311,71 @@ import {
             <StatusTable>
               <Row
                 label={t("BPA_HOUSE_NO")}
-                text={bpa_details?.address?.permanent?.houseNo || t("CS_NA")}
+                text={permanentAddress?.houseNo || t("CS_NA")}
               />
               <Row
                 label={t("BPA_ADDRESS_LINE_1")}
-                text={bpa_details?.address?.permanent?.addressLine1 || t("CS_NA")}
+                text={permanentAddress?.addressLine1 || t("CS_NA")}
               />
               <Row
                 label={t("BPA_ADDRESS_LINE_2")}
-                text={bpa_details?.address?.permanent?.addressLine2 || t("CS_NA")}
+                text={permanentAddress?.addressLine2 || t("CS_NA")}
               />
               <Row
                 label={t("BPA_LANDMARK")}
-                text={bpa_details?.address?.permanent?.landmark || t("CS_NA")}
+                text={permanentAddress?.landmark || t("CS_NA")}
               />
               <Row
                 label={t("BPA_DISTRICT")}
-                text={bpa_details?.address?.permanent?.district?.name || t("CS_NA")}
+                text={permanentAddress?.district || t("CS_NA")}
               />
               <Row
                 label={t("BPA_CITY")}
-                text={bpa_details?.address?.permanent?.city?.name || t("CS_NA")}
+                text={permanentAddress?.locality?.name || t("CS_NA")}
               />
               <Row
                 label={t("BPA_STATE")}
-                text={bpa_details?.address?.permanent?.state?.name || t("CS_NA")}
+                text={permanentAddress?.state || t("CS_NA")}
               />
               <Row
                 label={t("BPA_PIN_CODE")}
-                text={bpa_details?.address?.permanent?.pincode || t("CS_NA")}
+                text={permanentAddress?.pincode || t("CS_NA")}
               />
             </StatusTable>
   
             <CardSubHeader style={{ fontSize: "20px" }}>{t("BPA_CORRESPONDENCE_ADDRESS")}</CardSubHeader>
-            {bpa_details?.address?.sameAsPermanent ? (
+            {primaryOwner?.correspondenceAddress ? (
+              <StatusTable style={{ marginTop: "16px" }}>
+                <Row
+                  label={t("BPA_HOUSE_NO")}
+                  text={primaryOwner?.correspondenceAddress?.houseNo || t("CS_NA")}
+                />
+                <Row
+                  label={t("BPA_ADDRESS_LINE_1")}
+                  text={primaryOwner?.correspondenceAddress?.addressLine1 || t("CS_NA")}
+                />
+                <Row
+                  label={t("BPA_ADDRESS_LINE_2")}
+                  text={primaryOwner?.correspondenceAddress?.addressLine2 || t("CS_NA")}
+                />
+                <Row
+                  label={t("BPA_DISTRICT")}
+                  text={primaryOwner?.correspondenceAddress?.district || t("CS_NA")}
+                />
+                <Row
+                  label={t("BPA_CITY")}
+                  text={primaryOwner?.correspondenceAddress?.locality?.name || t("CS_NA")}
+                />
+                <Row
+                  label={t("BPA_STATE")}
+                  text={primaryOwner?.correspondenceAddress?.state || t("CS_NA")}
+                />
+                <Row
+                  label={t("BPA_PIN_CODE")}
+                  text={primaryOwner?.correspondenceAddress?.pincode || t("CS_NA")}
+                />
+              </StatusTable>
+            ) : (
               <div style={{ marginTop: "16px" }}>
                 <CheckBox
                   label={t("BPA_SAME_AS_PERMANENT")}
@@ -343,72 +383,29 @@ import {
                   disabled={true}
                 />
               </div>
-            ) : (
-              <StatusTable style={{ marginTop: "16px" }}>
-                <Row
-                  label={t("BPA_HOUSE_NO")}
-                  text={bpa_details?.address?.correspondence?.houseNo || t("CS_NA")}
-                />
-                <Row
-                  label={t("BPA_ADDRESS_LINE_1")}
-                  text={bpa_details?.address?.correspondence?.addressLine1 || t("CS_NA")}
-                />
-                <Row
-                  label={t("BPA_ADDRESS_LINE_2")}
-                  text={bpa_details?.address?.correspondence?.addressLine2 || t("CS_NA")}
-                />
-                <Row
-                  label={t("BPA_DISTRICT")}
-                  text={bpa_details?.address?.correspondence?.district?.name || t("CS_NA")}
-                />
-                <Row
-                  label={t("BPA_CITY")}
-                  text={bpa_details?.address?.correspondence?.city?.name || t("CS_NA")}
-                />
-                <Row
-                  label={t("BPA_STATE")}
-                  text={bpa_details?.address?.correspondence?.state?.name || t("CS_NA")}
-                />
-                <Row
-                  label={t("BPA_PIN_CODE")}
-                  text={bpa_details?.address?.correspondence?.pincode || t("CS_NA")}
-                />
-              </StatusTable>
             )}
   
             <CardSubHeader style={{ fontSize: "24px" }}>{t("BPA_LAND_DETAILS")}</CardSubHeader>
             <StatusTable>
               <Row
-                label={t("BPA_CONSTRUCTION_TYPE")}
-                text={bpa_details?.land?.constructionType?.name || t("CS_NA")}
-              />
-              <Row
-                label={t("BPA_AREA_AUTHORITY_MAPPING")}
-                text={bpa_details?.land?.areaAuthority || t("CS_NA")}
-              />
-              <Row
-                label={t("BPA_MOUZA")}
-                text={bpa_details?.land?.mouza || t("CS_NA")}
-              />
-              <Row
                 label={t("BPA_OLD_DAG_NUMBER")}
-                text={bpa_details?.land?.oldDagNumber || t("CS_NA")}
+                text={landInfo?.oldDagNumber || t("CS_NA")}
               />
               <Row
                 label={t("BPA_NEW_DAG_NUMBER")}
-                text={bpa_details?.land?.newDagNumber || t("CS_NA")}
+                text={landInfo?.newDagNumber || t("CS_NA")}
               />
               <Row
                 label={t("BPA_OLD_PATTA_NUMBER")}
-                text={bpa_details?.land?.oldPattaNumber || t("CS_NA")}
+                text={landInfo?.oldPattaNumber || t("CS_NA")}
               />
               <Row
                 label={t("BPA_NEW_PATTA_NUMBER")}
-                text={bpa_details?.land?.newPattaNumber || t("CS_NA")}
+                text={landInfo?.newPattaNumber || t("CS_NA")}
               />
               <Row
                 label={t("BPA_TOTAL_PLOT_AREA")}
-                text={bpa_details?.land?.totalPlotArea ? `${bpa_details.land.totalPlotArea} sq. ft.` : t("CS_NA")}
+                text={landInfo?.totalPlotArea ? `${landInfo.totalPlotArea} sq. ft.` : t("CS_NA")}
               />
             </StatusTable>
   
@@ -416,19 +413,19 @@ import {
             <StatusTable>
               <Row
                 label={t("BPA_NORTH")}
-                text={bpa_details?.land?.adjoiningOwners?.north || t("CS_NA")}
+                text={adjoiningOwners?.north || t("CS_NA")}
               />
               <Row
                 label={t("BPA_SOUTH")}
-                text={bpa_details?.land?.adjoiningOwners?.south || t("CS_NA")}
+                text={adjoiningOwners?.south || t("CS_NA")}
               />
               <Row
                 label={t("BPA_EAST")}
-                text={bpa_details?.land?.adjoiningOwners?.east || t("CS_NA")}
+                text={adjoiningOwners?.east || t("CS_NA")}
               />
               <Row
                 label={t("BPA_WEST")}
-                text={bpa_details?.land?.adjoiningOwners?.west || t("CS_NA")}
+                text={adjoiningOwners?.west || t("CS_NA")}
               />
             </StatusTable>
   
@@ -436,42 +433,66 @@ import {
             <StatusTable>
               <Row
                 label={t("BPA_VERTICAL_EXTENSION")}
-                text={bpa_details?.land?.futureProvisions?.verticalExtension?.name || t("CS_NA")}
+                text={additionalDetails?.futureProvisions?.verticalExtension?.code || t("CS_NA")}
               />
+              
+              {/* Vertical Extension Area - Only show if Vertical Extension is YES */}
+              {(additionalDetails?.futureProvisions?.verticalExtension?.code === "YES") && (
+                <Row
+                  label={t("BPA_VERTICAL_EXTENSION_AREA")}
+                  text={additionalDetails?.futureProvisions?.verticalExtensionArea ? `${additionalDetails.futureProvisions.verticalExtensionArea} floors` : t("CS_NA")}
+                />
+              )}
+              
+              {/* Horizontal Extension - Only show if YES */}
               <Row
                 label={t("BPA_HORIZONTAL_EXTENSION")}
-                text={bpa_details?.land?.futureProvisions?.horizontalExtension?.name || t("CS_NA")}
+                text={additionalDetails?.futureProvisions?.horizontalExtension?.name || additionalDetails?.futureProvisions?.horizontalExtension || t("CS_NA")}
               />
+              
+              {/* Horizontal Extension Area - Only show if Horizontal Extension is YES */}
+              {(additionalDetails?.futureProvisions?.horizontalExtension?.code === "YES") && (
+                <Row
+                  label={t("BPA_HORIZONTAL_EXTENSION_AREA")}
+                  text={additionalDetails?.futureProvisions?.horizontalExtensionArea ? `${additionalDetails.futureProvisions.horizontalExtensionArea} sq. ft.` : t("CS_NA")}
+                />
+              )}
+              
+              {/* Always show these fields */}
+              <Row
+                label={t("BPA_TOD_BENEFITS")}
+                text={additionalDetails?.todBenefits || t("CS_NA")}
+              />
+              <Row
+                label={t("BPA_TDR_USED")}
+                text={additionalDetails?.tdrUsed || t("CS_NA")}
+              />
+              
+              {/* TOD Zone - Only show if TOD Benefits is YES */}
+              {(additionalDetails?.todBenefits === "YES" || additionalDetails?.todBenefits?.code === "YES") && additionalDetails?.todZone && (
+                <Row
+                  label={t("BPA_TOD_ZONE")}
+                  text={additionalDetails?.todZone || t("CS_NA")}
+                />
+              )}
             </StatusTable>
-  
+
             <StatusTable style={{ marginTop: "16px" }}>
               <Row
                 label={t("BPA_RTP_CATEGORY")}
-                text={bpa_details?.land?.rtpCategory?.name || t("CS_NA")}
+                text={bpa_details?.rtpDetails?.rtpCategory || t("CS_NA")}
               />
               <Row
                 label={t("BPA_REGISTERED_TECHNICAL_PERSON")}
-                text={bpa_details?.land?.registeredTechnicalPerson?.name || t("CS_NA")}
+                text={bpa_details?.rtpDetails?.rtpName || t("CS_NA")}
               />
               <Row
                 label={t("BPA_OCCUPANCY_TYPE")}
-                text={bpa_details?.land?.occupancyType?.name || t("CS_NA")}
-              />
-              <Row
-                label={t("BPA_TOD_BENEFITS")}
-                text={bpa_details?.land?.todBenefits ? t("CS_YES") + ", " + t("BPA_WITH_TDR") : t("CS_NA")}
-              />
-              <Row
-                label={t("BPA_FORM_36")}
-                text={bpa_details?.land?.documents?.some(doc => doc.documentType === "FORM_36") ? t("BPA_FILE_UPLOADED") : t("CS_NA")}
+                text={landInfo?.units?.[0]?.occupancyType || t("CS_NA")}
               />
               <Row
                 label={t("BPA_FORM_39")}
-                text={bpa_details?.land?.documents?.some(doc => doc.documentType === "FORM_39") ? t("BPA_FILE_UPLOADED") : t("CS_NA")}
-              />
-              <Row
-                label={t("BPA_TOD_ZONE")}
-                text={bpa_details?.land?.todZone?.name || t("CS_NA")}
+                text={landInfo?.documents?.some(doc => doc.documentType === "FORM_39") ? t("BPA_FILE_UPLOADED") : t("CS_NA")}
               />
             </StatusTable>
             {popup ? (
@@ -483,9 +504,9 @@ import {
           }
         />
       }
-      headerBarEnd={<CloseBtn onClick={() => close(popup)} />}
+      headerBarEnd={<CloseBtn onClick={() => setPopup(false)} />}
       actionCancelLabel={t("CS_COMMON_CANCEL")}
-      actionCancelOnSubmit={() => close(popup)}
+      actionCancelOnSubmit={() => setPopup(false)}
       actionSaveLabel={
          t("CS_COMMON_CONFIRM")
       }
@@ -568,8 +589,8 @@ import {
     </Modal>
             ):null}
   
-            {/* <WFApplicationTimeline application={application} id={application?.applicationNo} userType={"citizen"} /> */}
-            {/* {showToast && (
+            <WFApplicationTimeline application={application} id={application?.applicationNo} userType={"citizen"} />
+            {showToast && (
               <Toast
                 error={showToast.key}
                 label={t(showToast.label)}
@@ -578,7 +599,7 @@ import {
                   setShowToast(null);
                 }}
               />
-            )} */}
+            )}
             {toast && <Toast label={t(assignResponse ? `CS_ACTION_${selectedAction}_TEXT` : "CS_ACTION_ASSIGN_FAILED")} onClose={closeToast} />}
              <ActionBar>
               {displayMenu && workflowDetails?.ProcessInstances?.[0]?.nextActions ? (

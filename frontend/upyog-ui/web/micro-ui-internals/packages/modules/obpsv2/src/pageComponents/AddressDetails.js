@@ -87,11 +87,17 @@ const AddressDetails = ({ t, config, onSelect, formData, searchResult}) => {
           i18nKey: revenueVillage.revenueVillageCode,
         }));
       setPermanentCityOptions(formattedRevenueVillage);
-      // Clear city when district changes
-      setPermanentCity("");
+      
+      // Agar current city selected hai, check karo ki wo naye district ki hai ya nahi
+      if (permanentCity) {
+        const isCityInNewDistrict = formattedRevenueVillage.some(city => city.code === permanentCity.code);
+        // Agar city naye district ki nahi hai to clear karo
+        if (!isCityInNewDistrict) {
+          setPermanentCity("");
+        }
+      }
     } else {
       setPermanentCityOptions([]);
-      setPermanentCity("");
     }
   }, [permanentDistrict, mdmsData]);
 
@@ -106,11 +112,17 @@ const AddressDetails = ({ t, config, onSelect, formData, searchResult}) => {
           i18nKey: revenueVillage.revenueVillageCode,
         }));
       setCorrespondenceCityOptions(formattedRevenueVillage);
-      // Clear city when district changes
-      setCorrespondenceCity("");
+      
+      // Agar current city selected hai, check karo ki wo naye district ki hai ya nahi
+      if (correspondenceCity) {
+        const isCityInNewDistrict = formattedRevenueVillage.some(city => city.code === correspondenceCity.code);
+        // Agar city naye district ki nahi hai to clear karo
+        if (!isCityInNewDistrict) {
+          setCorrespondenceCity("");
+        }
+      }
     } else {
       setCorrespondenceCityOptions([]);
-      setCorrespondenceCity("");
     }
   }, [correspondenceDistrict, mdmsData]);
 
@@ -125,7 +137,7 @@ const AddressDetails = ({ t, config, onSelect, formData, searchResult}) => {
       setCorrespondenceState(permanentState);
       setCorrespondencePincode(permanentPincode);
     }
-  }, [sameAsPermanent, permanentHouseNo, permanentAddressLine1, permanentAddressLine2, permanentDistrict, permanentCity, permanentState, permanentPincode]);
+  }, [sameAsPermanent, permanentHouseNo, permanentAddressLine1, permanentAddressLine2, permanentDistrict, permanentCity, permanentState, permanentPincode, correspondenceCity]);
 
   // Go next
   const goNext = () => {

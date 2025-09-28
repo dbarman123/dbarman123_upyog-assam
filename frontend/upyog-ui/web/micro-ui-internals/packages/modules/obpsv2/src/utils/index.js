@@ -93,8 +93,9 @@ export const bpaPayload = async(data) => {
       businessService: "bpa-services",
       status: "INITIATED",
       additionalDetails: {
+        constructionType: data?.land?.constructionType?.code,
         adjoiningOwners: data?.land?.adjoiningOwners,
-        futureProvisions: data?.land?.futureProvisions?.horizontalExtension?.code,
+        futureProvisions: data?.land?.futureProvisions,
         todBenefits: data?.land?.todBenefits?.code,
         todWithTdr: data?.land?.todWithTdr?.code,
         todZone: data?.land?.todZone?.code,

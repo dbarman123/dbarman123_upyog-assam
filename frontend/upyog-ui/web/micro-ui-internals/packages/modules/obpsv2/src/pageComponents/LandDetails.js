@@ -155,7 +155,7 @@ const LandDetails = ({ t, config, onSelect, formData, searchResult }) => {
             setIsUploadingForm36(true);
             const response = await Digit.UploadServices.Filestorage("OBPSV2", form36File, Digit.ULBService.getStateId());
             if (response?.data?.files?.length > 0) {
-              setUploadedForm36Id(response?.data?.files[0]?.fileStoreId);
+              setUploadedForm36Id({ documentType: "FORM_36", documentUid: response?.data?.files[0]?.fileStoreId,  fileStoreId: response?.data?.files[0]?.fileStoreId});
             } else {
               setShowToast({ error: true, label: "CS_FILE_UPLOAD_ERROR" });
             }
@@ -181,7 +181,7 @@ const LandDetails = ({ t, config, onSelect, formData, searchResult }) => {
             setIsUploadingForm39(true);
             const response = await Digit.UploadServices.Filestorage("OBPSV2", form39File, Digit.ULBService.getStateId());
             if (response?.data?.files?.length > 0) {
-              setUploadedForm39Id(response?.data?.files[0]?.fileStoreId);
+              setUploadedForm39Id({ documentType: "FORM_39", documentUid: response?.data?.files[0]?.fileStoreId,  fileStoreId: response?.data?.files[0]?.fileStoreId});
             } else {
               setShowToast({ error: true, label: "CS_FILE_UPLOAD_ERROR" });
             }
@@ -197,29 +197,7 @@ const LandDetails = ({ t, config, onSelect, formData, searchResult }) => {
 
   // Go next function
   const goNext = () => {
-    const documents = [];
-    if (searchResult?.landInfo) {
-      if (uploadedForm36Id) documents.push(uploadedForm36Id);
-      if (uploadedForm39Id) documents.push(uploadedForm39Id);
-    }
-    
-    if (uploadedForm36Id && !searchResult?.landInfo) {
-      documents.push({
-        documentType: "FORM_36",
-        documentUid: uploadedForm36Id,
-        fileStoreId: uploadedForm36Id,
-        id: uploadedForm36Id
-      });
-    }
-    
-    if (uploadedForm39Id && !searchResult?.landInfo) {
-      documents.push({
-        documentType: "FORM_39",
-        documentUid: uploadedForm39Id,
-        fileStoreId: uploadedForm39Id,
-        id: uploadedForm39Id
-      });
-    }
+    const documents = [uploadedForm36Id, uploadedForm39Id].filter(Boolean);
 
     let landStep = {
       constructionType,
@@ -236,9 +214,9 @@ const LandDetails = ({ t, config, onSelect, formData, searchResult }) => {
       },
       futureProvisions: {
         verticalExtension,
-        verticalExtensionArea: verticalExtension === "YES" ? verticalExtensionArea : "",
+        verticalExtensionArea: verticalExtension?.code === "YES" ? verticalExtensionArea : "",
         horizontalExtension,
-        horizontalExtensionArea: horizontalExtension === "YES" ? horizontalExtensionArea : ""
+        horizontalExtensionArea: horizontalExtension?.code === "YES" ? horizontalExtensionArea : ""
       },
       rtpCategory,
       registeredTechnicalPerson,
