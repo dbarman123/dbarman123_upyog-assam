@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
@@ -15,14 +16,7 @@ import org.egov.common.contract.request.RequestInfo;
 import org.egov.land.config.LandConfiguration;
 import org.egov.land.util.LandConstants;
 import org.egov.land.util.LandUtil;
-import org.egov.land.web.models.AuditDetails;
-import org.egov.land.web.models.Channel;
-import org.egov.land.web.models.LandInfo;
-import org.egov.land.web.models.LandInfoRequest;
-import org.egov.land.web.models.LandSearchCriteria;
-import org.egov.land.web.models.OwnerInfo;
-import org.egov.land.web.models.Source;
-import org.egov.land.web.models.UserDetailResponse;
+import org.egov.land.web.models.*;
 import org.egov.tracer.model.CustomException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -281,5 +275,16 @@ public class LandEnrichmentService {
 					owner.addUserWithoutAuditDetail(userIdToOwnerMap.get(owner.getUuid()));
 			});
 		});
+
+		/// TODO: Need to Remove it when userService corrected
+		landInfos.forEach(landInfo -> {
+			Set<String> seenUuids = new HashSet<>();
+			List<OwnerInfoV2> uniqueOwners = landInfo.getOwners().stream()
+					.filter(owner -> seenUuids.add(owner.getUuid()))
+					.collect(Collectors.toList());
+
+			landInfo.setOwners(uniqueOwners);
+		});
+
 	}
 }
