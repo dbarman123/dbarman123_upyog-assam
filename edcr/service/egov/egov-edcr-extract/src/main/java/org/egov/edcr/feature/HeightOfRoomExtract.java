@@ -81,60 +81,16 @@ public class HeightOfRoomExtract extends FeatureExtract {
                             extractNonHabitationalDoorDetails(pl, block, floor, unit);
                             
                             extractRoomWiseDoors(pl, block, floor, unit);
+                            
+                            extractWindows(pl, block, floor, unit, layerNames);
+                            
+                            extractWindowsForUnitLevel(pl, block, floor, unit, layerNames);
+
+
 
                         }
 
-						// Code Added by Neha for roomwise windows extract
-						 for (Room room : floor.getRegularRooms()) {
-                            
-						String windowLayerName = String.format(layerNames.getLayerName("LAYER_NAME_REGULAR_ROOM_WINDOW"),
-								block.getNumber(), floor.getNumber(), room.getNumber(), "+\\d");
-
-						List<String> windowLayers = Util.getLayerNamesLike(pl.getDoc(), windowLayerName);
-
-						if (!windowLayers.isEmpty()) {
-
-							for (String windowLayer : windowLayers) {
-								String windowHeight = Util.getMtextByLayerName(pl.getDoc(), windowLayer);
-
-//                            	List<DXFLWPolyline> doorPolyLines = Util.getPolyLinesByLayer(pl.getDoc(),
-//                            			doorLayer);
-
-//                            	BigDecimal doorWidth=BigDecimal.ZERO;
-
-								List<DXFDimension> dimensionList = Util.getDimensionsByLayer(pl.getDoc(), windowLayer);
-								if (dimensionList != null && !dimensionList.isEmpty()) {
-									Window window = new Window();
-									BigDecimal windowHeight1 = windowHeight != null
-											? BigDecimal.valueOf(
-													Double.valueOf(windowHeight.replaceAll("WINDOW_HT_M=", "")))
-											: BigDecimal.ZERO;
-									window.setWindowHeight(windowHeight1);
-									for (Object dxfEntity : dimensionList) {
-										DXFDimension dimension = (DXFDimension) dxfEntity;
-										List<BigDecimal> values = new ArrayList<>();
-										Util.extractDimensionValue(pl, values, dimension, windowLayer);
-
-										if (!values.isEmpty()) {
-											for (BigDecimal minDis : values) {
-//                                            	doorWidth=minDis;
-												window.setWindowWidth(minDis);
-											}
-										} else {
-											window.setWindowWidth(BigDecimal.ZERO);
-										}
-									}
-									room.addWindow(window);
-								}
-//								else {
-//									window.setWindowWidth(BigDecimal.ZERO);
-//								}
-
-							}
-						}
-						 }
-						 
-						
+					
 						
 						// Code Added by Neha for windows extract
 
@@ -326,7 +282,7 @@ public class HeightOfRoomExtract extends FeatureExtract {
 
 		Map<Integer, List<BigDecimal>> roomHeightMaps = new HashMap<>();
 
-		String regularRoomLayerNames = String.format(layerNames.getLayerName("LAYER_NAME_UNIT_REGULAR_ROOM"),
+		String regularRoomLayerNames = String.format(layerNames.getLayerName("LAYER_NAME_UNITWISE_REGULAR_ROOM"),
 				block.getNumber(), floor.getNumber(), unit.getUnitNumber(), "+\\d");
 
 		List<String> regularRoomLayerss = Util.getLayerNamesLike(pl.getDoc(), regularRoomLayerNames);
@@ -799,6 +755,127 @@ public class HeightOfRoomExtract extends FeatureExtract {
 	        }
 	    }
 	}
+	
+	/**
+	 * Extracts window details (height and width) for all regular rooms in a given floor
+	 * and associates the extracted windows with their respective rooms.
+	 *
+	 * <p>
+	 * This method scans each regular room on the floor, constructs window layer names,
+	 * retrieves window dimensions and height annotations from the drawing layers,
+	 * and creates {@link Window} objects that are added to the corresponding {@link Room}.
+	 * </p>
+	 *
+	 * @param pl          the {@link PlanDetail} containing document details
+	 * @param block       the {@link Block} in which the floor exists
+	 * @param floor       the {@link Floor} for which windows are to be extracted
+	 * @param layerNames  the {@link LayerNames} utility for resolving CAD layer naming conventions
+	 */
+	private void extractWindows(PlanDetail pl, Block block, Floor floor, FloorUnit unit, LayerNames layerNames) {
+	    for (Room room : unit.getRegularRooms()) {
+
+	        String windowLayerName = String.format(
+	                layerNames.getLayerName("LAYER_NAME_UNIT_REGULAR_ROOM_WINDOW"),
+	                block.getNumber(),
+	                floor.getNumber(),
+	                unit.getUnitNumber(),
+	                room.getNumber(),
+	                "+\\d"
+	        );
+
+	        List<String> windowLayers = Util.getLayerNamesLike(pl.getDoc(), windowLayerName);
+
+	        if (!windowLayers.isEmpty()) {
+	            for (String windowLayer : windowLayers) {
+	                String windowHeight = Util.getMtextByLayerName(pl.getDoc(), windowLayer);
+
+	                List<DXFDimension> dimensionList = Util.getDimensionsByLayer(pl.getDoc(), windowLayer);
+	                if (dimensionList != null && !dimensionList.isEmpty()) {
+	                    Window window = new Window();
+	                    BigDecimal windowHeight1 = windowHeight != null
+	                            ? BigDecimal.valueOf(
+	                                    Double.valueOf(windowHeight.replaceAll("WINDOW_HT_M=", "")))
+	                            : BigDecimal.ZERO;
+	                    window.setWindowHeight(windowHeight1);
+
+	                    for (Object dxfEntity : dimensionList) {
+	                        DXFDimension dimension = (DXFDimension) dxfEntity;
+	                        List<BigDecimal> values = new ArrayList<>();
+	                        Util.extractDimensionValue(pl, values, dimension, windowLayer);
+
+	                        if (!values.isEmpty()) {
+	                            for (BigDecimal minDis : values) {
+	                                window.setWindowWidth(minDis);
+	                            }
+	                        } else {
+	                            window.setWindowWidth(BigDecimal.ZERO);
+	                        }
+	                    }
+	                    room.addWindow(window);
+	                }
+	            }
+	        }
+	    }
+	}
+
+	/**
+	 * Extracts window details (height and width) for a given floor and
+	 * associates the extracted windows with the {@link Floor}.
+	 *
+	 * <p>
+	 * This method constructs window layer names for the floor, retrieves window
+	 * dimensions and height annotations from the drawing layers, and creates
+	 * {@link Window} objects that are added directly to the {@link Floor}.
+	 * </p>
+	 *
+	 * @param pl          the {@link PlanDetail} containing document details
+	 * @param block       the {@link Block} in which the floor exists
+	 * @param floor       the {@link Floor} for which windows are to be extracted
+	 * @param layerNames  the {@link LayerNames} utility for resolving CAD layer naming conventions
+	 */
+	private void extractWindowsForUnitLevel(PlanDetail pl, Block block, Floor floor, FloorUnit unit, LayerNames layerNames) {
+	    String windowLayerName = String.format(
+	            layerNames.getLayerName("LAYER_NAME_UNIT_WINDOW"),
+	            block.getNumber(),
+	            floor.getNumber(),
+	            unit.getUnitNumber(),
+	            "+\\d"
+	    );
+
+	    List<String> windowLayers = Util.getLayerNamesLike(pl.getDoc(), windowLayerName);
+
+	    if (!windowLayers.isEmpty()) {
+	        for (String windowLayer : windowLayers) {
+	            String windowHeight = Util.getMtextByLayerName(pl.getDoc(), windowLayer);
+
+	            List<DXFDimension> dimensionList = Util.getDimensionsByLayer(pl.getDoc(), windowLayer);
+	            if (dimensionList != null && !dimensionList.isEmpty()) {
+	                Window window = new Window();
+	                BigDecimal windowHeight1 = windowHeight != null
+	                        ? BigDecimal.valueOf(
+	                                Double.valueOf(windowHeight.replaceAll("WINDOW_HT_M=", "")))
+	                        : BigDecimal.ZERO;
+	                window.setWindowHeight(windowHeight1);
+
+	                for (Object dxfEntity : dimensionList) {
+	                    DXFDimension dimension = (DXFDimension) dxfEntity;
+	                    List<BigDecimal> values = new ArrayList<>();
+	                    Util.extractDimensionValue(pl, values, dimension, windowLayer);
+
+	                    if (!values.isEmpty()) {
+	                        for (BigDecimal minDis : values) {
+	                            window.setWindowWidth(minDis);
+	                        }
+	                    } else {
+	                        window.setWindowWidth(BigDecimal.ZERO);
+	                    }
+	                }
+	                unit.addWindow(window);
+	            }
+	        }
+	    }
+	}
+
 
 	 /*
      * Extract AC room
@@ -1149,10 +1226,44 @@ public class HeightOfRoomExtract extends FeatureExtract {
 	 * } } }
 	 */
     
-    /*
-     * Extract Unitwise AC room
-     */
-    
+	/*
+	 * // Code Added by Neha for roomwise windows extract for (Room room :
+	 * floor.getRegularRooms()) {
+	 * 
+	 * String windowLayerName =
+	 * String.format(layerNames.getLayerName("LAYER_NAME_REGULAR_ROOM_WINDOW"),
+	 * block.getNumber(), floor.getNumber(), room.getNumber(), "+\\d");
+	 * 
+	 * List<String> windowLayers = Util.getLayerNamesLike(pl.getDoc(),
+	 * windowLayerName);
+	 * 
+	 * if (!windowLayers.isEmpty()) {
+	 * 
+	 * for (String windowLayer : windowLayers) { String windowHeight =
+	 * Util.getMtextByLayerName(pl.getDoc(), windowLayer);
+	 * 
+	 * // List<DXFLWPolyline> doorPolyLines = Util.getPolyLinesByLayer(pl.getDoc(),
+	 * // doorLayer);
+	 * 
+	 * // BigDecimal doorWidth=BigDecimal.ZERO;
+	 * 
+	 * List<DXFDimension> dimensionList = Util.getDimensionsByLayer(pl.getDoc(),
+	 * windowLayer); if (dimensionList != null && !dimensionList.isEmpty()) { Window
+	 * window = new Window(); BigDecimal windowHeight1 = windowHeight != null ?
+	 * BigDecimal.valueOf( Double.valueOf(windowHeight.replaceAll("WINDOW_HT_M=",
+	 * ""))) : BigDecimal.ZERO; window.setWindowHeight(windowHeight1); for (Object
+	 * dxfEntity : dimensionList) { DXFDimension dimension = (DXFDimension)
+	 * dxfEntity; List<BigDecimal> values = new ArrayList<>();
+	 * Util.extractDimensionValue(pl, values, dimension, windowLayer);
+	 * 
+	 * if (!values.isEmpty()) { for (BigDecimal minDis : values) { //
+	 * doorWidth=minDis; window.setWindowWidth(minDis); } } else {
+	 * window.setWindowWidth(BigDecimal.ZERO); } } room.addWindow(window); } // else
+	 * { // window.setWindowWidth(BigDecimal.ZERO); // }
+	 * 
+	 * } } }
+	 */
+	
 
 
     @Override

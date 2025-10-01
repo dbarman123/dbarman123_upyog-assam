@@ -50,12 +50,14 @@ package org.egov.common.entity.edcr;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class FloorUnit extends Measurement {
 
     private static final long serialVersionUID = 27L;
 
     private Occupancy occupancy;
+    private List<Occupancy> occupancies = new ArrayList<>();
     private List<Measurement> deductions = new ArrayList<>();
     private BigDecimal totalUnitDeduction;
     private List<Room> regularRooms = new ArrayList<>();
@@ -64,7 +66,17 @@ public class FloorUnit extends Measurement {
     private List<Room> nonInhabitationalRooms = new ArrayList<>();
     private List<Door> nonaHabitationalDoors = new ArrayList<>();
     private List<Door> doors = new ArrayList<>();
-    public List<Door> getDoors() {
+    private List<Window> windows = new ArrayList<>();
+    
+    public List<Window> getWindows() {
+		return windows;
+	}
+
+	public void setWindows(List<Window> windows) {
+		this.windows = windows;
+	}
+
+	public List<Door> getDoors() {
 		return doors;
 	}
 
@@ -121,6 +133,9 @@ public class FloorUnit extends Measurement {
         this.deductions = deductions;
     }
     
+    public void addWindow(Window window) {
+        this.windows.add(window);
+    }
 
     /**
      * @return the regularRooms
@@ -163,6 +178,54 @@ public class FloorUnit extends Measurement {
     public void addNonaHabitationalDoors(Door nonaHabitationalDoors) {
         this.nonaHabitationalDoors.add(nonaHabitationalDoors);
     }
+    
+    
+    public void addCarpetArea(Occupancy occupancy) {
+        if (occupancies == null) {
+            occupancies = new ArrayList<>();
+            occupancies.add(occupancy);
+        } else if (occupancies.contains(occupancy)) {
+            occupancies.get(occupancies.indexOf(occupancy))
+                    .setCarpetArea((occupancies.get(occupancies.indexOf(occupancy)).getCarpetArea() == null
+                            ? BigDecimal.ZERO
+                            : occupancies.get(occupancies.indexOf(occupancy)).getCarpetArea())
+                                    .add(occupancy.getCarpetArea()));
+
+            occupancies.get(occupancies.indexOf(occupancy)).setExistingCarpetArea(
+                    (occupancies.get(occupancies.indexOf(occupancy)).getExistingCarpetArea() == null ? BigDecimal.ZERO
+                            : occupancies.get(occupancies.indexOf(occupancy)).getExistingCarpetArea())
+                                    .add(occupancy.getExistingCarpetArea()));
+        } else
+            occupancies.add(occupancy);
+
+    }
+    
+    
+    public void addCarpetDeductionArea(Occupancy occupancy) {
+        if (occupancies == null) {
+            occupancies = new ArrayList<>();
+            occupancies.add(occupancy);
+        } else {
+            List<Occupancy> collect = occupancies.stream().filter(o -> o.getTypeHelper() != null
+                    && (o.getTypeHelper().getType().getCode()
+                            .equalsIgnoreCase(occupancy.getTypeHelper().getType().getCode())))
+                    .collect(Collectors.toList());
+            if (!collect.isEmpty()) {
+                collect.get(0)
+                        .setCarpetAreaDeduction(collect.get(0).getCarpetAreaDeduction() == null
+                                ? BigDecimal.ZERO
+                                : collect.get(0).getCarpetAreaDeduction()
+                                        .add(occupancy.getCarpetAreaDeduction()));
+                collect.get(0).setExistingCarpetAreaDeduction(
+                        (collect.get(0).getExistingCarpetAreaDeduction() == null ? BigDecimal.ZERO
+                                : collect.get(0).getExistingCarpetAreaDeduction())
+                                        .add(occupancy.getExistingCarpetAreaDeduction()));
+            } else
+                occupancies.add(occupancy);
+        }
+
+    }
+
 
 
 }

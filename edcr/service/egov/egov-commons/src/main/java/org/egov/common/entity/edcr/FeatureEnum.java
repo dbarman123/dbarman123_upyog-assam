@@ -73,6 +73,7 @@ public enum FeatureEnum {
 	    TOILET("Toilet"),   
 	    COVERAGE("Coverage"), 
 	    DOORS("Doors"), 
+	    WINDOWS("Windows"), 
 	    FRONT_SET_BACK("FrontSetBack"),
 	    ADDITIONAL_FEATURE("AdditionalFeature"),
 	    EV_CHARGING("EVChargingInfra"),

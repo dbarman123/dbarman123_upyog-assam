@@ -47,13 +47,49 @@
 
 package org.egov.edcr.feature;
 
-import static org.egov.edcr.constants.CommonFeatureConstants.*;
 import static org.egov.edcr.constants.CommonFeatureConstants.AREA;
-import static org.egov.edcr.constants.CommonKeyConstants.*;
+import static org.egov.edcr.constants.CommonFeatureConstants.COMMA_WIDTH_STRING;
+import static org.egov.edcr.constants.CommonFeatureConstants.EMPTY_STRING;
+import static org.egov.edcr.constants.CommonFeatureConstants.FLOOR;
+import static org.egov.edcr.constants.CommonFeatureConstants.GREATER_THAN_EQUAL;
+import static org.egov.edcr.constants.CommonFeatureConstants.HEIGHT_STRING;
+import static org.egov.edcr.constants.CommonFeatureConstants.IS_EQUAL_TO;
+import static org.egov.edcr.constants.CommonFeatureConstants.REGULAR_ROOM;
+import static org.egov.edcr.constants.CommonFeatureConstants.SUB_RULE_DESC_1;
+import static org.egov.edcr.constants.CommonFeatureConstants.SUB_RULE_DESC_2;
+import static org.egov.edcr.constants.CommonFeatureConstants.SUB_RULE_DESC_3;
+import static org.egov.edcr.constants.CommonFeatureConstants.SUB_RULE_DESC_6;
+import static org.egov.edcr.constants.CommonFeatureConstants.UNDERSCORE;
+import static org.egov.edcr.constants.CommonFeatureConstants.WIDTH_STRING;
+import static org.egov.edcr.constants.CommonKeyConstants.BLOCK;
+import static org.egov.edcr.constants.CommonKeyConstants.DOORS_AND_WINDOWS;
+import static org.egov.edcr.constants.CommonKeyConstants.FLOOR_SPACED;
+import static org.egov.edcr.constants.CommonKeyConstants.HEIGHT_OF_ROOM;
+import static org.egov.edcr.constants.CommonKeyConstants.IS_TYPICAL_REP_FLOOR;
+import static org.egov.edcr.constants.CommonKeyConstants.TYPICAL_FLOOR;
 import static org.egov.edcr.constants.DxfFileConstants.A;
 import static org.egov.edcr.constants.DxfFileConstants.F;
 import static org.egov.edcr.constants.DxfFileConstants.G;
-import static org.egov.edcr.constants.EdcrReportConstants.*;
+import static org.egov.edcr.constants.EdcrReportConstants.HEIGHT;
+import static org.egov.edcr.constants.EdcrReportConstants.LAYER_ROOM_HEIGHT;
+import static org.egov.edcr.constants.EdcrReportConstants.MAXIMUM_AREA_46_45;
+import static org.egov.edcr.constants.EdcrReportConstants.MINIMUM_AREA_7_5;
+import static org.egov.edcr.constants.EdcrReportConstants.MINIMUM_AREA_9_5;
+import static org.egov.edcr.constants.EdcrReportConstants.MINIMUM_WIDTH_2_1;
+import static org.egov.edcr.constants.EdcrReportConstants.MINIMUM_WIDTH_2_4;
+import static org.egov.edcr.constants.EdcrReportConstants.ROOM_HEIGHT_NOTDEFINED;
+import static org.egov.edcr.constants.EdcrReportConstants.RULE;
+import static org.egov.edcr.constants.EdcrReportConstants.RULE9;
+import static org.egov.edcr.constants.EdcrReportConstants.RULEROOMHT;
+import static org.egov.edcr.constants.EdcrReportConstants.RULEROOMHTC;
+import static org.egov.edcr.constants.EdcrReportConstants.RULE_4_4_4_I;
+import static org.egov.edcr.constants.EdcrReportConstants.RULE_AC_DESC;
+import static org.egov.edcr.constants.EdcrReportConstants.RULE_REGULAR_DESC;
+import static org.egov.edcr.constants.EdcrReportConstants.RULE_REGULAR_ROOM;
+import static org.egov.edcr.constants.EdcrReportConstants.RULE_ROOM_DESC;
+import static org.egov.edcr.constants.EdcrReportConstants.SUBRULE_41_II_B;
+import static org.egov.edcr.constants.EdcrReportConstants.subRuleDesc4;
+import static org.egov.edcr.constants.EdcrReportConstants.subRuleDoor;
 import static org.egov.edcr.constants.RuleKeyConstants.FOUR_P_FOUR_P_FOUR;
 import static org.egov.edcr.constants.RuleKeyConstants.SIX_FOUR_ONE;
 import static org.egov.edcr.service.FeatureUtil.addScrutinyDetailtoPlan;
@@ -71,12 +107,30 @@ import java.util.Optional;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.egov.common.constants.MdmsFeatureConstants;
-import org.egov.common.entity.edcr.*;
+import org.egov.common.entity.edcr.Block;
+import org.egov.common.entity.edcr.Door;
+import org.egov.common.entity.edcr.DoorsRequirement;
+import org.egov.common.entity.edcr.FeatureEnum;
+import org.egov.common.entity.edcr.Floor;
+import org.egov.common.entity.edcr.FloorUnit;
+import org.egov.common.entity.edcr.MdmsFeatureRule;
+import org.egov.common.entity.edcr.Measurement;
+import org.egov.common.entity.edcr.NonHabitationalDoorsRequirement;
+import org.egov.common.entity.edcr.OccupancyTypeHelper;
+import org.egov.common.entity.edcr.Plan;
+import org.egov.common.entity.edcr.ReportScrutinyDetail;
+import org.egov.common.entity.edcr.Result;
+import org.egov.common.entity.edcr.Room;
+import org.egov.common.entity.edcr.RoomAreaRequirement;
+import org.egov.common.entity.edcr.RoomHeight;
+import org.egov.common.entity.edcr.RoomWiseDoorAreaRequirement;
+import org.egov.common.entity.edcr.ScrutinyDetail;
+import org.egov.common.entity.edcr.Window;
+import org.egov.common.entity.edcr.WindowsRequirement;
 import org.egov.edcr.constants.DxfFileConstants;
 import org.egov.edcr.service.MDMSCacheManager;
 import org.egov.edcr.service.ProcessHelper;
 import org.egov.edcr.utility.DcrConstants;
-import org.jfree.util.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -147,10 +201,11 @@ public class HeightOfRoom_Assam extends HeightOfRoom {
 						scrutinyDetail5.addColumnHeading(1, RULE_NO);
 						scrutinyDetail5.addColumnHeading(2, DESCRIPTION);
 						scrutinyDetail5.addColumnHeading(3, FLOOR);
-						scrutinyDetail5.addColumnHeading(4, Room);
-						scrutinyDetail5.addColumnHeading(5, REQUIRED);
-						scrutinyDetail5.addColumnHeading(6, PROVIDED);
-						scrutinyDetail5.addColumnHeading(7, STATUS);
+						scrutinyDetail2.addColumnHeading(4, UNIT);
+						scrutinyDetail5.addColumnHeading(5, Room);
+						scrutinyDetail5.addColumnHeading(6, REQUIRED);
+						scrutinyDetail5.addColumnHeading(7, PROVIDED);
+						scrutinyDetail5.addColumnHeading(8, STATUS);
 						scrutinyDetail5.setKey(
 								BLOCK + block.getNumber() + UNDERSCORE + MdmsFeatureConstants.NON_HABITATIONAL_DOORS);
 
@@ -158,20 +213,22 @@ public class HeightOfRoom_Assam extends HeightOfRoom {
 						scrutinyDetail3.addColumnHeading(1, RULE_NO);
 						scrutinyDetail3.addColumnHeading(2, DESCRIPTION);
 						scrutinyDetail3.addColumnHeading(3, FLOOR);
-						scrutinyDetail3.addColumnHeading(4, Room);
-						scrutinyDetail3.addColumnHeading(5, REQUIRED);
-						scrutinyDetail3.addColumnHeading(6, PROVIDED);
-						scrutinyDetail3.addColumnHeading(7, STATUS);
+						scrutinyDetail2.addColumnHeading(4, UNIT);
+						scrutinyDetail3.addColumnHeading(5, Room);
+						scrutinyDetail3.addColumnHeading(6, REQUIRED);
+						scrutinyDetail3.addColumnHeading(7, PROVIDED);
+						scrutinyDetail3.addColumnHeading(8, STATUS);
 						scrutinyDetail3.setKey(BLOCK + block.getNumber() + UNDERSCORE + MdmsFeatureConstants.WINDOW);
 
 						ScrutinyDetail scrutinyDetail4 = new ScrutinyDetail();
 						scrutinyDetail4.addColumnHeading(1, RULE_NO);
 						scrutinyDetail4.addColumnHeading(2, DESCRIPTION);
 						scrutinyDetail4.addColumnHeading(3, FLOOR);
-						scrutinyDetail4.addColumnHeading(4, Room);
-						scrutinyDetail4.addColumnHeading(5, REQUIRED);
-						scrutinyDetail4.addColumnHeading(6, PROVIDED);
-						scrutinyDetail4.addColumnHeading(7, STATUS);
+						scrutinyDetail2.addColumnHeading(4, UNIT);
+						scrutinyDetail4.addColumnHeading(5, Room);
+						scrutinyDetail4.addColumnHeading(6, REQUIRED);
+						scrutinyDetail4.addColumnHeading(7, PROVIDED);
+						scrutinyDetail4.addColumnHeading(8, STATUS);
 						scrutinyDetail4.setKey(BLOCK + block.getNumber() + UNDERSCORE
 								+ MdmsFeatureConstants.ROOM_WISE_VENTILATION + DOORS_AND_WINDOWS);
 
@@ -179,10 +236,11 @@ public class HeightOfRoom_Assam extends HeightOfRoom {
 						scrutinyDetail6.addColumnHeading(1, RULE_NO);
 						scrutinyDetail6.addColumnHeading(2, DESCRIPTION);
 						scrutinyDetail6.addColumnHeading(3, FLOOR);
-						scrutinyDetail6.addColumnHeading(4, Room);
-						scrutinyDetail6.addColumnHeading(5, REQUIRED);
-						scrutinyDetail6.addColumnHeading(6, PROVIDED);
-						scrutinyDetail6.addColumnHeading(7, STATUS);
+						scrutinyDetail2.addColumnHeading(4, UNIT);
+						scrutinyDetail6.addColumnHeading(5, Room);
+						scrutinyDetail6.addColumnHeading(6, REQUIRED);
+						scrutinyDetail6.addColumnHeading(7, PROVIDED);
+						scrutinyDetail6.addColumnHeading(8, STATUS);
 						scrutinyDetail6.setKey(
 								BLOCK + block.getNumber() + UNDERSCORE + MdmsFeatureConstants.ROOM_WISE_WINDOW_AREA);
 
@@ -190,10 +248,11 @@ public class HeightOfRoom_Assam extends HeightOfRoom {
 						scrutinyDetail7.addColumnHeading(1, RULE_NO);
 						scrutinyDetail7.addColumnHeading(2, DESCRIPTION);
 						scrutinyDetail7.addColumnHeading(3, FLOOR);
-						scrutinyDetail7.addColumnHeading(4, Room);
-						scrutinyDetail7.addColumnHeading(5, REQUIRED);
-						scrutinyDetail7.addColumnHeading(6, PROVIDED);
-						scrutinyDetail7.addColumnHeading(7, STATUS);
+						scrutinyDetail2.addColumnHeading(4, UNIT);
+						scrutinyDetail7.addColumnHeading(5, Room);
+						scrutinyDetail7.addColumnHeading(6, REQUIRED);
+						scrutinyDetail7.addColumnHeading(7, PROVIDED);
+						scrutinyDetail7.addColumnHeading(8, STATUS);
 						scrutinyDetail7
 								.setKey(BLOCK + block.getNumber() + UNDERSCORE + MdmsFeatureConstants.DOOR_VENTILATION);
 
@@ -201,10 +260,11 @@ public class HeightOfRoom_Assam extends HeightOfRoom {
 						scrutinyDetail8.addColumnHeading(1, RULE_NO);
 						scrutinyDetail8.addColumnHeading(2, DESCRIPTION);
 						scrutinyDetail8.addColumnHeading(3, FLOOR);
-						scrutinyDetail8.addColumnHeading(4, Room);
-						scrutinyDetail8.addColumnHeading(5, REQUIRED);
-						scrutinyDetail8.addColumnHeading(6, PROVIDED);
-						scrutinyDetail8.addColumnHeading(7, STATUS);
+						scrutinyDetail2.addColumnHeading(4, UNIT);
+						scrutinyDetail8.addColumnHeading(5, Room);
+						scrutinyDetail8.addColumnHeading(6, REQUIRED);
+						scrutinyDetail8.addColumnHeading(7, PROVIDED);
+						scrutinyDetail8.addColumnHeading(8, STATUS);
 						scrutinyDetail8
 								.setKey(BLOCK + block.getNumber() + UNDERSCORE + MdmsFeatureConstants.ROOM_WISE_DOOR_AREA);
 
@@ -212,7 +272,7 @@ public class HeightOfRoom_Assam extends HeightOfRoom {
 						    // iterate units inside each floor
 						    for (FloorUnit unit : floor.getUnits()) {
 						        // Your processing logic goes here
-						        LOG.debug("Processing Floor [{}], Unit [{}]", floor.getNumber());
+						        LOG.debug("Processing Floor [{}], Unit [{}]", floor.getNumber(), unit.getUnitNumber());
 
 						    LOG.info("Processing Floor: {} for Block: {}", floor.getNumber(), block.getName());
 
@@ -269,7 +329,7 @@ public class HeightOfRoom_Assam extends HeightOfRoom {
 						    LOG.info("Evaluating windows for Floor: {}", floor.getNumber());
 						    evaluateWindows(pl, floor, unit, scrutinyDetail3);
 
-						    if (floor.getRegularRooms() != null) {
+						    if (unit.getRegularRooms() != null) {
 						        for (Room room : unit.getRegularRooms()) {
 						            LOG.info("Evaluating room ventilation for Room: {} on Floor: {}", floor.getNumber());
 						            evaluateRoomVentilation(pl, floor, unit, room, scrutinyDetail4, scrutinyDetail6);
@@ -487,6 +547,21 @@ public class HeightOfRoom_Assam extends HeightOfRoom {
 
 	    return result;
 	}
+	
+	
+	private Optional<WindowsRequirement> getMinimumWidowsRequirement(Plan pl) {
+	    List<Object> rules = cache.getFeatureRules(pl, FeatureEnum.WINDOWS.getValue(), false);
+	    LOG.info("Fetching minimum door width rules from MDMS. Total rules found: {}", rules.size());
+
+	    Optional<WindowsRequirement> result = rules.stream()
+	        .filter(WindowsRequirement.class::isInstance)
+	        .map(WindowsRequirement.class::cast)
+	        .findFirst();
+
+	    result.ifPresent(rule -> LOG.info("Matched WindowsRequirement with permissible width: {}", rule.getMinWindowWidth()));
+
+	    return result;
+	}
 
 	/**
 	 * Evaluates all windows on a floor for basic dimension compliance.
@@ -496,9 +571,9 @@ public class HeightOfRoom_Assam extends HeightOfRoom {
 	 * @param scrutinyDetail  The scrutiny detail to record the results.
 	 */
 	private void evaluateWindows(Plan pl, Floor floor, FloorUnit unit, ScrutinyDetail scrutinyDetail) {
-	    if (floor.getWindows() == null || floor.getWindows().isEmpty()) return;
+	    if (unit.getWindows() == null || unit.getWindows().isEmpty()) return;
 
-	    for (Window window : floor.getWindows()) {
+	    for (Window window : unit.getWindows()) {
 	        if (window != null) {
 	            evaluateSingleWindow(pl, floor, unit, window, scrutinyDetail);
 	        }
@@ -646,8 +721,21 @@ public class HeightOfRoom_Assam extends HeightOfRoom {
 	    BigDecimal windowHeight = window.getWindowHeight().setScale(2, BigDecimal.ROUND_HALF_UP);
 	    BigDecimal windowWidth = window.getWindowWidth().setScale(2, BigDecimal.ROUND_HALF_UP);
 
-	    BigDecimal minWindowHeight = BigDecimal.valueOf(0.50);
-	    BigDecimal minWindowWidth = BigDecimal.valueOf(0.50);
+	    BigDecimal minWindowHeight = BigDecimal.ZERO;
+	    BigDecimal minWindowWidth = BigDecimal.ZERO;
+	    
+	    Optional<WindowsRequirement> matchedRule = getMinimumWidowsRequirement(pl);
+	    
+	    BigDecimal minDoorWidth = BigDecimal.ZERO;
+	    if (matchedRule.isPresent()) {
+	    	WindowsRequirement rule = matchedRule.get();
+	        minWindowWidth = rule.getMinWindowWidth();
+	        minWindowHeight = rule.getMinWindowHeight();
+	        LOG.info("Matched minimum door width from rules: {}", minDoorWidth);
+	    } else {
+	        LOG.warn("No minimum door width rule found, defaulting to {}", minDoorWidth);
+	    }
+
 
 	    LOG.info("Evaluating single window on Floor: {} - Height: {}, Width: {}, MinHeight: {}, MinWidth: {}",
 	             floor.getNumber(), windowHeight, windowWidth, minWindowHeight, minWindowWidth);
@@ -824,7 +912,7 @@ public class HeightOfRoom_Assam extends HeightOfRoom {
 	        Map<String, Integer> heightOfRoomFeaturesColor, List<BigDecimal> roomAreas, List<BigDecimal> roomWidths,
 	        Plan pl, Map<String, String> errors) {
 
-	    LOG.info("Processing AC Rooms for Floor: {}, Block: {}, Unit: {}, Color: {}", floor.getNumber(), block.getNumber(), unit.getUnitNumber(), color);
+	    LOG.info("Processing AC Rooms for Floor: {}, Block: {}, Unit: {}, Color: {}", floor.getNumber(), unit.getUnitNumber(), block.getNumber(), unit.getUnitNumber(), color);
 
 	    List<BigDecimal> residentialAcRoomHeights = new ArrayList<>();
 	    List<RoomHeight> acHeights = new ArrayList<>();
@@ -933,16 +1021,16 @@ public class HeightOfRoom_Assam extends HeightOfRoom {
 	private void processNonInhabitationalRooms(Plan pl, Floor floor, FloorUnit unit, Block block, String color, OccupancyTypeHelper mostRestrictiveOccupancy,
 	        Map<String, Integer> heightOfRoomFeaturesColor, ScrutinyDetail scrutinyDetail, Map<String, String> errors) {
 
-	    if (floor.getNonInhabitationalRooms() == null || floor.getNonInhabitationalRooms().isEmpty())
+	    if (unit.getNonInhabitationalRooms() == null || unit.getNonInhabitationalRooms().isEmpty())
 	        return;
 
-	    LOG.info("Processing Non-Inhabitational Rooms for Floor: {}, Block: {}, Color: {}", floor.getNumber(), block.getNumber(), color);
+	    LOG.info("Processing Non-Inhabitational Rooms for Floor: {}, Unit: {}, Block: {}, Color: {}", floor.getNumber(), unit.getUnitNumber(), block.getNumber(), color);
 
 	    List<BigDecimal> residentialRoomHeights = new ArrayList<>();
 	    List<RoomHeight> heights = new ArrayList<>();
 	    List<Measurement> rooms = new ArrayList<>();
 
-	    collectHeightsAndRoomsFromNonInhabitationalRooms(floor, heights, rooms);
+	    collectHeightsAndRoomsFromNonInhabitationalRooms(floor, unit, heights, rooms);
 	    populateRoomNumberForMeasurements(unit.getNonInhabitationalRooms());
 
 	    LOG.info("Collected Heights: {}, Rooms: {}", heights, rooms);
@@ -1120,9 +1208,9 @@ public class HeightOfRoom_Assam extends HeightOfRoom {
 	 * @param heights output list to collect RoomHeight objects
 	 * @param rooms   output list to collect Measurement objects (room area/width)
 	 */
-	private void collectHeightsAndRoomsFromNonInhabitationalRooms(Floor floor, List<RoomHeight> heights,
+	private void collectHeightsAndRoomsFromNonInhabitationalRooms(Floor floor, FloorUnit unit, List<RoomHeight> heights,
 			List<Measurement> rooms) {
-		for (Room room : floor.getNonInhabitationalRooms()) {
+		for (Room room : unit.getNonInhabitationalRooms()) {
 			if (room.getHeights() != null)
 				heights.addAll(room.getHeights());
 			if (room.getRooms() != null)
@@ -1201,7 +1289,7 @@ public class HeightOfRoom_Assam extends HeightOfRoom {
 	    boolean foundHillyRoom = false;
 
 	    // 1. Check if any room has hilly height
-	    for (Room room : floor.getRegularRooms()) {
+	    for (Room room : unit.getRegularRooms()) {
 	        if (room.getHillyAreaRoomHeight() != null) {
 	            foundHillyRoom = true;
 	            roomHeight = room.getHillyAreaRoomHeight();
