@@ -25,7 +25,7 @@ const Edit = () => {
 
   const [params, setParams, clearParams] = Digit.Hooks.useSessionStorage("OBPSV2_CREATE", {});
   const tenantId = "pg.citya";
-  const { isLoading, isError, error, data } = useBPAV2Search({
+  const { isLoading, isError, error, data, refetch } =Digit.Hooks.obpsv2.useBPASearchApi({
     tenantId,
     filters: { applicationNo },
     config: { staleTime: Infinity, cacheTime: Infinity }
@@ -124,7 +124,7 @@ const Edit = () => {
               onAdd={handleMultiple}
               t={t}
               formData={params}
-              searchResult={data?.[0]}
+              searchResult={data?.bpa?.[0]}
             />
           </Route>
         );

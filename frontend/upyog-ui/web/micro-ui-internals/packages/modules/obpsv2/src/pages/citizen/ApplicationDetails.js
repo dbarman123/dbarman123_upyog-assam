@@ -222,6 +222,10 @@ import {
         setPopup(true);
         setDisplayMenu(false);
         break;
+      case "SEND":
+        setPopup(true);
+        setDisplayMenu(false);
+        break;
       case "EDIT":
         let url=window.location.href;
         let redirectingUrl= url.split("/application/")[0] + "/editApplication/" + url.split("/application/")[1].split("/")[0];
@@ -234,6 +238,10 @@ import {
         redirectToPage(scrutinyRedirectingUrl);
         break;
       case "APPROVE":
+        setPopup(true);
+        setDisplayMenu(false);
+        break;
+      case "SEND_BACK_TO_RTP":
         setPopup(true);
         setDisplayMenu(false);
         break;
@@ -523,17 +531,15 @@ import {
       actionCancelLabel={t("CS_COMMON_CANCEL")}
       actionCancelOnSubmit={() => setPopup(false)}
       actionSaveLabel={
-         t("CS_COMMON_SUBMIT")
+        t("CS_COMMON_CONFIRM")
       }
       actionSaveOnSubmit={() => {
-        if(selectedAction==="APPROVE")
+        if(selectedAction==="APPROVE"||selectedAction==="REJECT"||selectedAction==="SEND"||selectedAction==="VALIDATE_GIS" ||selectedAction==="SEND_BACK_TO_RTP" )
         //setActionError(t("CS_MANDATORY_REASON"));
-           onAssign(selectedAction, comments, "Edit");
-      if(selectedAction==="VALIDATE_GIS")
-        onAssign(selectedAction, comments);
-      if(!oldRTPName)
+          onAssign(selectedAction, comments, "Edit");
+      if(selectedAction==="NEWRTP" &&!oldRTPName)
         setActionError(t("CS_OLD_RTP_NAME_MANDATORY"))
-      if(!newRTPName)
+      if(selectedAction==="NEWRTP" && !newRTPName)
         setActionError(t("CS_NEW_RTP_NAME_MANDATORY"))
         if(selectedAction === "REJECT" && !comments)
         setActionError(t("CS_MANDATORY_COMMENTS"));
@@ -545,7 +551,7 @@ import {
     >
       <Card>
   <React.Fragment>
-    {selectedAction === "APPROVE" && (
+    {(selectedAction === "APPROVE" || selectedAction === "SEND" || selectedAction === "REJECT"|| selectedAction==="SEND_BACK_TO_RTP") && (
       <div>
         <CardLabel>{t("COMMENTS")}</CardLabel>
         <TextArea 
@@ -645,5 +651,5 @@ import {
       </React.Fragment>
     );
   };
-  
+
   export default BPAApplicationDetails;

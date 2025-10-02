@@ -4,12 +4,15 @@ import { format } from "date-fns";
 import { useTranslation } from "react-i18next";
 import { Dropdown, Toast } from "@upyog/digit-ui-react-components";
 import { OBPSV2Services } from "../../../../../../libraries/src/services/elements/OBPSV2";
+import Action from "../../../components/Action";
 const useInboxTableConfig = ({ parentRoute, onPageSizeChange, formState, totalCount, table, dispatch, onSortingByData}) => {
     const GetCell = (value) => <span className="cell-text styled-cell">{value}</span>;
     const GetStatusCell = (value) => value === "CS_NA" ? t(value) : value === "Active" || value>0 ? <span className="sla-cell-success">{value}</span> : <span className="sla-cell-error">{value}</span> 
     const { t } = useTranslation()
     const [error, setError] = useState(null);
     const [showToast, setShowToast] = useState(false);
+    const [selectedAction, setSelectedAction] = useState(null);
+    const [applicationNo, setApplicationNo] = useState();
     useEffect(() => {
         if (showToast || error) {
           const timer = setTimeout(() => {
@@ -74,46 +77,13 @@ const useInboxTableConfig = ({ parentRoute, onPageSizeChange, formState, totalCo
                 })) || [];
 
                 
-                const handleSelect = async (value) => {
-                let selectedAction = value.code;
-                if (value.code === "EDIT") {
-                    window.location.href = `${parentRoute}/editApplication/${row?.original["applicationId"]}`;
-                } else if (value.code === "View Summary") {
-                    window.location.href = `${parentRoute}/application/${row?.original["applicationId"]}/${row?.original["tenantId"]}`;
-                }
-                else {
-                    let applicationNo = row?.original?.applicationId;
-                    let tenantId = row?.original?.tenantId
-                    const bpaDetails = await OBPSV2Services.search({
-                        tenantId,
-                        filters: { applicationNo },
-                        config: { staleTime: Infinity, cacheTime: Infinity }
-                    });
                 
-                    if(bpaDetails?.bpa?.[0]){
-                        bpaDetails.bpa[0].workflow = {
-                        ...(bpaDetails.bpa[0].workflow || {}),
-                        action: selectedAction,
-                        assignes: null,
-                        comments: null,
-                        };
-                        try {
-                            const response = await OBPSV2Services.update({BPA : bpaDetails?.bpa[0]}, tenantId);
-                            setShowToast(true);
-                            //
-                            
-                            return response;
-                        }
-                        catch(error){
-                            setError(error?.response?.data?.Errors[0].message)
-                            throw new Error(error?.response?.data?.Errors[0].message);
-                        }
 
-                        
-                    }
-                    
-                }
-                 };
+                const handleSelect = (value) => {
+                    setSelectedAction(value.code);
+                    let applicationId= row.original["applicationId"]
+                    setApplicationNo(applicationId)
+                };
 
                 return (
                     <React.Fragment>
@@ -126,6 +96,16 @@ const useInboxTableConfig = ({ parentRoute, onPageSizeChange, formState, totalCo
                     select={handleSelect}
                     placeholder={t("Take Action")}
                 />
+                {selectedAction && (
+                    <Action
+                        row={row}
+                        selectedAction={selectedAction}
+                        applicationNo={applicationNo}
+                        parentRoute={parentRoute}
+                        setShowToast={setShowToast}
+                        setError={setError}
+                    />
+                )}
                 {(showToast||error) && (
                         <Toast
                           error={error ? error : null}
