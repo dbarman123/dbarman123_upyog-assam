@@ -66,8 +66,8 @@ import static org.egov.edcr.constants.CommonFeatureConstants.SINGLE_SPACE_STRING
 import static org.egov.edcr.constants.CommonFeatureConstants.STILT_PARKING_AREA;
 import static org.egov.edcr.constants.CommonKeyConstants.COMMON_PARKING;
 import static org.egov.edcr.constants.DxfFileConstants.A;
-import static org.egov.edcr.constants.DxfFileConstants.EWS;
-import static org.egov.edcr.constants.DxfFileConstants.LIG;
+import static org.egov.edcr.constants.EdcrReportConstants.EWS;
+import static org.egov.edcr.constants.EdcrReportConstants.LIG;
 import static org.egov.edcr.constants.DxfFileConstants.C;
 import static org.egov.edcr.constants.DxfFileConstants.D_M;
 import static org.egov.edcr.constants.DxfFileConstants.E_CLG;

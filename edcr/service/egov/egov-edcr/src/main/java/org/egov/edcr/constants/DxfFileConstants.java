@@ -354,8 +354,7 @@ public class DxfFileConstants {
     public static final String NEWCONSTRUCTION_SERVICE = "New Construction";
     public static final String MAINRIVER = "MainRiver";
     public static final String SUBRIVER = "SubRiver";
-    public static final String EWS = "EWS";
-    public static final String LIG = "LIG";
+
     
     private static final Map<String, String> SERVICE_TYPE = new ConcurrentHashMap<>();
     static {
