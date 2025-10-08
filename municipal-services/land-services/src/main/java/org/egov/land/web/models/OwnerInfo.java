@@ -1291,6 +1291,10 @@ public class OwnerInfo {
                 Objects.equals(mobileNumber, ownerInfo.mobileNumber) &&
                 Objects.equals(gender, ownerInfo.gender) &&
                 Objects.equals(emailId, ownerInfo.emailId) &&
+				Objects.equals(pan, ownerInfo.pan) &&
+				Objects.equals(aadhaarNumber, ownerInfo.aadhaarNumber) &&
+				Objects.equals(altContactNumber,ownerInfo.altContactNumber) &&
+				Objects.equals(relationship, ownerInfo.relationship) &&
 //              Objects.equals(dob, user.dob) && //Epoch format not converting properly from UI
                 Objects.equals(fatherOrHusbandName, ownerInfo.fatherOrHusbandName) &&
                 Objects.equals(correspondenceAddress, ownerInfo.correspondenceAddress);

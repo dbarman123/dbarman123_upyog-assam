@@ -100,21 +100,23 @@ public class LandUserService {
 			if (existingUserResponse != null && !CollectionUtils.isEmpty(existingUserResponse.getUser())) {
 				existingOwnerInfo = existingUserResponse.getUser().get(0);
 				log.info("User found "+existingOwnerInfo.getUserName() );
+			}else{
+				throw new CustomException(LandConstants.UPDATE_ERROR, "User not found in UserService");
 			}
 
 			// Step 4: Convert incoming owner v2 to OwnerInfo for comparison
-			OwnerInfo ownerInfoToCompare = convertToOwnerInfo(ownerInfoV2);
+			OwnerInfo ownerInfoFromUI = convertToOwnerInfo(ownerInfoV2);
 
 			// Step 5: Check if owner info has changed
-			if (existingOwnerInfo != null && ownerInfoV2.compareWithExistingUser(existingOwnerInfo)) {
+			if (existingOwnerInfo != null && !ownerInfoFromUI.compareWithExistingUser(existingOwnerInfo)) {
 				// Step 5a: Add default fields for a Citizen user
-				ownerInfoToCompare.setRoles(existingOwnerInfo.getRoles());
+				ownerInfoFromUI.setRoles(existingOwnerInfo.getRoles());
 
 				// Step 5b: Call UserService to create or update user
 				String uri = config.getUserHost() +
 						config.getUserUpdateEndpoint();
 
-				userCall(new CreateUserRequest(requestInfo, ownerInfoToCompare), new StringBuilder(uri));
+				userCall(new CreateUserRequest(requestInfo, ownerInfoFromUI), new StringBuilder(uri));
 			}
 
 			// Note: No need to update id/uuid here as they are immutable in UserService
