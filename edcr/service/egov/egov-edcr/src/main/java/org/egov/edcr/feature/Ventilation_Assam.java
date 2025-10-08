@@ -125,7 +125,7 @@ public class Ventilation_Assam extends Ventilation {
                         }
 	            }
 	        }
-	        } 
+	        
 	        pl.getReportOutput().getScrutinyDetails().add(generalScrutiny);
 	        pl.getReportOutput().getScrutinyDetails().add(bathScrutiny);
 	    }

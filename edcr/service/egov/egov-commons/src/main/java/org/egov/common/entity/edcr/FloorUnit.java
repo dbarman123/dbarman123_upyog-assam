@@ -312,29 +312,7 @@ public class FloorUnit extends Measurement {
         this.laundryOrRecreationalVentilation = laundryOrRecreationalVentilation;
     }
 
-    public List<Room> getRegularRooms() {
-        return regularRooms;
-    }
-
-    public void setRegularRooms(List<Room> regularRooms) {
-        this.regularRooms = regularRooms;
-    }
-
-    public List<Room> getAcRooms() {
-        return acRooms;
-    }
-
-    public void setAcRooms(List<Room> acRooms) {
-        this.acRooms = acRooms;
-    }
-
-    public List<Occupancy> getOccupancies() {
-        return occupancies;
-    }
-
-    public void setOccupancies(List<Occupancy> occupancies) {
-        this.occupancies = occupancies;
-    }
+    
 
     public Room getCommonRoom() {
         return commonRoom;
