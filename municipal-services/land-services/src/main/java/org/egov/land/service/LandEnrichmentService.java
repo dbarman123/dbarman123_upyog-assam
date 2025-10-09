@@ -199,7 +199,6 @@ public class LandEnrichmentService {
 					} else {
 						log.info("correspondence address id is not null hence updating existing one : {}", owner.getOwnerId());
 						owner.getCorrespondenceAddress().setAuditDetails(auditDetails);
-						landRequest.getLandInfo().getOwnerAddresses().add(owner.getCorrespondenceAddress());
 					}
 
 				}

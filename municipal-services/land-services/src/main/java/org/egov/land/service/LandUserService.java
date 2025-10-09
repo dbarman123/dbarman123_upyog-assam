@@ -74,6 +74,9 @@ public class LandUserService {
 					userDetailResponse = userCall(new CreateUserRequest(requestInfo, ownerInfo), uri);
 					owner.setUuid(userDetailResponse.getUser().get(0).getUuid());
 					log.debug("owner created --> " + userDetailResponse.getUser().get(0).getUuid());
+				}else{
+					owner.setUuid(userDetailResponse.getUser().get(0).getUuid());
+					log.info("user already exists adding uuid to ownerinfo --> " + owner.getUuid());
 				}
 
 			} else {
@@ -139,9 +142,11 @@ public class LandUserService {
 		ownerInfo.setName(ownerInfoV2.getName());
 		if(ownerInfoV2.getPermanentAddress() != null){
 			ownerInfo.setPermanentAddress(ownerInfoV2.getPermanentAddress().getAddressLine1());
+			ownerInfo.setPermanentPincode(ownerInfoV2.getPermanentAddress().getPincode());
 		}
 		if(ownerInfoV2.getCorrespondenceAddress() != null){
 			ownerInfo.setCorrespondenceAddress(ownerInfoV2.getCorrespondenceAddress().getAddressLine1());
+			ownerInfo.setCorrespondencePincode(ownerInfoV2.getCorrespondenceAddress().getPincode());
 		}
 		ownerInfo.setUuid(ownerInfoV2.getUuid());
 		ownerInfo.setUserName(ownerInfoV2.getUserName());
