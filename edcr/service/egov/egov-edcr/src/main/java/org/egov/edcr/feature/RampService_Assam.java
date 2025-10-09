@@ -612,34 +612,45 @@ public class RampService_Assam extends RampService {
         }
     }
     
+  
     /**
-     * Validates DA ramp dimensions:
-     * - Length shall not exceed 9 m between landings
-     * - Width shall not be less than 1.5 m with handrails on either side
+     * Validates the dimensions of DA (Disabled Access) Ramps for a given block.
+     * It checks both ramp length and width against the permissible limits defined in MDMS rules.
+     *
+     * @param pl              The plan object containing building details.
+     * @param block           The block containing DA ramps.
+     * @param scrutinyDetail  The scrutiny detail object for recording validation results.
      */
     private void validateDARampDimensions(Plan pl, Block block, ScrutinyDetail scrutinyDetail) {
         LOGGER.info("Validating DA Ramp dimensions for Block: {}", block.getNumber());
 
         for (DARamp daRamp : block.getDARamps()) {
-        	LOGGER.info("Processing DA Ramp: {}", daRamp);
+            LOGGER.info("Processing DA Ramp: {}", daRamp);
 
             if (daRamp.getMeasurements() != null && !daRamp.getMeasurements().isEmpty()) {
                 for (Measurement m : daRamp.getMeasurements()) {
                     BigDecimal length = m.getLength();
-                    BigDecimal width  = m.getWidth();
+                    List<BigDecimal> widthList = daRamp.getDaRampWidth();
 
-                    String providedLength = (length != null) 
-                            ? String.format("%.2f", length) 
+                   
+                    BigDecimal minWidth = (widthList != null && !widthList.isEmpty())
+                            ? widthList.stream().min(BigDecimal::compareTo).orElse(BigDecimal.ZERO)
+                            : null;
+
+                    String providedLength = (length != null)
+                            ? String.format("%.2f", length)
                             : NOT_DEFINED;
-                    String providedWidth = (width != null) 
-                            ? String.format("%.2f", width) 
+                    String providedWidth = (minWidth != null)
+                            ? String.format("%.2f", minWidth)
                             : NOT_DEFINED;
 
-                    LOGGER.info("Ramp Measurement → Length: {}, Width: {}", providedLength, providedWidth);
+                    LOGGER.info("Ramp Measurement → Length: {}, Min Width: {}", providedLength, providedWidth);
 
-                    BigDecimal rampServiceMaxLength = BigDecimal.valueOf(9);   // default
-                    BigDecimal rampServiceMinWidth  = BigDecimal.valueOf(1.5); // default
+                    
+                    BigDecimal rampServiceMaxLength = BigDecimal.valueOf(9);
+                    BigDecimal rampServiceMinWidth = BigDecimal.valueOf(1.5);
 
+                  
                     List<Object> rules = cache.getFeatureRules(pl, FeatureEnum.RAMP_SERVICE.getValue(), false);
                     Optional<RampServiceRequirement> matchedRule = rules.stream()
                             .filter(RampServiceRequirement.class::isInstance)
@@ -650,48 +661,53 @@ public class RampService_Assam extends RampService {
                         RampServiceRequirement rule = matchedRule.get();
                         if (rule.getRampServiceMaxLength() != null || rule.getRampServiceMinWidth() != null) {
                             rampServiceMaxLength = rule.getRampServiceMaxLength();
-                            rampServiceMinWidth  = rule.getRampServiceMinWidth();
-                            LOGGER.info("Matched rule → MaxLength: {}, MinWidth: {}", rampServiceMaxLength, rampServiceMinWidth);
+                            rampServiceMinWidth = rule.getRampServiceMinWidth();
+                            LOGGER.info("Matched rule → MaxLength: {}, MinWidth: {}",
+                                    rampServiceMaxLength, rampServiceMinWidth);
                         }
                     }
 
-                    // Length check
+                    //  Length validation
                     if (length == null || length.compareTo(rampServiceMaxLength) > 0) {
-                    	LOGGER.info("Ramp length validation failed. Required ≤ {}, Provided: {}", rampServiceMaxLength, providedLength);
+                        LOGGER.info("Ramp length validation failed. Required ≤ {}, Provided: {}",
+                                rampServiceMaxLength, providedLength);
                         setReportOutputDetails(pl,
                                 RULE_RAMP_LENGTH,
                                 DESC_RAMP_LENGTH,
-                                PERMISSIBLE_LENGTH,
+                                rampServiceMaxLength.toString(),
                                 providedLength,
                                 Result.Not_Accepted.getResultVal(),
                                 scrutinyDetail);
                     } else {
-                    	LOGGER.info("Ramp length validation passed. Required ≤ {}, Provided: {}", rampServiceMaxLength, providedLength);
+                        LOGGER.info("Ramp length validation passed. Required ≤ {}, Provided: {}",
+                                rampServiceMaxLength, providedLength);
                         setReportOutputDetails(pl,
                                 RULE_RAMP_LENGTH,
                                 DESC_RAMP_LENGTH,
-                                PERMISSIBLE_LENGTH,
+                                rampServiceMaxLength.toString(),
                                 providedLength,
                                 Result.Accepted.getResultVal(),
                                 scrutinyDetail);
                     }
 
-                    // Width check
-                    if (width == null || width.compareTo(rampServiceMinWidth) < 0) {
-                    	LOGGER.info("Ramp width validation failed. Required ≥ {}, Provided: {}", rampServiceMinWidth, providedWidth);
+                    //  Width validation
+                    if (minWidth == null || minWidth.compareTo(rampServiceMinWidth) < 0) {
+                        LOGGER.info("Ramp width validation failed. Required ≥ {}, Provided: {}",
+                                rampServiceMinWidth, providedWidth);
                         setReportOutputDetails(pl,
                                 RULE_RAMP_WIDTH,
                                 DESC_RAMP_WIDTH,
-                                PERMISSIBLE_WIDTH,
+                                rampServiceMinWidth.toString(),
                                 providedWidth,
                                 Result.Not_Accepted.getResultVal(),
                                 scrutinyDetail);
                     } else {
-                    	LOGGER.info("Ramp width validation passed. Required ≥ {}, Provided: {}", rampServiceMinWidth, providedWidth);
+                        LOGGER.info("Ramp width validation passed. Required ≥ {}, Provided: {}",
+                                rampServiceMinWidth, providedWidth);
                         setReportOutputDetails(pl,
                                 RULE_RAMP_WIDTH,
                                 DESC_RAMP_WIDTH,
-                                PERMISSIBLE_WIDTH,
+                                rampServiceMinWidth.toString(),
                                 providedWidth,
                                 Result.Accepted.getResultVal(),
                                 scrutinyDetail);

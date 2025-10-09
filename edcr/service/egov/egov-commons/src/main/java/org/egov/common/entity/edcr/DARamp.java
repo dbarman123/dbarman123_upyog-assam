@@ -105,7 +105,17 @@ public class DARamp extends Measurement {
 
     private BigDecimal slope;
     
-    private List<RampLanding> landings = new ArrayList<>();
+    private List<BigDecimal> daRampWidth;
+    
+    public List<BigDecimal> getDaRampWidth() {
+		return daRampWidth;
+	}
+
+	public void setDaRampWidth(List<BigDecimal> daRampWidth) {
+		this.daRampWidth = daRampWidth;
+	}
+
+	private List<RampLanding> landings = new ArrayList<>();
     
     private transient List<Measurement> measurements;
 
