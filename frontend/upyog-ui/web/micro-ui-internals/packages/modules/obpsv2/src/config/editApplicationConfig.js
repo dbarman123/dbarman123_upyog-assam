@@ -63,7 +63,7 @@ export const editApplicationConfig = [
             withoutLabel: true,
             key: "documents",
             type: "component",
-            nextStep: null,
+            nextStep: "form22A",
             hideInEmployee: true,
             isMandatory: true,
             texts: {

@@ -7,8 +7,9 @@ import {
     Loader,
     FormStep,
     CitizenInfoLabel,
-    MultiUploadWrapper
+    
 } from "@upyog/digit-ui-react-components";
+import MultiUploadWrapper from "../../../../react-components/src/molecules/MultiUploadWrapper";
 import Timeline from "../components/Timeline";
 import DocumentsPreview from "../../../templates/ApplicationDetails/components/DocumentsPreview";
 import { stringReplaceAll } from "../utils";

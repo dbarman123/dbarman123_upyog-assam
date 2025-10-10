@@ -55,7 +55,7 @@ const downloadPDFFileUsingBase64 = (receiptPDF, filename) => {
 function getBase64Image(tenantId) {
   try {
     const img = document.getElementById(`logo-${tenantId}`);
-    console.log("img", img)
+    
     var canvas = document.createElement("canvas");
     canvas.width = img.width;
     canvas.height = img.height;
@@ -1136,7 +1136,7 @@ headerData.push({
 })
 
   return headerData;
-  console.log("details", details)
+  
 }
 
 function createHeader(headerDetails,logo,tenantId) {
@@ -1244,153 +1244,138 @@ headerData.push({
 })
   return headerData;
 }
-function createContent(details, logo, tenantId,phoneNumber, breakPageLimit = null) {
-  const detailsHeaders = []; 
-  let counter=1;
-  details.forEach((detail, index) => {
-    console.log("detail",detail)
-    if (detail?.values?.length > 0) {
-      console.log("lennn", detail?.title.length)
-      detailsHeaders.push({
-        style: 'tableExample',
-        margin:[10,20,10,0],
-        layout:"noBorders",
-        table: {
-          widths: ['101.8%', '*'],
-          body: [
-              [
-                {
-                  text:  `${counter}. ${detail?.title}`, 
-                  border:[true, true, true, false],
-                  color: "#454545",                 
-                  style: "header",
-                  fontSize: 14,
-                  bold: true,
-                  margin:[0, 5, 0, 5]
-                }
-              ]
-          ]
-        }
-      })
-      counter++;
-    }
-    if (detail?.isAttachments && detail.values) {
-      detailsHeaders.push({
-        style: 'tableExample',
-        
-        margin:[10,0,0,0],
-        table: {
-          widths: ['40%', '60%'],
-          body: [
-            [
-              {
-               ul: detail?.values,
-               style: "header",
-               
-                fontSize: 10,
-                //bold: true
-              },
-            ]
-          ]
-    }})}
-    else {
-      if (Array.isArray(detail?.values)) {
-          // Check if the title is "Owner Details" and if there are multiple owners
-          const hasMultipleOwners = detail?.values.some(
-              indData => indData?.title === "Ownership" && indData?.value === "Multiple Owners"
-          );
-  
-          if ((detail?.title === "Owner Details" ||detail?.title ==="Transferor Details" ||detail?.title ==="Mutation")&& hasMultipleOwners) {
-              // Creating a new table for owner details with borders
-              const ownerDetailsTable = {
-                  style: 'tableExample',
-                  layout: {
-                      hLineWidth: () => 1,
-                      vLineWidth: () => 1,
-                      hLineColor: () => '#000',
-                      vLineColor: () => '#000',
-                      paddingLeft: () => 10,
-                      paddingRight: () => 10,
-                      paddingTop: () => 5,
-                      paddingBottom: () => 5
-                  },
-                  margin: [10, 0, 10, 0],
-                  table: {
-                      widths: ['40%', '60%'],
-                      body: []
-                  }
-              };
-  
-              // Populating the body of the table with owner details
-              detail.values.forEach((indData) => {
-                  ownerDetailsTable.table.body.push([
-                      {
-                          text: indData?.title,
-                          style: "header",
-                          fontSize: 10,
-                          border: [true, true, false, true], 
-                      },
-                      {
-                          text: `:  ${indData?.value}`,
-                          fontSize: 10,
-                          border: [false, true, true, true], 
-                      }
-                  ]);
-  
-                  // After "Owner Address", check for the flag
-                  if (indData?.title === "Owner Address") {
-                      // Add an empty row after "Owner Address"
-                      ownerDetailsTable.table.body.push([
-                          {
-                              text: '', // Empty cell
-                              border: [false, false, false, false], 
-                          },
-                          {
-                              text: '', // Empty cell
-                              border: [false, false, false, false], 
-                          }
-                      ]);
-                  }
-              });
-  
-              // Push the owner details table to detailsHeaders
-              detailsHeaders.push(ownerDetailsTable);
-          } else {
-              // Default behavior for other titles
-              detail.values.forEach((indData) => {
-                  detailsHeaders.push({
-                      style: 'tableExample',
-                      layout: "noBorders",
-                      margin: [10, 0, 0, 0],
-                      table: {
-                          widths: ['40%', '60%'],
-                          body: [
-                              [
-                                  {
-                                      text: indData?.title,
-                                      style: "header",
-                                      fontSize: 10,
-                                      border: [true, true, false, true], 
-                                  },
-                                  {
-                                      text: `:  ${indData?.value}`,
-                                      fontSize: 10,
-                                      border: [false, true, true, true], 
-                                  }
-                              ]
-                          ]
-                      }
-                  });
-              });
+function createContent(details, logo, tenantId, phoneNumber, breakPageLimit = null) {
+  const detailsHeaders = [];
+  let counter = 1;
+
+  details.forEach((detail) => {
+    if (!detail?.values?.length) return;
+    detailsHeaders.push({
+      style: "tableExample",
+      margin: [10, 20, 10, 0],
+      layout: "noBorders",
+      table: {
+        widths: ["100%"],
+        body: [[
+          {
+            text: `${counter}. ${detail?.title}`,
+            border: [true, true, true, false],
+            color: "#454545",
+            fontSize: 14,
+            bold: true,
+            margin: [0, 5, 0, 5]
           }
+        ]]
       }
-  }
-  
+    });
+    counter++;
+    detail.values.forEach((item) => {
+      const { title, value } = item;
+
+      let parsedValue = value;
+      let isArrayTable = false;
+
+      try {
+        const json = JSON.parse(value);
+        if (Array.isArray(json) && json.length && typeof json[0] === "object") {
+          parsedValue = json;
+          isArrayTable = true;
+        }
+      } catch (e) {}
+
+      if (isArrayTable) {
+        detailsHeaders.push({
+          style: "tableExample",
+          layout: "noBorders",
+          margin: [10, 5, 10, 0],
+          table: {
+            widths: ["100%"],
+            body: [[
+              {
+                text: title.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase()),
+                fontSize: 11,
+                bold: true,
+                color: "#333333",
+                margin: [0, 3, 0, 3]
+              }
+            ]]
+          }
+        });
+
+        const keys = Object.keys(parsedValue[0]);
+        const tableBody = [];
+
+        tableBody.push(
+          keys.map((k) => ({
+            text: k.replace(/([A-Z])/g, " $1").replace(/^./, str => str.toUpperCase()),
+            bold: true,
+            alignment: "center",
+            fontSize: 10,
+            fillColor: "#f0f0f0"
+          }))
+        );
+
+        parsedValue.forEach((row) => {
+          tableBody.push(
+            keys.map((k) => ({
+              text:
+                row[k] === "" || row[k] === null || row[k] === undefined
+                  ? "NA"
+                  : String(row[k]),
+              alignment: "center",
+              fontSize: 10
+            }))
+          );
+        });
+
+        detailsHeaders.push({
+          style: "tableExample",
+          margin: [10, 0, 10, 15],
+          table: {
+            headerRows: 1,
+            widths: Array(keys.length).fill("*"),
+            body: tableBody
+          },
+          layout: {
+            hLineWidth: () => 0.5,
+            vLineWidth: () => 0.5,
+            hLineColor: () => "#ccc",
+            vLineColor: () => "#ccc"
+          }
+        });
+      } else {
+        const displayValue =
+          value === "" || value === null || value === undefined ? "NA" : value;
+
+        detailsHeaders.push({
+          style: "tableExample",
+          layout: "noBorders",
+          margin: [10, 0, 0, 0],
+          table: {
+            widths: ["40%", "60%"],
+            body: [[
+              {
+                text: title,
+                style: "header",
+                fontSize: 10,
+                border: [true, true, false, true]
+              },
+              {
+                text: `:  ${displayValue}`,
+                fontSize: 10,
+                border: [false, true, true, true]
+              }
+            ]]
+          }
+        });
+      }
+    });
   });
- 
 
   return detailsHeaders;
 }
+
+
 
 
 
@@ -1589,7 +1574,7 @@ function createContentForDetailsWithLengthOfTwo(values, data, column1, column2, 
 }
 
 function createContentForDetailsWithLengthOfOneAndThree(values, data, column1, column2, num = 0) {
-  console.log("createContentForDetailsWithLengthOfOneAndThree",values, data, column1, column2)
+  
   values.forEach((value, index) => {
     if (index === 0) {
       column1.push({

@@ -14,14 +14,14 @@ const Form23A = ({ config, onSelect, userType, formData, value = formData }) => 
   const { pathname: url } = useLocation();
   const { t } = useTranslation();
   const [classificationOfProposal, setClassificationOfProposal] = useState(formData?.classificationOfProposal || formData?.form23A?.classificationOfProposal || "");
-  const [revenueVillage, setRevenueVillage] = useState(formData?.revenueVillage || formData?.form23A?.revenueVillage || "");
-  const [mouza, setMouza] = useState(formData?.mouza || formData?.form23A?.mouza || "");
-  const [dagNo, setDagNo] = useState(formData?.dagNo || formData?.form23A?.dagNo || "");
+  const [revenueVillage, setRevenueVillage] = useState(formData?.areaMapping?.revenueVillage?.code||formData?.revenueVillage || formData?.form23A?.revenueVillage || "");
+  const [mouza, setMouza] = useState(formData?.areaMapping?.mouza?.code||formData?.mouza || formData?.form23A?.mouza || "");
+  const [dagNo, setDagNo] = useState(formData?.form?.scrutinyDetails?.planDetail?.planInfoProperties?.["DAG NO"]||formData?.dagNo || formData?.form23A?.dagNo || "");
   const [pattaNo, setPattaNo] = useState(formData?.pattaNo || formData?.form23A?.pattaNo || "");
-  const [sitePlanArea, setSitePlanArea] = useState(formData?.sitePlanArea || formData?.form23A?.sitePlanArea || "");
+  const [sitePlanArea, setSitePlanArea] = useState(formData?.form?.scrutinyDetails?.planDetail?.planInformation?.plotArea||formData?.sitePlanArea || formData?.form23A?.sitePlanArea || "");
   const [landDocumentArea, setLandDocumentArea] = useState(formData?.landDocumentArea || formData?.form23A?.landDocumentArea ||"");
-  const [buildingHeight, setBuildingHeight] = useState(formData?.buildingHeight || formData?.form23A?.buildingHeight ||"");
-  const [heightofPlinth, setHeightOfPlinth] = useState(formData?.heightofPlinth || formData?.form23A?.heightofPlinth || "");
+  const [buildingHeight, setBuildingHeight] = useState(formData?.form?.scrutinyDetails?.planDetail?.blocks?.[0]?.building?.buildingHeight ||formData?.buildingHeight || formData?.form23A?.buildingHeight ||"");
+  const [heightofPlinth, setHeightOfPlinth] = useState(formData?.form?.scrutinyDetails?.planDetail.blocks[0].plinthHeight?.[0]);
   const [permitFee, setPermitFee] = useState(formData?.permitFee || formData?.form23A?.permitFee || "");
   const [cityInfrastructureCharges, setCityInfrastrutureCharges] = useState(formData?.cityInfrastructureCharges || formData?.form23A?.cityInfrastructureCharges || "");
   const [additionalFloorSpaceCharges, setAdditionalFloorSpaceCharges] = useState(formData?.additionalFloorSpaceCharges || formData?.form23A?.additionalFloorSpaceCharges ||"");
@@ -31,38 +31,73 @@ const Form23A = ({ config, onSelect, userType, formData, value = formData }) => 
   const [receiptNo, setReceiptNo] = useState(formData?.receiptNo || formData?.form23A?.receiptNo ||"");
   const [dateValue, setDateValue] = useState(formData?.dateValue || formData?.form23A?.dateValue || "");
   const [tables, setTables] = useState({
-    roadFacingPlot: formData?.roadFacingPlot || formData?.form23A?.roadFacingPlot|| [
-      { existingWidth: "", proposedWidth: "", remarks: "" },
-    ],
+    roadFacingPlot: formData?.roadFacingPlot || formData?.form23A?.roadFacingPlot || [{ existingWidth: formData?.form?.scrutinyDetails?.planDetail?.planInformation?.roadWidth, proposedWidth: "", remarks: "" }],
     principalBylaws: formData?.principalBylaws || [
-      { desc: "Max Ground Coverage", proposed: "", use: "", permissible: "", carpetArea: "", remarks: "" },
-      { desc: "Basement", proposed: "", use: "", permissible: "", carpetArea: "", remarks: "" },
-      { desc: "No of floors", proposed: "", use: "", permissible: "", carpetArea: "", remarks: "" },
-      { desc: "Service floor if any", proposed: "", use: "", permissible: "", carpetArea: "", remarks: "" },
-      { desc: "Total floor area", proposed: "", use: "", permissible: "", carpetArea: "", remarks: "" },
-      { desc: "Floor Area Ratio", proposed: "", use: "", permissible: "", carpetArea: "", remarks: "" },
+      { desc: "Max Ground Coverage", proposed: formData?.form?.scrutinyDetails?.planDetail.blocks[0].building.coverageArea, use: formData?.form?.scrutinyDetails?.planDetail?.planInformation?.occupancy, permissible: "", carpetArea: "", remarks: "" },
+      ...formData?.form?.scrutinyDetails?.planDetail?.blocks?.[0].building.floors?.map((floor, index) => {
+        return {
+          desc: `Floor ${floor?.number}`,
+          proposed: floor?.occupancies[0]?.builtUpArea || "",
+          use: formData?.form?.scrutinyDetails?.planDetail?.planInformation?.occupancy,
+          permissible: "",
+          carpetArea: "",
+          remarks: ""
+        };
+      }) || [],
+      formData?.form?.scrutinyDetails?.planDetail.blocks[0].building.serviceFloors.length > 0 ? { desc: "Service floor if any", proposed: "", use: "", permissible: "", carpetArea: "", remarks: "" } : "",
+      { desc: "Total floor area", proposed: formData?.form?.scrutinyDetails?.planDetail.blocks[0].building.totalFloorArea, use: formData?.form?.scrutinyDetails?.planDetail?.planInformation?.occupancy, permissible: "", carpetArea: "", remarks: "" },
+      { desc: "Floor Area Ratio", proposed: formData?.form?.scrutinyDetails?.planDetail.farDetails.providedFar, use: "", permissible: "", carpetArea: "", remarks: "" },
       { desc: "No. of Dwelling units", proposed: "", use: "", permissible: "", carpetArea: "", remarks: "" },
     ],
-    setbacks: formData?.setbacks || [
-      { side: "Front", clear: "", cantilever: "", reqClear: "", reqCantilever: "", remarks: "" },
-      { side: "Rear", clear: "", cantilever: "", reqClear: "", reqCantilever: "", remarks: "" },
-      { side: "Left", clear: "", cantilever: "", reqClear: "", reqCantilever: "", remarks: "" },
-      { side: "Right", clear: "", cantilever: "", reqClear: "", reqCantilever: "", remarks: "" },
+    setbacks: [
+      { side: "Front", clear: formData?.form?.scrutinyDetails?.planDetail.blocks[0].setBacks?.[0]?.frontYard?.area, cantilever: "", reqClear: "", reqCantilever: "", remarks: "" },
+      { side: "Rear", clear: formData?.form?.scrutinyDetails?.planDetail.blocks[0].setBacks?.[0]?.rearYard?.area, cantilever: "", reqClear: "", reqCantilever: "", remarks: "" },
+      { side: "Left", clear: formData?.form?.scrutinyDetails?.planDetail.blocks[0].setBacks?.[0]?.sideYard1?.area, cantilever: "", reqClear: "", reqCantilever: "", remarks: "" },
+      { side: "Right", clear: formData?.form?.scrutinyDetails?.planDetail.blocks[0].setBacks?.[0]?.sideYard2?.area, cantilever: "", reqClear: "", reqCantilever: "", remarks: "" }
     ],
     ducts: formData?.ducts || [{ no: "", area: "", width: "" }],
     electricLine: formData?.electricLine || [{ nature: "", verticalDistance: "", horizontalDistance: "" }],
-    parkingProvided: formData?.parkingProvided || [{ open: "", stilt: "", basement: "", total: "" }],
-    parkingRequired: formData?.parkingRequired || [
-      { type: "", car: "", scooter: "", remarks: "" },
-      { type: "", car: "", scooter: "", remarks: "" },
-      { type: "", car: "", scooter: "", remarks: "" },
-    ],
+    parkingProvided: getParkingProvided(formData, "provided"),
+    parkingRequired: getParkingProvided(formData, "required"),
     visitorsParking: formData?.visitorsParking || [
-      { type: "", car: "", scooter: "" },
-      { type: "", car: "", scooter: "" },
       { type: "", car: "", scooter: "" },
     ],
   });
+  
+  // function getSideClear(side) {
+  //   const sideDetails = formData?.form?.scrutinyDetails?.planDetail.blocks[0].setBacks.find(item => 
+  //     item?.key?.toLowerCase().includes(side.toLowerCase())
+  //   );
+  //   return sideDetails ? sideDetails?.detail?.[0]?.Provided || "" : "";
+  // }
+  
+  
+  function getParkingProvided(formData, type) {
+    const commonParking = formData?.form?.scrutinyDetails?.planDetail?.reportOutput?.scrutinyDetails.find(item =>
+      item?.key === "Common_Parking" 
+    );
+  
+    if (commonParking && commonParking.detail) {
+      const openParkingArea = commonParking.detail.find(item => 
+        item?.Description?.toLowerCase() === "open parking area"
+      );
+      const carParking = commonParking.detail.find(item => 
+        item?.Description?.toLowerCase() === "car parking"
+      );
+  
+      if (openParkingArea && type === "provided") {
+        return [{ open: openParkingArea?.Provided || "", stilt: "", basement: "", total: "" }];
+      }
+  
+      if (carParking && type === "required") {
+        return [{ type: "Residential", car: carParking?.Required || "", scooter: "", remarks: "" }];
+      }
+    }
+  
+
+    return [{ open: "", stilt: "", basement: "", total: "" }];
+  }
+  
 
   const handleTableChange = (tableKey, rowIndex, field, value) => {
     const updated = { ...tables };
@@ -239,39 +274,70 @@ const Form23A = ({ config, onSelect, userType, formData, value = formData }) => 
 
         <CardLabel>(4) {t("SETBACKS")}</CardLabel>
         <table style={{ width: "80%", borderCollapse: "collapse", border: "1px solid #ccc" }}>
-          <thead>
-            <tr style={{ backgroundColor: "#f0f0f0" }}>
-              <th style={cellStyle}>Setbacks</th>
-              <th style={cellStyle}>Clear setback</th>
-              <th style={cellStyle}>Cantilever projection</th>
-              <th style={cellStyle}>Req. Clear setback</th>
-              <th style={cellStyle}>Req. Cantilever</th>
-              <th style={cellStyle}>Remarks</th>
-            </tr>
-          </thead>
-          <tbody>
-            {tables.setbacks.map((row, idx) => (
-              <tr key={idx}>
-                <td style={cellStyle}>{row.side}</td>
-                <td style={cellStyle}>
-                  <input type="text" value={row.clear} onChange={(e) => handleTableChange("setbacks", idx, "clear", e.target.value)} />
-                </td>
-                <td style={cellStyle}>
-                  <input type="text" value={row.cantilever} onChange={(e) => handleTableChange("setbacks", idx, "cantilever", e.target.value)} />
-                </td>
-                <td style={cellStyle}>
-                  <input type="text" value={row.reqClear} onChange={(e) => handleTableChange("setbacks", idx, "reqClear", e.target.value)} />
-                </td>
-                <td style={cellStyle}>
-                  <input type="text" value={row.reqCantilever} onChange={(e) => handleTableChange("setbacks", idx, "reqCantilever", e.target.value)} />
-                </td>
-                <td style={cellStyle}>
-                  <input type="text" value={row.remarks} onChange={(e) => handleTableChange("setbacks", idx, "remarks", e.target.value)} />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+  <thead>
+    <tr style={{ backgroundColor: "#f0f0f0" }}>
+      <th style={cellStyle} rowSpan="2">Setbacks</th>
+      <th style={cellStyle} colSpan="2">Proposed</th>
+      <th style={cellStyle} colSpan="2">Required as per byelaws (For office use)</th>
+      <th style={cellStyle} rowSpan="2">Remarks</th>
+    </tr>
+    <tr style={{ backgroundColor: "#f0f0f0" }}>
+      <th style={cellStyle}>Clear setback (in meter)</th>
+      <th style={cellStyle}>Cantilever projection (in meter)</th>
+      <th style={cellStyle}>Clear setback (in meter)</th>
+      <th style={cellStyle}>Cantilever projection (in meter)</th>
+    </tr>
+  </thead>
+  <tbody>
+    {tables.setbacks.map((row, idx) => (
+      <tr key={idx}>
+        <td style={cellStyle}>{row.side}</td>
+        <td style={cellStyle}>
+          <input
+            type="text"
+            value={row.clear}
+            onChange={(e) => handleTableChange("setbacks", idx, "clear", e.target.value)}
+            placeholder="Enter Clear Setback"
+          />
+        </td>
+        <td style={cellStyle}>
+          <input
+            type="text"
+            value={row.cantilever}
+            onChange={(e) => handleTableChange("setbacks", idx, "cantilever", e.target.value)}
+            placeholder="Enter Cantilever"
+          />
+        </td>
+        <td style={cellStyle}>
+          <input
+            type="text"
+            value={row.reqClear}
+            onChange={(e) => handleTableChange("setbacks", idx, "reqClear", e.target.value)}
+            placeholder="Enter Required Clear Setback"
+          />
+        </td>
+        <td style={cellStyle}>
+          <input
+            type="text"
+            value={row.reqCantilever}
+            onChange={(e) => handleTableChange("setbacks", idx, "reqCantilever", e.target.value)}
+            placeholder="Enter Required Cantilever"
+          />
+        </td>
+        <td style={cellStyle}>
+          <input
+            type="text"
+            value={row.remarks}
+            onChange={(e) => handleTableChange("setbacks", idx, "remarks", e.target.value)}
+            placeholder="Enter Remarks"
+          />
+        </td>
+      </tr>
+    ))}
+  </tbody>
+</table>
+
+
         <br/>
 
         <CardLabel>(5) {t("DUCTS")}</CardLabel>
@@ -301,8 +367,9 @@ const Form23A = ({ config, onSelect, userType, formData, value = formData }) => 
         </table>
         <br/>
 
-        
-        <CardLabel>(6) {t("DISTANCE_FROM_ELECTRIC_LINE")}</CardLabel>
+        {formData?.form?.scrutinyDetails?.planDetail?.electricLine/length > 0 && (
+          <div>
+          <CardLabel> {t("DISTANCE_FROM_ELECTRIC_LINE")}</CardLabel>
         <table style={{ width: "80%", borderCollapse: "collapse", border: "1px solid #ccc" }}>
           <thead>
             <tr style={{ backgroundColor: "#f0f0f0" }}>
@@ -328,16 +395,19 @@ const Form23A = ({ config, onSelect, userType, formData, value = formData }) => 
           </tbody>
         </table>
         <br/>
+        </div>
+        )}
+        
 
-        <CardLabel>(7) {t("PARKING")}</CardLabel>
+        <CardLabel>(6) {t("PARKING")}</CardLabel>
         <CardLabel style={{ fontSize: "14px", marginLeft: "20px" }}>(A) {t("PARKING_PROVIDED_AS_PER_BUILDING_BYE_LAWS")}</CardLabel>
         <table style={{ width: "80%", borderCollapse: "collapse", border: "1px solid #ccc" }}>
           <thead>
             <tr style={{ backgroundColor: "#f0f0f0" }}>
-              <th style={cellStyle}>Open</th>
-              <th style={cellStyle}>Stilt</th>
-              <th style={cellStyle}>Basement</th>
-              <th style={cellStyle}>Total</th>
+              <th style={cellStyle}>{t("OPEN_PARKING")}</th>
+              <th style={cellStyle}>{t("STILT_PARKING")}</th>
+              <th style={cellStyle}>{t("BASEMENT_PARKING")}</th>
+              <th style={cellStyle}>{t("TOTAL_NO_OF_PARKING")}</th>
             </tr>
           </thead>
           <tbody>
@@ -365,10 +435,10 @@ const Form23A = ({ config, onSelect, userType, formData, value = formData }) => 
         <table style={{ width: "80%", borderCollapse: "collapse", border: "1px solid #ccc" }}>
           <thead>
             <tr style={{ backgroundColor: "#f0f0f0" }}>
-              <th style={cellStyle}>Type</th>
-              <th style={cellStyle}>Car</th>
-              <th style={cellStyle}>Scooter</th>
-              <th style={cellStyle}>Remarks</th>
+              <th style={cellStyle}>{t("TYPE_OF_USE_OF_BUILDING")}</th>
+              <th style={cellStyle}>{t("CAR_PARKING")}</th>
+              <th style={cellStyle}>{t("SCOOTER_PARKING")}</th>
+              <th style={cellStyle}>{t("REMARKS")}</th>
             </tr>
           </thead>
           <tbody>
@@ -396,9 +466,10 @@ const Form23A = ({ config, onSelect, userType, formData, value = formData }) => 
         <table style={{ width: "80%", borderCollapse: "collapse", border: "1px solid #ccc" }}>
           <thead>
             <tr style={{ backgroundColor: "#f0f0f0" }}>
-              <th style={cellStyle}>Type</th>
-              <th style={cellStyle}>Car</th>
-              <th style={cellStyle}>Scooter</th>
+            <th style={cellStyle}>{t("TYPE_OF_USE_OF_BUILDING")}</th>
+              <th style={cellStyle}>{t("CAR_PARKING")}</th>
+              <th style={cellStyle}>{t("SCOOTER_PARKING")}</th>
+              <th style={cellStyle}>{t("REMARKS")}</th>
             </tr>
           </thead>
           <tbody>
@@ -421,7 +492,7 @@ const Form23A = ({ config, onSelect, userType, formData, value = formData }) => 
         <CardLabel>{t("BUILDING_AREA_NOTE")}</CardLabel>
 
         <br/>
-        <CardLabel>(8) {t("FEE_AND_CHARGES")}</CardLabel>
+        <CardLabel>(7) {t("FEE_AND_CHARGES")}</CardLabel>
         <CardLabel>{t("PERMIT_FEE")}</CardLabel>
         <TextInput value={permitFee} onChange={(e) => setPermitFee(e.target.value)} placeholder={t("Text Input")} />
 

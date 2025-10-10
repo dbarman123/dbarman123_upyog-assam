@@ -266,12 +266,12 @@ export const bpaEditPayload = async (formData) => {
       planningPermitAuthority: (formData.areaMapping.ppAuthority?.code ? formData.areaMapping.ppAuthority?.code : formData.areaMapping.ppAuthority) ?? (updated.areaMapping.planningPermitAuthority?.code ? updated.areaMapping.planningPermitAuthority?.code : updated.areaMapping.planningPermitAuthority)
     };
   }
-  if (formData?.rtpDetails) {
+  if (formData?.land?.rtpCategory || formData?.land?.registeredTechnicalPerson) {
     updated.rtpDetails = {
       ...updated.rtpDetails,
-      rtpCategory: formData.rtpDetails.rtpCategory ?? updated.rtpDetails.rtpCategory,
-      rtpName: formData.rtpDetails.rtpName ?? updated.rtpDetails.rtpName,
-      rtpUUID: formData.rtpDetails.rtpUUID ?? updated.rtpDetails.rtpUUID
+      rtpCategory: formData.land.rtpCategory?.code,
+      rtpName: formData.land.registeredTechnicalPerson?.name,
+      rtpUUID: formData.land.registeredTechnicalPerson?.code,
     };
   }
   if (formData?.additionalDetails) {
@@ -280,7 +280,7 @@ export const bpaEditPayload = async (formData) => {
       ...formData.additionalDetails
     };
   }
-  if (formData?.documents) {
+  if (formData?.documents?.length) {
     updated.documents = formData?.documents?.documents
   }
   updated.status = "EDIT_APPLICATION";

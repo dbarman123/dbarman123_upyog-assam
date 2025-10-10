@@ -18,6 +18,7 @@ import { useHistory } from "react-router-dom";
 import { checkForNA, getOrderDocuments } from "../../../utils";
 import DocumentsPreview from "../../../../../templates/ApplicationDetails/components/DocumentsPreview";
 import Timeline from "../../../components/Timeline";
+import FormAcknowledgement from "./FormAcknowledgement";
 const ActionButton = ({ jumpTo }) => {
   const history = useHistory();
 
@@ -54,12 +55,51 @@ const CheckPage = ({ onSubmit, value = {} }) => {
   const setDeclarationHandler = () => {
     setAgree(!agree);
   };
+  const { data: storeData } = Digit.Hooks.useStore.getInitData();
+  const { tenants } = storeData || {};
   const cellStyle = {
     border: "1px solid #ccc",
     padding: "8px",
     textAlign: "left",
     fontSize: "14px",
   };
+const handleDownloadPdf = async (formType) => {
+  try {
+    let formData = null;
+    let tenantId = Digit.ULBService.getCitizenCurrentTenant(true) || Digit.ULBService.getCurrentTenantId();
+    const tenantInfo  = tenants.find((tenant) => tenant.code === tenantId);
+    switch (formType) {
+      case "FORM_22":
+        formData = value?.form;
+        break;
+      case "FORM_23A":
+        formData = value?.form23A;
+        break;
+      case "FORM_23B":
+        formData = value?.form23B;
+        break;
+      default:
+        formData = null;
+    }
+
+    if (!formData) {
+      console.error("No data found for", formType);
+      return;
+    }
+
+    const acknowledgementData = await FormAcknowledgement(
+      { formType, formData },
+      tenantInfo,
+      t
+    );
+
+    Digit.Utils.pdf.generate(acknowledgementData);
+  } catch (err) {
+    console.error("PDF download failed for", formType, err);
+  }
+};
+
+
   
   let routeLink = window.location.href.includes("editApplication") ? `/upyog-ui/citizen/obpsv2/editApplication`:"";
   
@@ -88,12 +128,18 @@ const CheckPage = ({ onSubmit, value = {} }) => {
 
   const getDetailsRow = (formDetails) => {
     if (!formDetails) return null;
-
+  
+    const renderValue = (val) => {
+      if (val === null || val === undefined) return "NA";
+      if (typeof val === "string" && val.trim() === "") return "NA";
+      return val?.toString().trim() || "NA";
+    };
+  
     const renderTable = (data, key) => {
       if (!Array.isArray(data) || data.length === 0) return null;
-
-      const headers = Object.keys(data[0]);
-
+  
+      const headers = Object.keys(data[0] || {});
+  
       return (
         <div key={key} style={{ marginTop: "20px" }}>
           <h4>{t(key.toUpperCase())}</h4>
@@ -123,7 +169,7 @@ const CheckPage = ({ onSubmit, value = {} }) => {
                   <td style={cellStyle}>{idx + 1}</td>
                   {headers.map((field) => (
                     <td key={field} style={cellStyle}>
-                      {row[field] || "NA"}
+                      {renderValue(row[field])}
                     </td>
                   ))}
                 </tr>
@@ -133,31 +179,38 @@ const CheckPage = ({ onSubmit, value = {} }) => {
         </div>
       );
     };
-
+  
     return (
       <div>
         <StatusTable>
-          {Object.entries(formDetails).map(([key, value], index) => {
-            if (typeof value === "string") {
-              return (
-                <Row
-                  key={index}
-                  label={t(key.toUpperCase())}
-                  text={value?.trim() || "NA"}
-                />
-              );
-            }
-
-            if (Array.isArray(value)) {
-              return renderTable(value, key);
-            }
-
-            return null;
-          })}
+          {Object.entries(formDetails)
+            .filter(([key]) => key !== "scrutinyDetails")
+            .map(([key, value], index) => {
+              if (
+                typeof value === "string" ||
+                typeof value === "number" ||
+                typeof value === "boolean"
+              ) {
+                return (
+                  <Row
+                    key={index}
+                    label={t(key.toUpperCase())}
+                    text={renderValue(value)}
+                  />
+                );
+              }
+  
+              if (Array.isArray(value)) {
+                return renderTable(value, key);
+              }
+  
+              return null;
+            })}
         </StatusTable>
       </div>
     );
   };
+  
 
   return (
     <React.Fragment>
@@ -573,14 +626,14 @@ const CheckPage = ({ onSubmit, value = {} }) => {
               }
             </StatusTable>
             
-              {/* <div
+              <div
                 style={{
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "center",
                 }}
               >
-                <CardLabel style={{ fontSize: "18px", marginTop: "24px", fontWeight: "bold" }}>{t("FORM_22_DETAILS")}</CardLabel>
+                <CardLabel style={{ fontSize: "20px", marginTop: "24px", fontWeight: "bold" }}>{t("FORM_22_DETAILS")}</CardLabel>
                 {!expanded.form22 && (
                   <LinkButton
                     label={t("VIEW_DETAILS")}
@@ -588,6 +641,21 @@ const CheckPage = ({ onSubmit, value = {} }) => {
                     style={{ marginRight: "1rem" }}
                   />
                 )}
+                <LinkButton
+                  label={
+                    <div className="response-download-button">
+                      <span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#a82227">
+                          <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" />
+                        </svg>
+                      </span>
+                      <span className="download-button">{t("CS_COMMON_DOWNLOAD")}</span>
+                    </div>
+                  }
+                  onClick={() => handleDownloadPdf("FORM_22")}
+                  className="w-full"
+                />
+
               </div>
 
               {expanded.form22 && (
@@ -614,7 +682,7 @@ const CheckPage = ({ onSubmit, value = {} }) => {
                   alignItems: "center",
                 }}
               >
-                <CardLabel style={{ fontSize: "18px", marginTop: "24px", fontWeight: "bold" }}>{t("FORM_23A_DETAILS")}</CardLabel>
+                <CardLabel style={{ fontSize: "20px", marginTop: "24px", fontWeight: "bold" }}>{t("FORM_23A_DETAILS")}</CardLabel>
                 {!expanded.form23A && (
                   <LinkButton
                     label={t("VIEW_DETAILS")}
@@ -622,6 +690,21 @@ const CheckPage = ({ onSubmit, value = {} }) => {
                     style={{ marginRight: "1rem" }}
                   />
                 )}
+                <LinkButton
+                  label={
+                    <div className="response-download-button">
+                      <span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#a82227">
+                          <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" />
+                        </svg>
+                      </span>
+                      <span className="download-button">{t("CS_COMMON_DOWNLOAD")}</span>
+                    </div>
+                  }
+                  onClick={() => handleDownloadPdf("FORM_23A")}
+                  className="w-full"
+                />
+
               </div>
 
               {expanded.form23A && (
@@ -645,7 +728,7 @@ const CheckPage = ({ onSubmit, value = {} }) => {
                   alignItems: "center",
                 }}
               >
-                <CardLabel style={{ fontSize: "18px", marginTop: "24px", fontWeight: "bold" }}>{t("FORM_23B_DETAILS")}</CardLabel>
+                <CardLabel style={{ fontSize: "20px", marginTop: "24px", fontWeight: "bold" }}>{t("FORM_23B_DETAILS")}</CardLabel>
                 {!expanded.form23B && (
                   <LinkButton
                     label={t("VIEW_DETAILS")}
@@ -653,6 +736,21 @@ const CheckPage = ({ onSubmit, value = {} }) => {
                     style={{ marginRight: "1rem" }}
                   />
                 )}
+                <LinkButton
+                  label={
+                    <div className="response-download-button">
+                      <span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#a82227">
+                          <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" />
+                        </svg>
+                      </span>
+                      <span className="download-button">{t("CS_COMMON_DOWNLOAD")}</span>
+                    </div>
+                  }
+                  onClick={() => handleDownloadPdf("FORM_23B")}
+                  className="w-full"
+                />
+
               </div>
 
               {expanded.form23B && (
@@ -667,7 +765,7 @@ const CheckPage = ({ onSubmit, value = {} }) => {
                   </div>
                 </React.Fragment>
               )}
-            </StatusTable> */}
+            </StatusTable>
           </React.Fragment>
         ) : null}
 

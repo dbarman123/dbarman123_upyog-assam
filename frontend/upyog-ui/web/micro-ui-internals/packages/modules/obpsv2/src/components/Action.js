@@ -24,6 +24,8 @@ const Action = ({ selectedAction, applicationNo, closeModal, setSelectedAction, 
   const [newRTPName, setNewRTPName] = useState();
   const [popup, setPopup] = useState(false);
   const [error, setError] = useState(null);
+  const [file, setFile] = useState(null);
+  const [isUploading, setIsUploading] = useState(false); 
 
   const [assignResponse, setAssignResponse] = useState(null);
   const tenantId =  Digit.ULBService.getCitizenCurrentTenant(true) || Digit.ULBService.getCurrentTenantId();
@@ -36,6 +38,32 @@ const Action = ({ selectedAction, applicationNo, closeModal, setSelectedAction, 
       return () => clearTimeout(timer);
     }
   }, [toast, error]);
+  useEffect(() => {
+    (async () => {
+      setError(null);
+      if (file) {
+        if (file.size >= 5242880) {
+          setError(t("CS_MAXIMUM_UPLOAD_SIZE_EXCEEDED"));
+        } else {
+          try {
+            setUploadedFile(null);
+            setIsUploading(true);
+            // TODO: change module in file storage
+            const response = await Digit.UploadServices.Filestorage("OBPSV2", file, Digit.ULBService.getStateId());
+            if (response?.data?.files?.length > 0) {
+              setUploadedFile(response?.data?.files[0]?.fileStoreId);
+            } else {
+              setError(t("CS_FILE_UPLOAD_ERROR"));
+            }
+          } catch (err) {
+            setError(t("CS_FILE_UPLOAD_ERROR"));
+          } finally {
+            setIsUploading(false);
+          }
+        }
+      }
+    })();
+  }, [file]);
 
   // Cleanup effect when component unmounts
   useEffect(() => {
@@ -90,7 +118,7 @@ const Action = ({ selectedAction, applicationNo, closeModal, setSelectedAction, 
     setComments(e.target.value);
   }
   function selectFile(e) {
-    setUploadedFile(e.target.files[0]);
+    setFile(e.target.files[0]);
   }
   const Close = () => (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#FFFFFF">
@@ -107,6 +135,9 @@ const Action = ({ selectedAction, applicationNo, closeModal, setSelectedAction, 
     );
   };
 
+  const LoadingSpinner = () => (
+    <div className="loading-spinner" />
+  );
   const Heading = (props) => {
     return <h1 className="heading-m">{props.label}</h1>;
   };
@@ -141,6 +172,13 @@ const Action = ({ selectedAction, applicationNo, closeModal, setSelectedAction, 
             action: selectedAction ,
             assignes: null,
             comments: comments,
+            varificationDocuments: uploadedFile ? [
+              {
+                documentType: file.type,
+                fileName: file?.name,
+                fileStoreId: uploadedFile,
+              },
+            ] : null
             };
             try {
                 const response = await OBPSV2Services.update({BPA : bpaDetails?.bpa[0]}, tenantId);
@@ -235,7 +273,15 @@ const Action = ({ selectedAction, applicationNo, closeModal, setSelectedAction, 
                     accept=".jpg"
                     onUpload={selectFile}
                     onDelete={() => setUploadedFile(null)}
-                    message={uploadedFile ? `1 ${t("CS_ACTION_FILEUPLOADED")}` : t("CS_ACTION_NO_FILEUPLOADED")}
+                    message={isUploading ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <LoadingSpinner />
+                        <span>Uploading...</span>
+                      </div>
+                      ) : uploadedFile
+                        ? `1 ${t("CS_ACTION_FILEUPLOADED")}`
+                        : t("CS_ACTION_NO_FILEUPLOADED")
+                    }
                   />
                 </div>
               )}
@@ -247,7 +293,12 @@ const Action = ({ selectedAction, applicationNo, closeModal, setSelectedAction, 
             accept=".jpg"
             onUpload={selectFile}
             onDelete={() => setUploadedFile(null)}
-            message={
+            message={isUploading ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <LoadingSpinner />
+                        <span>Uploading...</span>
+                      </div>
+                      ) : 
               uploadedFile
                 ? `1 ${t("CS_ACTION_FILEUPLOADED")}`
                 : t("CS_ACTION_NO_FILEUPLOADED")

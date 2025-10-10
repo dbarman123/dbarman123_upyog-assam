@@ -279,7 +279,7 @@ const LandDetails = ({ t, config, onSelect, formData, searchResult }) => {
       >
         <div>
           {/* Type of Construction */}
-          <CardLabel>{`${t("BPA_CONSTRUCTION_TYPE")}`}</CardLabel>
+          <CardLabel>{`${t("BPA_CONSTRUCTION_TYPE")}`} <span className="check-page-link-button">*</span></CardLabel>
           <Dropdown
             t={t}
             option={constructionTypeOptions}
