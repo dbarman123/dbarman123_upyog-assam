@@ -66,6 +66,7 @@ import static org.egov.edcr.constants.CommonFeatureConstants.SINGLE_SPACE_STRING
 import static org.egov.edcr.constants.CommonFeatureConstants.STILT_PARKING_AREA;
 import static org.egov.edcr.constants.CommonKeyConstants.COMMON_PARKING;
 import static org.egov.edcr.constants.DxfFileConstants.A;
+import static org.egov.edcr.constants.DxfFileConstants.J;
 import static org.egov.edcr.constants.EdcrReportConstants.EWS;
 import static org.egov.edcr.constants.EdcrReportConstants.LIG;
 import static org.egov.edcr.constants.DxfFileConstants.C;
@@ -631,7 +632,7 @@ public class Parking_Assam extends Parking {
 
 				requiredCarParkingArea = requiredCarParkingAreaPerRoom + requiredCarParkingAreaPerArea;
 			}
-		} else if (K.equals(typeCode)) { // Govt
+		} else if (J.equals(typeCode)) { // Govt
 			if (open.doubleValue() > 0 && basement.doubleValue() > 0 ) {
 				
 				 ecsArea = ruleResult.getPermissibleCarBasement();
@@ -930,7 +931,7 @@ public class Parking_Assam extends Parking {
 				double requiredECS = Math.ceil(ecsPerUnit) * noOfParking;
 				requiredTwoWheelerParkingArea = requiredECS * ecsArea;
 			}
-		} else if (K.equals(typeCode)) { // Govt
+		} else if (J.equals(typeCode)) { // Govt
 			ecsArea = ruleResult.getPermissibleTwoWheeler();
 			noOfParking = ruleResult.getNoOfRequiredParking();
 			perArea = ruleResult.getPerAreaInstitutionalPSPTwoWheeler();
@@ -1067,7 +1068,7 @@ public class Parking_Assam extends Parking {
 			double requiredECS = Math.ceil(ecsPerUnit) * noOfParking;
 			requiredVisitorsParkingArea = requiredECS * ecsArea;
 
-		} else if (K.equals(typeCode)) { // Govt
+		} else if (J.equals(typeCode)) { // Govt
 			double ecsArea = ruleResult.getPermissibleVisitor();
 			double noOfParking = ruleResult.getNoOfRequiredParking();
 			double perArea = ruleResult.getPerAreaInstitutionalPSPVisitor();

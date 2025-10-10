@@ -16,8 +16,8 @@ public class DxfFileConstants {
     public static final String G = "G"; // Industrial
     public static final String H = "H"; // Storage
     public static final String I = "I"; // Hazardous
-    public static final String J = "J"; // Factories
-    public static final String K = "K"; // Govt/public office
+    public static final String J = "J"; // Govt/public office
+    public static final String K = "K"; // Factories 
 
     // sub occupancies code
     public static final String A2 = "A2";// Old Age Home
@@ -54,7 +54,7 @@ public class DxfFileConstants {
     public static final String E_SACA = "E-SACA";// Sports and Cultural Activities
 
     public static final String F_H = "F-H";// Hotels
-    public static final String F_HB = "F-H";// Hotels with banquet halls
+    public static final String F_HB = "F-HB";// Hotels with banquet halls
     public static final String F_HWB = "F-H";// Hotels without banquet halls
     public static final String F_K = "F-K";// Kiosk
     public static final String F_PA = "F-PA";// Parking Appurtenant

@@ -1638,7 +1638,7 @@ public class Far extends FeatureProcess {
 							&& roadWidth.compareTo(rule.getToRoadWidth()) < 0)
 					.findFirst();
 
-		} else if (J.equalsIgnoreCase(occCode)) {
+		} else if (K.equalsIgnoreCase(occCode)) {
 			LOG.info("Matching FAR based on plot area only for special occupancy.");
 			return rules.stream().filter(FarRequirement.class::isInstance).map(FarRequirement.class::cast)
 					.filter(rule -> plotArea.compareTo(rule.getFromPlotArea()) >= 0

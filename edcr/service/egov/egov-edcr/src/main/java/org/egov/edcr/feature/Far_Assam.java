@@ -441,7 +441,7 @@ public class Far_Assam extends Far {
             String subOccCode = occupancy.getSubtype() != null ? occupancy.getSubtype().getCode() : null;
 
             // Educational, Medical, Government/Public, Hotels
-            if (B.equalsIgnoreCase(occCode) || C.equalsIgnoreCase(occCode) || K.equalsIgnoreCase(occCode)
+            if (B.equalsIgnoreCase(occCode) || C.equalsIgnoreCase(occCode) || J.equalsIgnoreCase(occCode)
                     || (F_H.equals(subOccCode) && pl.getPlanInformation().getFourFiveStaredHotel())) {
                 qualifiesForCorridorExemption = true;
             }
@@ -1707,7 +1707,7 @@ public class Far_Assam extends Far {
                             && roadWidth.compareTo(rule.getToRoadWidth()) < 0)
                     .findFirst();
 
-        } else if (J.equalsIgnoreCase(occCode)) {
+        } else if (K.equalsIgnoreCase(occCode)) {
             LOG.info("Matching FAR based on plot area only for special occupancy.");
             return rules.stream().filter(FarRequirement.class::isInstance).map(FarRequirement.class::cast)
                     .filter(rule -> plotArea.compareTo(rule.getFromPlotArea()) >= 0
