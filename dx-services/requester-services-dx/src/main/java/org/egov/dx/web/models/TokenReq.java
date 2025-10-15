@@ -30,4 +30,6 @@ public class TokenReq {
      
      @JsonProperty("id")
      private  String id;
+
+     private EPramaanData ePramaanData;
 }

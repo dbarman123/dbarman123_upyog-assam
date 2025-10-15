@@ -9,13 +9,11 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AuthResponse {
+public class EPramaanData {
 
+    private String nonce;
 
-    private String redirectURL;
+    private String codeVerifier;
 
-    private String dlReqRef;
-
-    private EPramaanData epramaanData;
-
+    private String state;
 }

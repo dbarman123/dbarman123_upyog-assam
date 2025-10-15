@@ -107,7 +107,7 @@
       <artifactId>mdms-client</artifactId>
       <version>0.0.2-SNAPSHOT</version>
     </dependency>
-    <dependency>
+    <!--<dependency>
         <groupId>com.emudhra</groupId>
         <artifactId>common</artifactId>
         <version>1.0.0</version>
@@ -131,7 +131,7 @@
         <groupId>com.ashu</groupId>
         <artifactId>esign</artifactId>
         <version>1.0.0</version>
-    </dependency>
+    </dependency>-->
     <dependency>
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
@@ -152,6 +152,23 @@
           <artifactId>jsoup</artifactId>
           <version>1.10.2</version>
     </dependency>
+
+
+      <dependency>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-test</artifactId>
+          <scope>test</scope>
+      </dependency>
+      <dependency>
+          <groupId>com.nimbusds</groupId>
+          <artifactId>oauth2-oidc-sdk</artifactId>
+          <version>9.42</version>
+      </dependency>
+      <dependency>
+      <groupId>com.nimbusds</groupId>
+      <artifactId>nimbus-jose-jwt</artifactId>
+      <version>9.24.3</version>
+      </dependency>
   </dependencies>
   <repositories>
     <repository>
@@ -176,7 +193,7 @@
               <goal>repackage</goal>
             </goals>
             <configuration>
-              <excludeArtifactIds>lombok</excludeArtifactIds>
+             <!-- <excludeArtifactIds>lombok</excludeArtifactIds>-->
             </configuration>
           </execution>
         </executions>
