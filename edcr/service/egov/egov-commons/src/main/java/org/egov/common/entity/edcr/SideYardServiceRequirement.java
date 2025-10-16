@@ -317,7 +317,9 @@ public class SideYardServiceRequirement extends MdmsFeatureRule {
 
 	@Override
 	public String toString() {
-		return "SideYardServiceRequirement [sideYardValueOne=" + sideYardValueOne + ", sideYardValueTwo="
+		return "SideYardServiceRequirement [permissibleNursery=" + permissibleNursery + ", permissiblePrimary="
+				+ permissiblePrimary + ", permissibleHighSchool=" + permissibleHighSchool + ", permissibleCollege="
+				+ permissibleCollege + ", sideYardValueOne=" + sideYardValueOne + ", sideYardValueTwo="
 				+ sideYardValueTwo + ", sideYardValueThree=" + sideYardValueThree + ", sideYardValueFour="
 				+ sideYardValueFour + ", sideYardValueFive=" + sideYardValueFive + ", sideYardValueSix="
 				+ sideYardValueSix + ", sideYardValueSeven=" + sideYardValueSeven + ", sideYardValueEight="
@@ -332,7 +334,19 @@ public class SideYardServiceRequirement extends MdmsFeatureRule {
 				+ ", sideYardValueTwentyThree=" + sideYardValueTwentyThree + ", sideYardValueTwentyFour="
 				+ sideYardValueTwentyFour + ", sideYardValueTwentyFive=" + sideYardValueTwentyFive
 				+ ", sideYardValueTwentySix=" + sideYardValueTwentySix + ", sideYardValueTwentySeven="
-				+ sideYardValueTwentySeven + ", sideYardValueTwentyEight=" + sideYardValueTwentyEight + "]";
+				+ sideYardValueTwentySeven + ", sideYardValueTwentyEight=" + sideYardValueTwentyEight
+				+ ", permissibleLight=" + permissibleLight + ", permissibleMedium=" + permissibleMedium
+				+ ", permissibleFlattered=" + permissibleFlattered + ", getFromBuildingHeight()="
+				+ getFromBuildingHeight() + ", getToBuildingHeight()=" + getToBuildingHeight() + ", getFromPlotDepth()="
+				+ getFromPlotDepth() + ", getToPlotDepth()=" + getToPlotDepth() + ", getSubOccupancy()="
+				+ getSubOccupancy() + ", getId()=" + getId() + ", getFromPlotArea()=" + getFromPlotArea()
+				+ ", getFromRoadWidth()=" + getFromRoadWidth() + ", getToRoadWidth()=" + getToRoadWidth()
+				+ ", getToPlotArea()=" + getToPlotArea() + ", getState()=" + getState() + ", getCity()=" + getCity()
+				+ ", getZone()=" + getZone() + ", getSubZone()=" + getSubZone() + ", getOccupancy()=" + getOccupancy()
+				+ ", getRiskType()=" + getRiskType() + ", getPermissible()=" + getPermissible() + ", getFeatureName()="
+				+ getFeatureName() + ", getValuePermissible()=" + getValuePermissible() + ", getActive()=" + getActive()
+				+ ", toString()=" + super.toString() + ", hashCode()=" + hashCode() + ", getClass()=" + getClass()
+				+ "]";
 	}
 
 }

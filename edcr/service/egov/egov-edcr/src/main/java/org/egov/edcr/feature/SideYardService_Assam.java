@@ -263,7 +263,7 @@ public class SideYardService_Assam extends SideYardService {
 							sideYard2Result);
 				}
 
-				if (isApplicableSubtype(occupancy)) {
+//				if (isApplicableSubtype(occupancy)) {
 					//if (buildingHeight.compareTo(BigDecimal.valueOf(10)) <= 0)
 							//&& block.getBuilding().getFloorsAboveGround().compareTo(BigDecimal.valueOf(3)) <= 0)
 					{
@@ -271,11 +271,11 @@ public class SideYardService_Assam extends SideYardService {
 								setback.getLevel(), pl.getPlot(), minMax[0], minMax[1], occupancy.getTypeHelper(),
 								sideYard1Result, sideYard2Result, errors);
 					}
-				}
+				//}
 
-				addSideYardResult(pl, errors, sideYard1Result, sideYard2Result);
+				
 			}
-
+			addSideYardResult(pl, errors, sideYard1Result, sideYard2Result);
 		} else if (pl.getPlanInformation() != null
 				&& pl.getPlanInformation().getWidthOfPlot().compareTo(BigDecimal.valueOf(10)) <= 0) {
 			// Commented logic retained
@@ -1494,7 +1494,7 @@ public class SideYardService_Assam extends SideYardService {
 	                    ruleFeature.getFromPlotDepth() != null &&
 	                    ruleFeature.getToPlotDepth() != null &&
 	                    depthOfPlot.compareTo(ruleFeature.getFromPlotDepth()) >= 0 &&
-	                    depthOfPlot.compareTo(ruleFeature.getToPlotDepth()) < 0 &&
+	                    depthOfPlot.compareTo(ruleFeature.getToPlotDepth()) <= 0 &&
 	                    Boolean.TRUE.equals(ruleFeature.getActive()))
 	            .findFirst();
 
