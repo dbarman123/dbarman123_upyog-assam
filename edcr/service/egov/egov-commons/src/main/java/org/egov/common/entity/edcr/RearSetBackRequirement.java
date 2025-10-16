@@ -85,15 +85,23 @@ public class RearSetBackRequirement extends MdmsFeatureRule {
 		}
 
 		 @Override
-		    public String toString() {
-		        return "RearSetBackRequirement [fromBuildingHeight=" + getFromBuildingHeight() +
-		               ", toBuildingHeight=" + getToBuildingHeight() +
-		               ", permissible=" + getPermissible() +
-		               ", active=" + getActive() +
-		               ", permissibleLight=" + permissibleLight +
-		               ", permissibleMedium=" + permissibleMedium +
-		               ", permissibleFlattered=" + permissibleFlattered + "]";
-		    }
+		public String toString() {
+			return "RearSetBackRequirement [permissibleLight=" + permissibleLight + ", permissibleMedium="
+					+ permissibleMedium + ", permissibleFlattered=" + permissibleFlattered + ", permissibleNursery="
+					+ permissibleNursery + ", permissiblePrimary=" + permissiblePrimary + ", permissibleHighSchool="
+					+ permissibleHighSchool + ", permissibleCollege=" + permissibleCollege
+					+ ", getFromBuildingHeight()=" + getFromBuildingHeight() + ", getToBuildingHeight()="
+					+ getToBuildingHeight() + ", getFromPlotDepth()=" + getFromPlotDepth() + ", getToPlotDepth()="
+					+ getToPlotDepth() + ", getSubOccupancy()=" + getSubOccupancy() + ", getId()=" + getId()
+					+ ", getFromPlotArea()=" + getFromPlotArea() + ", getFromRoadWidth()=" + getFromRoadWidth()
+					+ ", getToRoadWidth()=" + getToRoadWidth() + ", getToPlotArea()=" + getToPlotArea()
+					+ ", getState()=" + getState() + ", getCity()=" + getCity() + ", getZone()=" + getZone()
+					+ ", getSubZone()=" + getSubZone() + ", getOccupancy()=" + getOccupancy() + ", getRiskType()="
+					+ getRiskType() + ", getPermissible()=" + getPermissible() + ", getFeatureName()="
+					+ getFeatureName() + ", getValuePermissible()=" + getValuePermissible() + ", getActive()="
+					+ getActive() + ", toString()=" + super.toString() + ", hashCode()=" + hashCode() + ", getClass()="
+					+ getClass() + "]";
+		}
 
 	    
 

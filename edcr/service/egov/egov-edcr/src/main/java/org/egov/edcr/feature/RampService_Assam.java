@@ -86,6 +86,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import static org.egov.edcr.constants.CommonFeatureConstants.DA_RAMP_LENGTH_WIDTH;
 
 
 import org.apache.logging.log4j.LogManager;
@@ -210,14 +211,7 @@ public class RampService_Assam extends RampService {
             if (daRamp != null && daRamp.getSlope() != null && daRamp.getSlope().compareTo(BigDecimal.valueOf(0)) > 0) {
                 isSlopeDefined = true;
             }
-
-    		OccupancyTypeHelper mostRestrictiveOccupancyType = block.getBuilding().getMostRestrictiveFarHelper();
-            ScrutinyDetail scrutinyDetail = createScrutinyDetail(DA_RAMP_LANDING, block.getNumber(), false);
-        	List<RampLanding> landings = daRamp.getLandings();
-			if (!landings.isEmpty()) {
-				validateLanding(pl, block, scrutinyDetail, mostRestrictiveOccupancyType,
-						 daRamp, landings);
-			} 
+	
         }
         if (!isSlopeDefined) {
             errors.put(String.format(DcrConstants.RAMP_SLOPE, EMPTY_STRING, block.getNumber()),
@@ -227,105 +221,6 @@ public class RampService_Assam extends RampService {
             pl.addErrors(errors);
         }
     }
-
-    /**
-     * Validates the width of ramp landings against required minimum width
-     * based on the building plan, block, and occupancy type. It processes
-     * each RampLanding in the provided list, checks if their widths meet
-     * the minimum requirements, and sets report output details accordingly.
-     * Detailed debug logs are recorded throughout the process.
-     *
-     * @param plan the building plan containing overall project details
-     * @param block the specific block of the building under scrutiny
-     * @param scrutinyDetailLanding the scrutiny detail object for reporting validation results
-     * @param mostRestrictiveOccupancyType the occupancy type helper which defines restrictions to consider
-     * @param daRamp the DARamp object related to the ramp under validation
-     * @param landings the list of RampLanding objects to validate
-     */
-    
-    private void validateLanding(Plan plan, Block block, ScrutinyDetail scrutinyDetailLanding,
-            OccupancyTypeHelper mostRestrictiveOccupancyType, 
-            DARamp daRamp, List<RampLanding> landings) {
-
-        LOGGER.debug("Starting validateLanding with {} landings", landings.size());
-        
-        for (RampLanding landing : landings) {
-            List<BigDecimal> widths = landing.getWidths();
-            if (!widths.isEmpty()) {
-                BigDecimal landingWidth = widths.stream().reduce(BigDecimal::min).get();
-                LOGGER.debug("Minimum width from landing widths: {}", landingWidth);
-
-                BigDecimal minWidth = BigDecimal.ZERO;
-                boolean valid = false;
-
-                minWidth = Util.roundOffTwoDecimal(landingWidth);
-                BigDecimal minimumWidth = getRequiredWidth(plan, block, mostRestrictiveOccupancyType);
-                LOGGER.debug("Required minimum width: {}, Rounded landing width: {}", minimumWidth, minWidth);
-
-                if (minWidth.compareTo(minimumWidth) >= 0) {
-                    valid = true;
-                    LOGGER.debug("Landing width is valid");
-                } else {
-                    LOGGER.debug("Landing width is NOT valid");
-                }
-
-                Map<String, String> mapOfRampNumberAndSlopeValues = new HashMap<>();
-
-                if (valid) {
-                    setReportOutputDetails(plan, SUBRULE_50_C_4_B,
-                        String.format(SUBRULE_50_C_4_B_SLOPE_DESCRIPTION,
-                            mapOfRampNumberAndSlopeValues.get(DA_RAMP_NUMBER)),
-                        minimumWidth.toString(), minWidth.toString(),
-                        Result.Accepted.getResultVal(), scrutinyDetailLanding);
-                    LOGGER.debug("Report output set as Accepted");
-                } else {
-                    setReportOutputDetails(plan, SUBRULE_50_C_4_B,
-                        String.format(SUBRULE_50_C_4_B_SLOPE_DESCRIPTION, EMPTY_STRING),
-                        minimumWidth.toString(), minWidth.toString(),
-                        Result.Not_Accepted.getResultVal(), scrutinyDetailLanding);
-                    LOGGER.debug("Report output set as Not Accepted");
-                }
-
-            } else {
-                LOGGER.warn("No widths found for a landing; skipping validation");
-            }
-        }
-    }
-    /**
-     * Retrieves the required minimum ramp width based on the given building plan,
-     * block, and the most restrictive occupancy type. It looks up applicable
-     * ramp service rules from the cache and returns the corresponding width.
-     * If no matching rule is found, it returns zero.
-     *
-     * @param pl the building plan for which width requirement is sought
-     * @param block the block of the building considered in validation
-     * @param mostRestrictiveOccupancyType the occupancy type helper indicating restrictions
-     * @return the required ramp width as a BigDecimal; zero if no rule applies
-     */
-    private BigDecimal getRequiredWidth(Plan pl, Block block, OccupancyTypeHelper mostRestrictiveOccupancyType) {
-        LOGGER.debug("Getting required width for plan: {}, block: {}, occupancyType: {}",
-                pl, block, mostRestrictiveOccupancyType);
-
-        BigDecimal value = BigDecimal.ZERO;
-
-        List<Object> rules = cache.getFeatureRules(pl, FeatureEnum.RAMP_SERVICE.getValue(), false);
-        Optional<RampServiceRequirement> matchedRule = rules.stream()
-                .filter(RampServiceRequirement.class::isInstance)
-                .map(RampServiceRequirement.class::cast)
-                .findFirst();
-
-        if (matchedRule.isPresent()) {
-            RampServiceRequirement rule = matchedRule.get();
-            value = rule.getRampServiceWidth();
-            LOGGER.debug("Found matching ramp service rule with width: {}", value);
-        } else {
-            value = BigDecimal.ZERO;
-            LOGGER.warn("No matching ramp service rule found; returning width zero");
-        }
-
-        return value;
-    }
-
 
     /**
      * Adds an error to the Plan indicating the absence of a required DA ramp in the block.
@@ -384,19 +279,21 @@ public class RampService_Assam extends RampService {
         BigDecimal rampServiceExpectedSlopeCompareTrue = BigDecimal.ZERO;
         BigDecimal rampServiceExpectedSlopeCompareFalse = BigDecimal.ZERO;
         BigDecimal rampServiceMinHeightEntrance = BigDecimal.ZERO;
-
+        BigDecimal rampServiceDivideExpectedSlopeOne = BigDecimal.ZERO;
 
         validate(pl);
 
         if (pl != null && !pl.getBlocks().isEmpty()) {
             for (Block block : pl.getBlocks()) {
+            	 for (Floor floor : block.getBuilding().getFloors()) {
                 ScrutinyDetail scrutinyDetail = createScrutinyDetail(DA_RAMP_DEFINED, block.getNumber(), false);
                 ScrutinyDetail scrutinyDetail1 = createScrutinyDetail(DA_RAMP_SLOPE, block.getNumber(), false);
                 ScrutinyDetail scrutinyDetail2 = createScrutinyDetail(DA_RAMP_MAX_SLOPE, block.getNumber(), false);
+                ScrutinyDetail scrutinyDetail8 = createScrutinyDetail(RAMP_MAX_SLOPE, block.getNumber(), false);
                 ScrutinyDetail scrutinyDetail3 = createScrutinyDetail(DA_ROOM, block.getNumber(), false);
                 ScrutinyDetail scrutinyDetail4 = createScrutinyDetail(RAMP_MIN_WIDTH, block.getNumber(), true);
-                ScrutinyDetail scrutinyDetail5 = createScrutinyDetail(RAMP_MAX_SLOPE, block.getNumber(), true);
-                ScrutinyDetail scrutinyDetail7 = createScrutinyDetail(RAMP_LENGTH_WIDTH, block.getNumber(), false);
+                ScrutinyDetail scrutinyDetail5 = createScrutinyDetail(RAMP_LENGTH_WIDTH, block.getNumber(), true);
+                ScrutinyDetail scrutinyDetail7 = createScrutinyDetail(DA_RAMP_LENGTH_WIDTH, block.getNumber(), false);
                 ScrutinyDetail scrutinyDetail6 = createScrutinyDetail(RAMP_HT, block.getNumber(), false);
 
 
@@ -411,6 +308,7 @@ public class RampService_Assam extends RampService {
                     rampServiceValueOne = rule.getRampServiceValueOne();
                     rampServiceExpectedSlopeOne = rule.getRampServiceExpectedSlopeOne();
                     rampServiceDivideExpectedSlope = rule.getRampServiceDivideExpectedSlope();
+                    rampServiceDivideExpectedSlopeOne = rule.getRampServiceDivideExpectedSlopeOne();
                     rampServiceSlopValue = rule.getRampServiceSlopValue();
                     rampServiceBuildingHeight = rule.getRampServiceBuildingHeight();
                     rampServiceTotalLength = rule.getRampServiceTotalLength();
@@ -421,18 +319,22 @@ public class RampService_Assam extends RampService {
                     rampServiceMinHeightEntrance = rule.getRampServiceMinHeightEntrance();
                 }
 
-                processRampSlopeValidation(pl, block, rampServiceValueOne, rampServiceExpectedSlopeOne,
+                processDARampSlopeValidation(pl, block, rampServiceValueOne, rampServiceExpectedSlopeOne,
                         rampServiceDivideExpectedSlope, rampServiceSlopValue, scrutinyDetail1, scrutinyDetail2);
+                processRampSlopeValidation(pl, block, floor, rampServiceValueOne, rampServiceExpectedSlopeOne,
+                        rampServiceDivideExpectedSlopeOne, rampServiceSlopValue, scrutinyDetail1, scrutinyDetail8);
 
                 processDARoomValidation(pl, block, rampServiceBuildingHeight, scrutinyDetail3);
                 
                 validateMinHeightEntrance(pl, block, rampServiceMinHeightEntrance, scrutinyDetail6);
                 
                 validateDARampDimensions(pl, block, scrutinyDetail7);
+                
+                validateRampDimensions(pl, block, floor, scrutinyDetail5);
 
             }
         }
-
+        }
         return pl;
     }
     
@@ -476,7 +378,7 @@ public class RampService_Assam extends RampService {
      * @param scrutinyDetail2 scrutiny detail for slope compliance
      */
 
-    private void processRampSlopeValidation(Plan pl, Block block, BigDecimal rampServiceValueOne,
+    private void processDARampSlopeValidation(Plan pl, Block block, BigDecimal rampServiceValueOne,
             BigDecimal rampServiceExpectedSlopeOne, BigDecimal rampServiceDivideExpectedSlope,
             BigDecimal rampServiceSlopValue, ScrutinyDetail scrutinyDetail1, ScrutinyDetail scrutinyDetail2) {
 
@@ -497,12 +399,55 @@ public class RampService_Assam extends RampService {
                         scrutinyDetail1);
 
                 if (isSlopeDefined) {
-                    validateRampSlopes(pl, block, rampServiceExpectedSlopeOne, rampServiceDivideExpectedSlope,
-                            rampServiceSlopValue, scrutinyDetail2);
+             
+                    validateDARampSlopes(pl, block, rampServiceExpectedSlopeOne, rampServiceDivideExpectedSlope, scrutinyDetail2);
+
                 }
             }
         }
     }
+    
+
+    /* Performs validation of DA ramp slope for the given block using specified slope values and adds scrutiny details.
+    *
+    * @param pl the Plan object
+    * @param block the Block containing the DA ramps
+    * @param rampServiceValueOne base value to check if slope is defined
+    * @param rampServiceExpectedSlopeOne numerator of expected slope calculation
+    * @param rampServiceDivideExpectedSlope denominator of expected slope calculation
+    * @param rampServiceSlopValue minimum allowed slope value
+    * @param scrutinyDetail1 scrutiny detail for slope definition
+    * @param scrutinyDetail2 scrutiny detail for slope compliance
+    */
+
+   private void processRampSlopeValidation(Plan pl, Block block, Floor floor, BigDecimal rampServiceValueOne,
+           BigDecimal rampServiceExpectedSlopeOne, BigDecimal rampServiceDivideExpectedSlope,
+           BigDecimal rampServiceSlopValue, ScrutinyDetail scrutinyDetail1, ScrutinyDetail scrutinyDetail8) {
+
+       OccupancyTypeHelper mostRestrictiveOccupancyType = pl.getVirtualBuilding().getMostRestrictiveFarHelper();
+
+       if (pl.getPlot() != null
+               && !Util.checkExemptionConditionForSmallPlotAtBlkLevel(pl.getPlot(), block)
+               && mostRestrictiveOccupancyType != null
+               && mostRestrictiveOccupancyType.getSubtype() != null
+               && !A_R.equalsIgnoreCase(mostRestrictiveOccupancyType.getSubtype().getCode())) {
+
+           if (!floor.getRamps().isEmpty()) {
+               boolean isSlopeDefined = isSlopeDefinedForRamps(block, floor, rampServiceValueOne);
+
+               setReportOutputDetails(pl, SUBRULE_50_C_4_B, SUBRULE_50_C_4_B_SLOPE_MAN_DESC, EMPTY_STRING,
+                       isSlopeDefined ? DcrConstants.OBJECTDEFINED_DESC : DcrConstants.OBJECTNOTDEFINED_DESC,
+                       isSlopeDefined ? Result.Accepted.getResultVal() : Result.Not_Accepted.getResultVal(),
+                       scrutinyDetail1);
+
+               if (isSlopeDefined) {
+            
+            	   validateRampSlopes(pl, block, floor, rampServiceExpectedSlopeOne, rampServiceDivideExpectedSlope, scrutinyDetail8);
+
+               }
+           }
+       }
+   }
 
     /**
      * Checks if any DA ramp in the block has a slope defined above a specified threshold.
@@ -522,76 +467,168 @@ public class RampService_Assam extends RampService {
     }
     
     /**
-     * Validates that DA ramp slopes in the block fall within the allowed maximum slope.
+     * Checks if any DA ramp in the block has a slope defined above a specified threshold.
      *
-     * @param pl the Plan object
-     * @param block the Block containing DA ramps
-     * @param expectedSlopeOne numerator for slope validation
-     * @param divideExpectedSlope denominator for slope calculation
-     * @param rampServiceSlopValue maximum allowed slope
-     * @param scrutinyDetail2 scrutiny detail to report results
+     * @param block the Block to check
+     * @param rampServiceValueOne minimum slope value to consider as defined
+     * @return true if a valid slope is defined; false otherwise
      */
-
-    /**
-     * Validates ramp slopes against expected values and updates the scrutiny report.
-     *
-     * @param pl                  The plan
-     * @param block               The block containing ramps
-     * @param expectedSlopeOne    The numerator for expected slope calculation
-     * @param divideExpectedSlope The denominator for expected slope calculation
-     * @param rampServiceSlope    The minimum slope value to consider
-     * @param scrutinyDetail2     The scrutiny detail object to update
-     */
-    /**
-     * Validates ramp slopes against expected values and updates the scrutiny report.
-     *
-     * @param pl                  The plan
-     * @param block               The block containing ramps
-     * @param expectedSlopeOne    The numerator for expected slope calculation
-     * @param divideExpectedSlope The denominator for expected slope calculation
-     * @param rampServiceSlope    The minimum slope value to consider
-     * @param scrutinyDetail2     The scrutiny detail object to update
-     */
-    private void validateRampSlopes(Plan pl, Block block, BigDecimal expectedSlopeOne,
-            BigDecimal divideExpectedSlope, BigDecimal rampServiceSlope,
-            ScrutinyDetail scrutinyDetail2) {
-
-        boolean valid = false;
-        Map<String, String> mapOfRampNumberAndSlopeValues = new HashMap<>();
-        // Convert expected slope to fraction form (rise/run)
-        BigDecimal expectedSlope = expectedSlopeOne.divide(divideExpectedSlope, 2, RoundingMode.HALF_UP); // run/rise
-        BigDecimal expectedSlopeFraction = BigDecimal.ONE.divide(expectedSlope, 2, RoundingMode.HALF_UP); // fraction for comparison
-
-        BigDecimal lastSlopeFraction = BigDecimal.ZERO;
-
-        for (DARamp daRamp : block.getDARamps()) {
-            BigDecimal slope = daRamp.getSlope(); // run/rise
-            if (slope != null) {
-                BigDecimal slopeFraction = BigDecimal.ONE.divide(slope, 2, RoundingMode.HALF_UP); // convert to fraction
-                lastSlopeFraction = slopeFraction;
-
-                if (slopeFraction.compareTo(expectedSlopeFraction) <= 0) {
-                    valid = true;
-                    mapOfRampNumberAndSlopeValues.put(DA_RAMP_NUMBER, daRamp.getNumber().toString());
-                    mapOfRampNumberAndSlopeValues.put(SLOPE_STRING, slopeFraction.toString());
-                    break;
-                }
+    private boolean isSlopeDefinedForRamps(Block block, Floor floor, BigDecimal rampServiceValueOne) {
+        for (Ramp ramp : floor.getRamps()) {
+            if (ramp != null && ramp.getSlope() != null
+                    && ramp.getSlope().compareTo(rampServiceValueOne) > 0) {
+                return true;
             }
         }
-
-        String providedRampNumber = mapOfRampNumberAndSlopeValues.getOrDefault(DA_RAMP_NUMBER, EMPTY_STRING);
-        String providedSlope = mapOfRampNumberAndSlopeValues.getOrDefault(SLOPE_STRING, lastSlopeFraction.toString());
-
-        setReportOutputDetails(pl, SUBRULE_50_C_4_B,
-                String.format(SUBRULE_50_C_4_B_SLOPE_DESCRIPTION, providedRampNumber),
-                expectedSlope.toString(), // report expected in fraction
-                providedSlope,
-                valid ? Result.Accepted.getResultVal() : Result.Not_Accepted.getResultVal(),
-                scrutinyDetail2);
+        return false;
     }
 
+	/**
+	 * Validates ramp slopes against expected values and updates the scrutiny
+	 * report.
+	 *
+	 * @param pl                  The plan
+	 * @param block               The block containing ramps
+	 * @param expectedSlopeOne    The numerator for expected slope calculation
+	 * @param divideExpectedSlope The denominator for expected slope calculation
+	 * @param rampServiceSlope    The minimum slope value to consider
+	 * @param scrutinyDetail2     The scrutiny detail object to update
+	 */
+	private void validateDARampSlopes(Plan pl, Block block, BigDecimal expectedSlopeOne, BigDecimal divideExpectedSlope,
+			ScrutinyDetail scrutinyDetail) {
 
-    
+		boolean valid = false;
+		Map<String, String> mapOfRampNumberAndSlopeValues = new HashMap<>();
+
+		BigDecimal expectedSlope = divideExpectedSlope.divide(expectedSlopeOne, 2, RoundingMode.HALF_UP); // gives 12
+		BigDecimal tolerance = new BigDecimal("0.01"); // allow slight variation
+
+		BigDecimal lastSlope = BigDecimal.ZERO;
+		String lastRampNumber = "";
+
+		for (DARamp daRamp : block.getDARamps()) {
+			BigDecimal slope = daRamp.getSlope(); // already rise/run from extractSlope
+			if (slope != null && slope.compareTo(BigDecimal.ZERO) > 0) {
+				lastSlope = slope;
+				lastRampNumber = String.valueOf(daRamp.getNumber());
+
+				// Check slope within tolerance
+				BigDecimal lowerBound = expectedSlope.subtract(tolerance);
+				BigDecimal upperBound = expectedSlope.add(tolerance);
+
+				if (slope.compareTo(lowerBound) >= 0 && slope.compareTo(upperBound) <= 0) {
+					valid = true;
+					mapOfRampNumberAndSlopeValues.put(DA_RAMP_NUMBER, lastRampNumber);
+					mapOfRampNumberAndSlopeValues.put(SLOPE_STRING, slope.toString());
+					break;
+				}
+			}
+		}
+
+		String expectedSlopeFormatted = String.format("1:%s", divideExpectedSlope.toPlainString());
+		String providedSlopeFormatted = String.format("1:%.2f", lastSlope);
+
+		String providedRampNumber = mapOfRampNumberAndSlopeValues.getOrDefault(DA_RAMP_NUMBER, lastRampNumber);
+		String providedSlope = mapOfRampNumberAndSlopeValues.getOrDefault(SLOPE_STRING, lastSlope.toString());
+
+	
+		try {
+		    if (lastSlope.compareTo(BigDecimal.ZERO) > 0) {
+		        // If slope > 1, assume it's already in the format like 1:12 (not a fraction)
+		        if (lastSlope.compareTo(BigDecimal.ONE) > 0) {
+		            providedSlopeFormatted = String.format("1:%.0f", lastSlope);
+		        } else {
+		            // If slope is a fraction (e.g., 0.0833), then convert to 1:12 format
+		            BigDecimal inverse = BigDecimal.ONE.divide(lastSlope, 2, RoundingMode.HALF_UP);
+		            providedSlopeFormatted = String.format("1:%.2f", inverse);
+		        }
+		    }
+		} catch (ArithmeticException e) {
+		    providedSlopeFormatted = providedSlope;
+		}
+
+		setReportOutputDetails(pl, SUBRULE_50_C_4_B,
+				String.format(SUBRULE_50_C_4_B_SLOPE_DESCRIPTION, providedRampNumber), expectedSlopeFormatted,
+				providedSlopeFormatted, valid ? Result.Accepted.getResultVal() : Result.Not_Accepted.getResultVal(),
+				scrutinyDetail);
+
+		LOGGER.info("Ramp slope validation completed for Block {} -> Expected: {}, Provided: {}, Result: {}",
+				block.getNumber(), expectedSlopeFormatted, providedSlopeFormatted, valid ? "Accepted" : "Not Accepted");
+	}
+
+	/**
+	 * Validates ramp slopes against expected values and updates the scrutiny
+	 * report.
+	 *
+	 * @param pl                  The plan
+	 * @param block               The block containing ramps
+	 * @param expectedSlopeOne    The numerator for expected slope calculation
+	 * @param divideExpectedSlope The denominator for expected slope calculation
+	 * @param rampServiceSlope    The minimum slope value to consider
+	 * @param scrutinyDetail2     The scrutiny detail object to update
+	 */
+	private void validateRampSlopes(Plan pl, Block block, Floor floor, BigDecimal expectedSlopeOne, BigDecimal divideExpectedSlope,
+			ScrutinyDetail scrutinyDetail) {
+
+		boolean valid = false;
+		Map<String, String> mapOfRampNumberAndSlopeValues = new HashMap<>();
+
+		BigDecimal expectedSlope = divideExpectedSlope.divide(expectedSlopeOne, 2, RoundingMode.HALF_UP); // gives 12
+		BigDecimal tolerance = new BigDecimal("0.01"); // allow slight variation
+
+		BigDecimal lastSlope = BigDecimal.ZERO;
+		String lastRampNumber = "";
+
+		for (Ramp ramp : floor.getRamps()) {
+			BigDecimal slope = ramp.getSlope(); // already rise/run from extractSlope
+			if (slope != null && slope.compareTo(BigDecimal.ZERO) > 0) {
+				lastSlope = slope;
+				lastRampNumber = String.valueOf(ramp.getNumber());
+
+				// Check slope within tolerance
+				BigDecimal lowerBound = expectedSlope.subtract(tolerance);
+				BigDecimal upperBound = expectedSlope.add(tolerance);
+
+				if (slope.compareTo(lowerBound) >= 0 && slope.compareTo(upperBound) <= 0) {
+					valid = true;
+					mapOfRampNumberAndSlopeValues.put(DA_RAMP_NUMBER, lastRampNumber);
+					mapOfRampNumberAndSlopeValues.put(SLOPE_STRING, slope.toString());
+					break;
+				}
+			}
+		}
+
+		String expectedSlopeFormatted = String.format("1:%s", divideExpectedSlope.toPlainString());
+		String providedSlopeFormatted = String.format("1:%.2f", lastSlope);
+
+		String providedRampNumber = mapOfRampNumberAndSlopeValues.getOrDefault(DA_RAMP_NUMBER, lastRampNumber);
+		String providedSlope = mapOfRampNumberAndSlopeValues.getOrDefault(SLOPE_STRING, lastSlope.toString());
+
+	
+		try {
+		    if (lastSlope.compareTo(BigDecimal.ZERO) > 0) {
+		        // If slope > 1, assume it's already in the format like 1:12 (not a fraction)
+		        if (lastSlope.compareTo(BigDecimal.ONE) > 0) {
+		            providedSlopeFormatted = String.format("1:%.0f", lastSlope);
+		        } else {
+		            // If slope is a fraction (e.g., 0.0833), then convert to 1:12 format
+		            BigDecimal inverse = BigDecimal.ONE.divide(lastSlope, 2, RoundingMode.HALF_UP);
+		            providedSlopeFormatted = String.format("1:%.2f", inverse);
+		        }
+		    }
+		} catch (ArithmeticException e) {
+		    providedSlopeFormatted = providedSlope;
+		}
+
+		setReportOutputDetails(pl, SUBRULE_50_C_4_B,
+				String.format(SUBRULE_50_C_4_B_SLOPE_DESCRIPTION, providedRampNumber), expectedSlopeFormatted,
+				providedSlopeFormatted, valid ? Result.Accepted.getResultVal() : Result.Not_Accepted.getResultVal(),
+				scrutinyDetail);
+
+		LOGGER.info("Ramp slope validation completed for Block {} -> Expected: {}, Provided: {}, Result: {}",
+				block.getNumber(), expectedSlopeFormatted, providedSlopeFormatted, valid ? "Accepted" : "Not Accepted");
+	}
+
     private void validateMinHeightEntrance(Plan pl, Block block, BigDecimal requiredMinHeight, ScrutinyDetail scrutinyDetail) {
         for (Floor floor : block.getBuilding().getFloors()) {
             List<Ramp> ramps = floor.getRamps();
@@ -627,105 +664,203 @@ public class RampService_Assam extends RampService {
         for (DARamp daRamp : block.getDARamps()) {
             LOGGER.info("Processing DA Ramp: {}", daRamp);
 
-            if (daRamp.getMeasurements() != null && !daRamp.getMeasurements().isEmpty()) {
-                for (Measurement m : daRamp.getMeasurements()) {
-                    BigDecimal length = m.getLength();
-                    List<BigDecimal> widthList = daRamp.getDaRampWidth();
+            List<BigDecimal> widthList = daRamp.getDaRampWidth();
+            List<BigDecimal> lengthList = daRamp.getDaRampLength();
 
-                   
-                    BigDecimal minWidth = (widthList != null && !widthList.isEmpty())
-                            ? widthList.stream().min(BigDecimal::compareTo).orElse(BigDecimal.ZERO)
-                            : null;
+            // Compute minimum width and total length
+            BigDecimal minWidth = (widthList != null && !widthList.isEmpty())
+                    ? widthList.stream().min(BigDecimal::compareTo).orElse(BigDecimal.ZERO)
+                    : BigDecimal.ZERO;
 
-                    String providedLength = (length != null)
-                            ? String.format("%.2f", length)
-                            : NOT_DEFINED;
-                    String providedWidth = (minWidth != null)
-                            ? String.format("%.2f", minWidth)
-                            : NOT_DEFINED;
+            BigDecimal totalLength = (lengthList != null && !lengthList.isEmpty())
+                    ? lengthList.stream().reduce(BigDecimal.ZERO, BigDecimal::add)
+                    : BigDecimal.ZERO;
 
-                    LOGGER.info("Ramp Measurement → Length: {}, Min Width: {}", providedLength, providedWidth);
+            String providedLength = String.format("%.2f", totalLength);
+            String providedWidth = String.format("%.2f", minWidth);
 
-                    
-                    BigDecimal rampServiceMaxLength = BigDecimal.valueOf(9);
-                    BigDecimal rampServiceMinWidth = BigDecimal.valueOf(1.5);
+            LOGGER.info("Ramp Measurements → Total Length: {} m, Min Width: {} m", providedLength, providedWidth);
 
-                  
-                    List<Object> rules = cache.getFeatureRules(pl, FeatureEnum.RAMP_SERVICE.getValue(), false);
-                    Optional<RampServiceRequirement> matchedRule = rules.stream()
-                            .filter(RampServiceRequirement.class::isInstance)
-                            .map(RampServiceRequirement.class::cast)
-                            .findFirst();
+          
+            BigDecimal rampServiceMinWidth = BigDecimal.valueOf(1.5);
 
-                    if (matchedRule.isPresent()) {
-                        RampServiceRequirement rule = matchedRule.get();
-                        if (rule.getRampServiceMaxLength() != null || rule.getRampServiceMinWidth() != null) {
-                            rampServiceMaxLength = rule.getRampServiceMaxLength();
-                            rampServiceMinWidth = rule.getRampServiceMinWidth();
-                            LOGGER.info("Matched rule → MaxLength: {}, MinWidth: {}",
-                                    rampServiceMaxLength, rampServiceMinWidth);
-                        }
-                    }
+            // Calculate required length based on height × slope
+            BigDecimal requiredLength = (daRamp.getHeight() != null && daRamp.getSlope() != null)
+                    ? daRamp.getHeight().multiply(daRamp.getSlope())
+                    : BigDecimal.ZERO;
 
-                    //  Length validation
-                    if (length == null || length.compareTo(rampServiceMaxLength) > 0) {
-                        LOGGER.info("Ramp length validation failed. Required ≤ {}, Provided: {}",
-                                rampServiceMaxLength, providedLength);
-                        setReportOutputDetails(pl,
-                                RULE_RAMP_LENGTH,
-                                DESC_RAMP_LENGTH,
-                                rampServiceMaxLength.toString(),
-                                providedLength,
-                                Result.Not_Accepted.getResultVal(),
-                                scrutinyDetail);
-                    } else {
-                        LOGGER.info("Ramp length validation passed. Required ≤ {}, Provided: {}",
-                                rampServiceMaxLength, providedLength);
-                        setReportOutputDetails(pl,
-                                RULE_RAMP_LENGTH,
-                                DESC_RAMP_LENGTH,
-                                rampServiceMaxLength.toString(),
-                                providedLength,
-                                Result.Accepted.getResultVal(),
-                                scrutinyDetail);
-                    }
+            String requiredLengthFormatted = String.format("%.2f", requiredLength);
+            // Fetch rules from cache (if available)
+            List<Object> rules = cache.getFeatureRules(pl, FeatureEnum.RAMP_SERVICE.getValue(), false);
+            Optional<RampServiceRequirement> matchedRule = rules.stream()
+                    .filter(RampServiceRequirement.class::isInstance)
+                    .map(RampServiceRequirement.class::cast)
+                    .findFirst();
 
-                    //  Width validation
-                    if (minWidth == null || minWidth.compareTo(rampServiceMinWidth) < 0) {
-                        LOGGER.info("Ramp width validation failed. Required ≥ {}, Provided: {}",
-                                rampServiceMinWidth, providedWidth);
-                        setReportOutputDetails(pl,
-                                RULE_RAMP_WIDTH,
-                                DESC_RAMP_WIDTH,
-                                rampServiceMinWidth.toString(),
-                                providedWidth,
-                                Result.Not_Accepted.getResultVal(),
-                                scrutinyDetail);
-                    } else {
-                        LOGGER.info("Ramp width validation passed. Required ≥ {}, Provided: {}",
-                                rampServiceMinWidth, providedWidth);
-                        setReportOutputDetails(pl,
-                                RULE_RAMP_WIDTH,
-                                DESC_RAMP_WIDTH,
-                                rampServiceMinWidth.toString(),
-                                providedWidth,
-                                Result.Accepted.getResultVal(),
-                                scrutinyDetail);
-                    }
-                }
+            if (matchedRule.isPresent()) {
+                RampServiceRequirement rule = matchedRule.get(); 
+                if (rule.getRampServiceMinWidth() != null)
+                    rampServiceMinWidth = rule.getRampServiceMinWidth();
+
+                LOGGER.info("Matched Rule →  MinWidth: {} m",
+                       rampServiceMinWidth);
+            }
+
+            // ---------------------------------------
+            //  LENGTH VALIDATION
+            // ---------------------------------------
+            if (totalLength.compareTo(requiredLength) >= 0) {
+                LOGGER.info("Ramp Length validation passed. Provided: {} ≥ Required: {}", totalLength, requiredLengthFormatted);
+                setReportOutputDetails(pl,
+                        RULE_RAMP_LENGTH,
+                        DESC_RAMP_LENGTH,
+                        requiredLengthFormatted.toString(),
+                        providedLength,
+                        Result.Accepted.getResultVal(),
+                        scrutinyDetail);
             } else {
-            	LOGGER.warn("No measurements found for DA Ramp in Block: {}", block.getNumber());
+                LOGGER.info("Ramp Length validation failed. Provided: {} < Required: {}", totalLength, requiredLengthFormatted);
+                setReportOutputDetails(pl,
+                        RULE_RAMP_LENGTH,
+                        DESC_RAMP_LENGTH,
+                        requiredLengthFormatted.toString(),
+                        providedLength,
+                        Result.Not_Accepted.getResultVal(),
+                        scrutinyDetail);
+            }
+
+            // ---------------------------------------
+            //  WIDTH VALIDATION
+            // ---------------------------------------
+            if (minWidth.compareTo(rampServiceMinWidth) >= 0) {
+                LOGGER.info(" Ramp Width validation passed. Provided: {} ≥ Required: {}", minWidth, rampServiceMinWidth);
+                setReportOutputDetails(pl,
+                        RULE_RAMP_WIDTH,
+                        DESC_RAMP_WIDTH,
+                        rampServiceMinWidth.toString(),
+                        providedWidth,
+                        Result.Accepted.getResultVal(),
+                        scrutinyDetail);
+            } else {
+                LOGGER.info(" Ramp Width validation failed. Provided: {} < Required: {}", minWidth, rampServiceMinWidth);
+                setReportOutputDetails(pl,
+                        RULE_RAMP_WIDTH,
+                        DESC_RAMP_WIDTH,
+                        rampServiceMinWidth.toString(),
+                        providedWidth,
+                        Result.Not_Accepted.getResultVal(),
+                        scrutinyDetail);
             }
         }
     }
 
+    /**
+     * Validates the dimensions of DA (Disabled Access) Ramps for a given block.
+     * It checks both ramp length and width against the permissible limits defined in MDMS rules.
+     *
+     * @param pl              The plan object containing building details.
+     * @param block           The block containing DA ramps.
+     * @param scrutinyDetail  The scrutiny detail object for recording validation results.
+     */
+    private void validateRampDimensions(Plan pl, Block block, Floor floor, ScrutinyDetail scrutinyDetail) {
+        LOGGER.info("Validating DA Ramp dimensions for Block: {}", block.getNumber());
 
+        for (Ramp ramp : floor.getRamps()) {
+            LOGGER.info("Processing  Ramp: {}", ramp);
 
+            List<BigDecimal> widthList = ramp.getRampWidth();
+            List<BigDecimal> lengthList = ramp.getRampLength();
+
+            // Compute minimum width and total length
+            BigDecimal minWidth = (widthList != null && !widthList.isEmpty())
+                    ? widthList.stream().min(BigDecimal::compareTo).orElse(BigDecimal.ZERO)
+                    : BigDecimal.ZERO;
+
+            BigDecimal totalLength = (lengthList != null && !lengthList.isEmpty())
+                    ? lengthList.stream().reduce(BigDecimal.ZERO, BigDecimal::add)
+                    : BigDecimal.ZERO;
+
+            String providedLength = String.format("%.2f", totalLength);
+            String providedWidth = String.format("%.2f", minWidth);
+
+            LOGGER.info("Ramp Measurements → Total Length: {} m, Min Width: {} m", providedLength, providedWidth);
+
+          
+            BigDecimal rampServiceMinWidth = BigDecimal.valueOf(1.5);
+
+            // Calculate required length based on height × slope
+            BigDecimal requiredLength = (ramp.getHeight() != null && ramp.getSlope() != null)
+                    ? ramp.getHeight().multiply(ramp.getSlope())
+                    : BigDecimal.ZERO;
+
+            String requiredLengthFormatted = String.format("%.2f", requiredLength);
+            // Fetch rules from cache (if available)
+            List<Object> rules = cache.getFeatureRules(pl, FeatureEnum.RAMP_SERVICE.getValue(), false);
+            Optional<RampServiceRequirement> matchedRule = rules.stream()
+                    .filter(RampServiceRequirement.class::isInstance)
+                    .map(RampServiceRequirement.class::cast)
+                    .findFirst();
+
+            if (matchedRule.isPresent()) {
+                RampServiceRequirement rule = matchedRule.get(); 
+                if (rule.getRampServiceMinWidth() != null)
+                    rampServiceMinWidth = rule.getRampServiceMinWidth();
+
+                LOGGER.info("Matched Rule →  MinWidth: {} m",
+                       rampServiceMinWidth);
+            }
+
+            // ---------------------------------------
+            //  LENGTH VALIDATION
+            // ---------------------------------------
+            if (totalLength.compareTo(requiredLength) >= 0) {
+                LOGGER.info("Ramp Length validation passed. Provided: {} ≥ Required: {}", totalLength, requiredLengthFormatted);
+                setReportOutputDetails(pl,
+                        RULE_RAMP_LENGTH,
+                        DESC_RAMP_LENGTH,
+                        requiredLengthFormatted.toString(),
+                        providedLength,
+                        Result.Accepted.getResultVal(),
+                        scrutinyDetail);
+            } else {
+                LOGGER.info("Ramp Length validation failed. Provided: {} < Required: {}", totalLength, requiredLengthFormatted);
+                setReportOutputDetails(pl,
+                        RULE_RAMP_LENGTH,
+                        DESC_RAMP_LENGTH,
+                        requiredLengthFormatted.toString(),
+                        providedLength,
+                        Result.Not_Accepted.getResultVal(),
+                        scrutinyDetail);
+            }
+
+            // ---------------------------------------
+            //  WIDTH VALIDATION
+            // ---------------------------------------
+            if (minWidth.compareTo(rampServiceMinWidth) >= 0) {
+                LOGGER.info(" Ramp Width validation passed. Provided: {} ≥ Required: {}", minWidth, rampServiceMinWidth);
+                setReportOutputDetails(pl,
+                        RULE_RAMP_WIDTH,
+                        DESC_RAMP_WIDTH,
+                        rampServiceMinWidth.toString(),
+                        providedWidth,
+                        Result.Accepted.getResultVal(),
+                        scrutinyDetail);
+            } else {
+                LOGGER.info(" Ramp Width validation failed. Provided: {} < Required: {}", minWidth, rampServiceMinWidth);
+                setReportOutputDetails(pl,
+                        RULE_RAMP_WIDTH,
+                        DESC_RAMP_WIDTH,
+                        rampServiceMinWidth.toString(),
+                        providedWidth,
+                        Result.Not_Accepted.getResultVal(),
+                        scrutinyDetail);
+            }
+        }
+    }
     private void processDARoomValidation(Plan pl, Block block, BigDecimal rampServiceBuildingHeight, ScrutinyDetail scrutinyDetail3) {
         
     }
 
-    
     private void setReportOutputDetails(Plan pl, String ruleNo, String ruleDesc, String expected, String actual, String status,
             ScrutinyDetail scrutinyDetail) {
         ReportScrutinyDetail detail = new ReportScrutinyDetail();

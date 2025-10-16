@@ -46,7 +46,7 @@ public class RampServiceExtract extends FeatureExtract {
                 for (String rampLayerName : rampLayerNames) {
                     List<DXFLWPolyline> polyLines = Util.getPolyLinesByLayer(pl.getDoc(), rampLayerName);
                     String[] layerArray = rampLayerName.split("_", 5);
-                    BigDecimal slope = extractSlope(pl, rampLayerName);
+                    
 
                     List<Measurement> convertedPolyLines = polyLines.stream()
                             .map(polyLine -> new MeasurementDetail(polyLine, true)).collect(Collectors.toList());
@@ -54,6 +54,9 @@ public class RampServiceExtract extends FeatureExtract {
                     List<BigDecimal> daRampWidth = Util.getListOfDimensionByColourCode(pl, rampLayerName,
         					DxfFileConstants.INDEX_COLOR_TWO);
                     
+                    List<BigDecimal> daRampLength = Util.getListOfDimensionByColourCode(pl, rampLayerName,
+        					DxfFileConstants.INDEX_COLOR_ONE);
+                    BigDecimal slope = BigDecimal.ZERO;
  
                     if (!polyLines.isEmpty() && polyLines != null && !layerArray[4].isEmpty()
                             && layerArray[4] != null) {
@@ -61,15 +64,24 @@ public class RampServiceExtract extends FeatureExtract {
                         daRamp.setNumber(Integer.valueOf(layerArray[4]));
                         daRamp.setMeasurements(convertedPolyLines);
                         daRamp.setPresentInDxf(true);
-                        daRamp.setSlope(slope);
+                       
                         if (daRampWidth != null && !daRampWidth.isEmpty()) {
                             daRamp.setDaRampWidth(daRampWidth);
                         }
+                        if (daRampLength != null && !daRampLength.isEmpty()) {
+                            daRamp.setDaRampLength(daRampLength);
+                           slope =  extractDASlope(pl, rampLayerName, daRampLength, daRamp);
+                        }
+                      
+                        daRamp.setSlope(slope);
                     	block.addDARamps(daRamp);
-                    	String landingNamePattern = String.format(layerNames.getLayerName("LAYER_NAME_DA_RAMP_LANDING"),
-    							block.getNumber(), "+\\d");
+                    	String landingNamePattern = String.format(
+                    		    layerNames.getLayerName("LAYER_NAME_DA_RAMP_LANDING"),
+                    		    block.getNumber(),
+                    		    daRamp.getNumber()
+                    		);
 
-                    	
+                   	
     					addRampLanding(pl, landingNamePattern, daRamp);
                         
                     }
@@ -139,7 +151,21 @@ public class RampServiceExtract extends FeatureExtract {
                                         }
                                         BigDecimal minEntranceHeight = extractMinEntranceHeight(pl, rmpLayer);
                                         ramp.setMinEntranceHeight(minEntranceHeight);
-                                       
+                                        
+                                        List<BigDecimal> rampWidth = Util.getListOfDimensionByColourCode(pl, rmpLayer,
+                            					DxfFileConstants.INDEX_COLOR_TWO);
+                                        
+                                        List<BigDecimal> rampLength = Util.getListOfDimensionByColourCode(pl, rmpLayer,
+                            					DxfFileConstants.INDEX_COLOR_ONE);
+                                        
+                                        if (rampWidth != null && !rampWidth.isEmpty()) {
+                                            ramp.setRampWidth(rampWidth);
+                                        }
+                                        if (rampLength != null && !rampLength.isEmpty()) {
+                                            ramp.setRampLength(rampLength);}
+                                        
+                                        BigDecimal  slope =  extractSlope(pl, rmpLayer, rampLength, ramp);
+                                        ramp.setSlope(slope);
                                         floor.addRamps(ramp);
                                     }
                                 }
@@ -150,26 +176,20 @@ public class RampServiceExtract extends FeatureExtract {
         return pl;
     }
 
+   
     /**
-     * Extracts the slope of a ramp from the given DXF layer text.
-     * Expected format in DXF layer: "SLOPE=1 in 12"
-     * 
-     * @param pl The PlanDetail containing the DXF document.
-     * @param rampLayerName The DXF layer name where the slope is defined.
-     * @return The slope as BigDecimal (dividend/divisor). Returns BigDecimal.ZERO if not found or invalid.
-     */
-    /**
-     * Extracts the ramp slope from DXF layer text.
-     * The DXF text is expected in the format: "FLR_HT_M=<height>".
-     * According to the rule, slope = run / rise, where max slope = 1 in 12.
+     * Extracts and calculates the slope (rise/run) for a DA ramp layer.
+     * The rise (height) is read from MText (key = FLR_HT_M),
+     * and the run (length) is taken from the dimension list (daRampLength).
      *
-     * @param pl The PlanDetail containing the DXF document
-     * @param rampLayerName The DXF layer name
-     * @return Slope as BigDecimal (run/rise). Returns 0 if not found.
+     * @param pl              the PlanDetail object containing DXF data
+     * @param rampLayerName   the layer name of the ramp
+     * @param daRampLength    the list of ramp lengths (in meters)
+     * @return the calculated slope as rise/run (BigDecimal)
      */
-    private BigDecimal extractSlope(PlanDetail pl, String rampLayerName) {
-        String text = Util.getMtextByLayerName(pl.getDoc(), rampLayerName);
+    private BigDecimal extractDASlope(PlanDetail pl, String rampLayerName, List<BigDecimal> daRampLength, DARamp daRamp) {
         BigDecimal slope = BigDecimal.ZERO;
+        String text = Util.getMtextByLayerName(pl.getDoc(), rampLayerName); // MText content (e.g., "FLR_HT_M=0.5")
 
         if (text == null || text.isEmpty()) {
             LOG.debug("No text found in layer: {}", rampLayerName);
@@ -196,10 +216,87 @@ public class RampServiceExtract extends FeatureExtract {
         }
 
         try {
-            BigDecimal rise = new BigDecimal(value);
-            if (rise.compareTo(BigDecimal.ZERO) > 0) {
-                slope = BigDecimal.valueOf(12).divide(rise, 2, RoundingMode.HALF_UP); // run/rise
-                LOG.debug("Extracted ramp slope from layer '{}': FLR_HT_M={} -> slope={}", rampLayerName, rise, slope);
+            // Extract ramp height (m)
+            BigDecimal height = new BigDecimal(value.replaceAll("[^\\d.]", "")); 
+            daRamp.setHeight(height);
+
+            // Sum all lengths from daRampLength list
+            BigDecimal totalLength = daRampLength != null 
+                    ? daRampLength.stream().reduce(BigDecimal.ZERO, BigDecimal::add) 
+                    : BigDecimal.ZERO;
+
+            if (height.compareTo(BigDecimal.ZERO) > 0 && totalLength.compareTo(BigDecimal.ZERO) > 0) {
+                // slope = length / height (as per your requirement)
+                slope = totalLength.divide(height, 3, RoundingMode.HALF_UP);
+                LOG.debug("Extracted ramp slope from layer '{}': height={}m, totalLength={}m -> slope={}", 
+                          rampLayerName, height, totalLength, slope);
+            } else {
+                LOG.debug("Invalid height or totalLength for layer '{}': height={}, totalLength={}", 
+                          rampLayerName, height, totalLength);
+            }
+        } catch (NumberFormatException ex) {
+            LOG.debug("Failed to parse ramp height in layer '{}': {}", rampLayerName, value, ex);
+        }
+
+        return slope;
+    }
+
+    /**
+     * Extracts and calculates the slope (rise/run) for a DA ramp layer.
+     * The rise (height) is read from MText (key = FLR_HT_M),
+     * and the run (length) is taken from the dimension list (daRampLength).
+     *
+     * @param pl              the PlanDetail object containing DXF data
+     * @param rampLayerName   the layer name of the ramp
+     * @param daRampLength    the list of ramp lengths (in meters)
+     * @return the calculated slope as rise/run (BigDecimal)
+     */
+    private BigDecimal extractSlope(PlanDetail pl, String rampLayerName, List<BigDecimal> daRampLength, Ramp ramp) {
+        BigDecimal slope = BigDecimal.ZERO;
+        String text = Util.getMtextByLayerName(pl.getDoc(), rampLayerName); // MText content (e.g., "FLR_HT_M=0.5")
+
+        if (text == null || text.isEmpty()) {
+            LOG.debug("No text found in layer: {}", rampLayerName);
+            return slope;
+        }
+
+        if (!text.contains("=")) {
+            LOG.debug("Text in layer '{}' does not contain '=': {}", rampLayerName, text);
+            return slope;
+        }
+
+        String[] parts = text.split("=", 2);
+        if (parts.length != 2) {
+            LOG.debug("Cannot split text by '=' in layer '{}': {}", rampLayerName, text);
+            return slope;
+        }
+
+        String key = parts[0].trim();
+        String value = parts[1].trim();
+
+        if (!"FLR_HT_M".equalsIgnoreCase(key)) {
+            LOG.debug("Layer '{}' does not contain ramp height info. Found key: {}", rampLayerName, key);
+            return slope;
+        }
+
+        try {
+            // Extract ramp height (m)
+            BigDecimal height = new BigDecimal(value.replaceAll("[^\\d.]", "")); 
+            ramp.setHeight(height);
+
+            // Sum all lengths from daRampLength list
+            BigDecimal totalLength = daRampLength != null 
+                    ? daRampLength.stream().reduce(BigDecimal.ZERO, BigDecimal::add) 
+                    : BigDecimal.ZERO;
+
+            if (height.compareTo(BigDecimal.ZERO) > 0 && totalLength.compareTo(BigDecimal.ZERO) > 0) {
+                // slope = length / height (as per your requirement)
+                slope = totalLength.divide(height, 3, RoundingMode.HALF_UP);
+                LOG.debug("Extracted ramp slope from layer '{}': height={}m, totalLength={}m -> slope={}", 
+                          rampLayerName, height, totalLength, slope);
+            } else {
+                LOG.debug("Invalid height or totalLength for layer '{}': height={}, totalLength={}", 
+                          rampLayerName, height, totalLength);
             }
         } catch (NumberFormatException ex) {
             LOG.debug("Failed to parse ramp height in layer '{}': {}", rampLayerName, value, ex);
@@ -241,46 +338,56 @@ public class RampServiceExtract extends FeatureExtract {
 	 */
 	
 	private void addRampLanding(PlanDetail pl, String landingNamePattern, DARamp daRamp) {
-		DXFDocument doc = pl.getDoc();
+	    DXFDocument doc = pl.getDoc();
 	    List<String> landingLayerNames = Util.getLayerNamesLike(doc, landingNamePattern);
-		List<RampLanding> landings = new ArrayList<>();
+	    List<RampLanding> landings = new ArrayList<>();
 
-		for (String landingLayer : landingLayerNames) {
+	    for (String landingLayer : landingLayerNames) {
 
-			RampLanding rampLanding = new RampLanding();
+	        RampLanding rampLanding = new RampLanding();
+	        String[] parts = landingLayer.split("_");
 
-			String[] landingNo = landingLayer.split("_");
+	        // Defensive check — ensure proper format
+	        if (parts.length >= 6) {
+	            // Example: BLK_1_DA_RAMP_1_LANDING
+	            // parts[1] = block number
+	            // parts[4] = ramp number
+	            // parts[5] = "LANDING" (or landing number if present)
 
-			rampLanding.setNumber(landingNo[7]);
+	            String blockNo = parts[1];
+	            String rampNo  = parts[4];
+	            String landingNo = parts.length > 6 ? parts[6] : "1"; // optional number if exists
+	            rampLanding.setNumber(landingNo); // safely set landing number
+	        } else {
+	            LOG.warn("Unexpected landing layer format: " + landingLayer);
+	            continue;
+	        }
 
-			List<DXFLWPolyline> landingPolyLines = Util.getPolyLinesByLayer(doc, landingLayer);
+	        List<DXFLWPolyline> landingPolyLines = Util.getPolyLinesByLayer(doc, landingLayer);
+	        boolean isClosed = landingPolyLines.stream().allMatch(DXFLWPolyline::isClosed);
+	        rampLanding.setLandingClosed(isClosed);
 
-			boolean isClosed = landingPolyLines.stream().allMatch(dxflwPolyline -> dxflwPolyline.isClosed());
+	        List<Measurement> landingPolyLinesMeasurement = landingPolyLines.stream()
+	                .map(polyLine -> new MeasurementDetail(polyLine, true))
+	                .collect(Collectors.toList());
+	        rampLanding.setLandings(landingPolyLinesMeasurement);
 
-			rampLanding.setLandingClosed(isClosed);
+	        // Set length of landing
+	        List<BigDecimal> landingLengths = Util.getListOfDimensionByColourCode(
+	                pl, landingLayer, DxfFileConstants.STAIR_FLIGHT_LENGTH_COLOR);
+	        rampLanding.setLengths(landingLengths);
 
-			List<Measurement> landingPolyLinesMeasurement = landingPolyLines.stream()
-					.map(flightPolyLine -> new MeasurementDetail(flightPolyLine, true)).collect(Collectors.toList());
+	        // Set width of landing
+	        List<BigDecimal> landingWidths = Util.getListOfDimensionByColourCode(
+	                pl, landingLayer, DxfFileConstants.STAIR_FLIGHT_WIDTH_COLOR);
+	        rampLanding.setWidths(landingWidths);
 
-			rampLanding.setLandings(landingPolyLinesMeasurement);
+	        landings.add(rampLanding);
+	    }
 
-			// set length of flight
-			List<BigDecimal> landingLengths = Util.getListOfDimensionByColourCode(pl, landingLayer,
-					DxfFileConstants.STAIR_FLIGHT_LENGTH_COLOR);
-
-			rampLanding.setLengths(landingLengths);
-
-			// set width of flight
-			List<BigDecimal> landingWidths = Util.getListOfDimensionByColourCode(pl, landingLayer,
-					DxfFileConstants.STAIR_FLIGHT_WIDTH_COLOR);
-
-			rampLanding.setWidths(landingWidths);
-
-			landings.add(rampLanding);
-		}
-
-		daRamp.setLandings(landings);
+	    daRamp.setLandings(landings);
 	}
+
 
 
 

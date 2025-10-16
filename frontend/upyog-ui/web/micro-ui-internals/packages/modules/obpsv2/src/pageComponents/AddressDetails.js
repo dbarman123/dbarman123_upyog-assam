@@ -42,6 +42,10 @@ const AddressDetails = ({ t, config, onSelect, formData, searchResult}) => {
         i18nKey: state.stateCode,
       }));
       setStateOptions(formattedStates);
+      if (!permanentState && formattedStates.length > 0) {
+        setPermanentState(formattedStates[0]);
+        setCorrespondenceState(formattedStates[0]);
+      }
     }
   }, [mdmsData]);
 
@@ -53,12 +57,12 @@ const AddressDetails = ({ t, config, onSelect, formData, searchResult}) => {
   } : "";
   const [permanentAddressLine1, setPermanentAddressLine1] = useState(formData?.address?.permanent?.addressLine1 || searchResult?.landInfo?.address?.addressLine1||"");
   const [permanentAddressLine2, setPermanentAddressLine2] = useState(formData?.address?.permanent?.addressLine2 || searchResult?.landInfo?.address?.addressLine2 || "");
-  const [permanentDistrict, setPermanentDistrict] = useState(formData?.address?.permanent?.district || searchResultDistrict|| "");
+  const [permanentDistrict, setPermanentDistrict] = useState(formData?.address?.permanent?.district || formData?.areaMapping?.district || searchResultDistrict|| "");
   const searchResultCity = searchResult?.landInfo?.address?.locality?.code? {
     "code" : searchResult?.landInfo?.address?.locality?.code,
     "i18nKey" : searchResult?.landInfo?.address?.locality?.code
   } : "";
-  const [permanentCity, setPermanentCity] = useState(formData?.address?.permanent?.city || searchResultCity || "");
+  const [permanentCity, setPermanentCity] = useState(formData?.address?.permanent?.city || formData?.areaMapping?.revenueVillage || searchResultCity || "");
   const searchResultState = searchResult?.landInfo?.address?.state ? {
     "code" : searchResult?.landInfo?.address?.state,
     "i18nKey" : searchResult?.landInfo?.address?.state
@@ -247,7 +251,7 @@ const AddressDetails = ({ t, config, onSelect, formData, searchResult}) => {
           />
           
            {/* State */}
-           <CardLabel>{`${t("BPA_STATE")}`} <span className="check-page-link-button">*</span></CardLabel>
+          <CardLabel>{`${t("BPA_STATE")}`} <span className="check-page-link-button">*</span></CardLabel>
           <Dropdown
             t={t}
             option={stateOptions}

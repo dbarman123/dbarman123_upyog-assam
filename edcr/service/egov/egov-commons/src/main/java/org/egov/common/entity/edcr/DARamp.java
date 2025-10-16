@@ -105,10 +105,30 @@ public class DARamp extends Measurement {
 
     private BigDecimal slope;
     
-    private List<BigDecimal> daRampWidth;
+    private BigDecimal height;
+    
+    public BigDecimal getHeight() {
+		return height;
+	}
+
+	public void setHeight(BigDecimal height) {
+		this.height = height;
+	}
+
+	private List<BigDecimal> daRampWidth;
+    
+    private List<BigDecimal> daRampLength;
     
     public List<BigDecimal> getDaRampWidth() {
 		return daRampWidth;
+	}
+
+	public List<BigDecimal> getDaRampLength() {
+		return daRampLength;
+	}
+
+	public void setDaRampLength(List<BigDecimal> daRampLength) {
+		this.daRampLength = daRampLength;
 	}
 
 	public void setDaRampWidth(List<BigDecimal> daRampWidth) {

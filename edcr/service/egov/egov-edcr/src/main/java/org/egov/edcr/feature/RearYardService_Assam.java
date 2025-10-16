@@ -378,7 +378,7 @@ public class RearYardService_Assam extends RearYardService {
 	            .filter(ruleFeature ->
 	                ruleFeature.getFromPlotDepth() != null && ruleFeature.getToPlotDepth() != null
 	                && depthOfPlot.compareTo(ruleFeature.getFromPlotDepth()) >= 0
-	                && depthOfPlot.compareTo(ruleFeature.getToPlotDepth()) < 0
+	                && depthOfPlot.compareTo(ruleFeature.getToPlotDepth()) <= 0
 	                && Boolean.TRUE.equals(ruleFeature.getActive()))
 	            .findFirst();
 

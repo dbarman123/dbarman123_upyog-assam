@@ -122,7 +122,7 @@ export const BPAMyApplications = () => {
               </div>
             </div>
           </div>
-          <Link to="/upyog-ui/citizen/obpsv2/applicant-details">
+          <Link to="/upyog-ui/citizen/obpsv2/building-permit/area-mapping">
             <SubmitBar style={{ borderRadius: "30px", width: "20%", marginTop: "16px" }} label={t("BPA_NEW_APPLICATION") + " +"} />
           </Link>
         </div>

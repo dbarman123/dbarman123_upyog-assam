@@ -35,8 +35,6 @@ return [
     Triggers redirectToScrutinyPage on click.
   */
   {
-    id: "login-btn",
-    element: "LOGIN",
     text: t("Scrutiny"),
     icon: "",
     populators: {

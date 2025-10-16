@@ -66,8 +66,10 @@ import org.egov.edcr.contract.ComparisonDetail;
 import org.egov.edcr.contract.ComparisonRequest;
 import org.egov.edcr.contract.ComparisonResponse;
 import org.egov.edcr.contract.EdcrDetail;
+import org.egov.edcr.contract.EdcrDetailBpa;
 import org.egov.edcr.contract.EdcrRequest;
 import org.egov.edcr.contract.EdcrResponse;
+import org.egov.edcr.contract.EdcrResponseBpa;
 import org.egov.edcr.contract.PlanResponse;
 import org.egov.edcr.entity.ApplicationType;
 import org.egov.edcr.service.EdcrRestService;
@@ -400,6 +402,25 @@ public class RestEdcrApplicationController {
             return getSuccessResponse(edcrDetail, requestInfoWrapper.getRequestInfo(), count);
         }
     }
+    
+    @PostMapping(value = "/edcrdetails", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public ResponseEntity<?> edcrDetails(@ModelAttribute EdcrRequest edcrRequest,
+            @RequestBody @Valid RequestInfoWrapper requestInfoWrapper) {
+        ErrorDetail edcReqRes = edcrValidator.validate(edcrRequest);
+        if (edcReqRes != null && StringUtils.isNotBlank(edcReqRes.getErrorMessage()))
+            return new ResponseEntity<>(edcReqRes, HttpStatus.BAD_REQUEST);
+        ErrorDetail edcRes = edcrValidator.validate(requestInfoWrapper);
+        if (edcRes != null && StringUtils.isNotBlank(edcRes.getErrorMessage()))
+            return new ResponseEntity<>(edcRes, HttpStatus.BAD_REQUEST);
+        List<EdcrDetailBpa> edcrDetail = edcrRestService.fetchEdcrBpa(edcrRequest, requestInfoWrapper);
+        Integer count = edcrRestService.fetchCount(edcrRequest, requestInfoWrapper);
+        if (!edcrDetail.isEmpty() && edcrDetail.get(0).getErrors() != null) {
+            return new ResponseEntity<>(edcrDetail.get(0).getErrors(), HttpStatus.OK);
+        } else {
+            return getSuccessResponseForEdcrDetail(edcrDetail, requestInfoWrapper.getRequestInfo(), count);
+        }
+    }
 
     @PostMapping(value = "/extractplan", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
@@ -456,6 +477,16 @@ public class RestEdcrApplicationController {
     
     private ResponseEntity<?> getSuccessResponse(List<EdcrDetail> edcrDetails, RequestInfo requestInfo, Integer count) {
         EdcrResponse edcrRes = new EdcrResponse();
+        edcrRes.setEdcrDetail(edcrDetails);
+        edcrRes.setCount(count);
+        ResponseInfo responseInfo = edcrRestService.createResponseInfoFromRequestInfo(requestInfo, true);
+        edcrRes.setResponseInfo(responseInfo);
+        return new ResponseEntity<>(edcrRes, HttpStatus.OK);
+
+    }
+    
+    private ResponseEntity<?> getSuccessResponseForEdcrDetail(List<EdcrDetailBpa> edcrDetails, RequestInfo requestInfo, Integer count) {
+        EdcrResponseBpa edcrRes = new EdcrResponseBpa();
         edcrRes.setEdcrDetail(edcrDetails);
         edcrRes.setCount(count);
         ResponseInfo responseInfo = edcrRestService.createResponseInfoFromRequestInfo(requestInfo, true);

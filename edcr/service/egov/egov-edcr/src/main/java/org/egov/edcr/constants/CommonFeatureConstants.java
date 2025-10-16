@@ -177,7 +177,8 @@ public class CommonFeatureConstants {
     public static final String DA_ROOM = "DA Room";
     public static final String RAMP_MIN_WIDTH = "Ramp - Minimum Width";
     public static final String RAMP_MAX_SLOPE = "Ramp - Maximum Slope";
-    public static final String RAMP_LENGTH_WIDTH= "DA Ramp - Length and width";
+    public static final String DA_RAMP_LENGTH_WIDTH= "DA Ramp - Length and width";
+    public static final String RAMP_LENGTH_WIDTH= "Ramp - Length and width";
     public static final String RAMP_HT= "Ramp - Minimum Entrance Height";
     public static final String MIN_NUMBER_DA_ROOMS = "Minimum number of da rooms";
     public static final String LESS_THAN_SLOPE = "Less than 0.08 for all da ramps";
