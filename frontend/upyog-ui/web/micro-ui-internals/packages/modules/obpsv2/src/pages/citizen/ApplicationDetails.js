@@ -109,11 +109,11 @@ import {
       },
       { enabled: acknowledgementIds ? true : false }
     );
-    useEffect(() => {
-      if (bpa_details && Object.keys(bpa_details).length > 0) {
-        setSubmitReport({ bpa_details });
-      }
-    }, [bpa_details]);
+    // useEffect(() => {
+    //   if (bpa_details && Object.keys(bpa_details).length > 0) {
+    //     setSubmitReport({ bpa_details });
+    //   }
+    // }, [bpa_details]);
     useEffect(() => {
       (async () => {
         setActionError(null);
