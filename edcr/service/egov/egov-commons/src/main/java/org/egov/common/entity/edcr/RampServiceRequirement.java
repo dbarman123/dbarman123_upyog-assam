@@ -12,6 +12,8 @@ public class RampServiceRequirement extends MdmsFeatureRule {
     private BigDecimal rampServiceExpectedSlopeOne;
     @JsonProperty("rampServiceDivideExpectedSlope")
     private BigDecimal rampServiceDivideExpectedSlope;
+    @JsonProperty("rampServiceDivideExpectedSlopeOne")
+    private BigDecimal rampServiceDivideExpectedSlopeOne;
     @JsonProperty("rampServiceSlopValue")
     private BigDecimal rampServiceSlopValue;
     @JsonProperty("rampServiceBuildingHeight")
@@ -45,7 +47,13 @@ public class RampServiceRequirement extends MdmsFeatureRule {
     public BigDecimal getRampServiceMinWidth() {
         return rampServiceMinWidth;
     }
-    public void setRampServiceMinWidth(BigDecimal rampServiceMinWidth) {
+    public BigDecimal getRampServiceDivideExpectedSlopeOne() {
+		return rampServiceDivideExpectedSlopeOne;
+	}
+	public void setRampServiceDivideExpectedSlopeOne(BigDecimal rampServiceDivideExpectedSlopeOne) {
+		this.rampServiceDivideExpectedSlopeOne = rampServiceDivideExpectedSlopeOne;
+	}
+	public void setRampServiceMinWidth(BigDecimal rampServiceMinWidth) {
         this.rampServiceMinWidth = rampServiceMinWidth;
     }
     
@@ -125,13 +133,15 @@ public class RampServiceRequirement extends MdmsFeatureRule {
 	public String toString() {
 		return "RampServiceRequirement [rampServiceValueOne=" + rampServiceValueOne + ", rampServiceExpectedSlopeOne="
 				+ rampServiceExpectedSlopeOne + ", rampServiceDivideExpectedSlope=" + rampServiceDivideExpectedSlope
-				+ ", rampServiceSlopValue=" + rampServiceSlopValue + ", rampServiceBuildingHeight="
-				+ rampServiceBuildingHeight + ", rampServiceTotalLength=" + rampServiceTotalLength
-				+ ", rampServiceExpectedSlopeTwo=" + rampServiceExpectedSlopeTwo + ", rampServiceExpectedSlopeCompare="
-				+ rampServiceExpectedSlopeCompare + ", rampServiceExpectedSlopeCompareTrue="
-				+ rampServiceExpectedSlopeCompareTrue + ", rampServiceExpectedSlopeCompareFalse="
-				+ rampServiceMinHeightEntrance + ", rampServiceMinHeightEntrance="
-				+ rampServiceExpectedSlopeCompareFalse + "]";
+				+ ", rampServiceDivideExpectedSlopeOne=" + rampServiceDivideExpectedSlopeOne + ", rampServiceSlopValue="
+				+ rampServiceSlopValue + ", rampServiceBuildingHeight=" + rampServiceBuildingHeight
+				+ ", rampServiceTotalLength=" + rampServiceTotalLength + ", rampServiceExpectedSlopeTwo="
+				+ rampServiceExpectedSlopeTwo + ", rampServiceExpectedSlopeCompare=" + rampServiceExpectedSlopeCompare
+				+ ", rampServiceExpectedSlopeCompareTrue=" + rampServiceExpectedSlopeCompareTrue
+				+ ", rampServiceExpectedSlopeCompareFalse=" + rampServiceExpectedSlopeCompareFalse
+				+ ", rampServiceWidth=" + rampServiceWidth + ", rampServiceMinHeightEntrance="
+				+ rampServiceMinHeightEntrance + ", rampServiceMaxLength=" + rampServiceMaxLength
+				+ ", rampServiceMinWidth=" + rampServiceMinWidth + "]";
 	}
 
 }

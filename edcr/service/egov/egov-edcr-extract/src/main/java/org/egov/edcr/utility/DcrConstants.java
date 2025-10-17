@@ -58,7 +58,8 @@ public class DcrConstants {
     public static final String TWO_WHEELER_PARKING_SLOT = "Two Wheeler Parking slot or Units ";
     public static final String LOAD_UNLOAD_AREA = "Loading/Unloading area ";
     public static final String SMALL_PLOT_VIOLATION = "Maximum number of floors allowed are less than or equal to 3";
-
+    public static final String UNIT_LAYER = "Unit layer not defined";
+    public static final String UNIT = "Atleast one Unit layer is mandatory";
     public static final String PLOT_AREA = "Plot Area ";
     public static final String BUILDING_HEIGHT_DESC = "Building height";
     public static final String BUILDING_FOOT_PRINT = "Building foot print";

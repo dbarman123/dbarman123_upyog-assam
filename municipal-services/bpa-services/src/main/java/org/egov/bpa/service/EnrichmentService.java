@@ -117,13 +117,6 @@ public class EnrichmentService {
         if (bpaRequest.getBPA().getRiskType() != null) {
             additionalDetails.put(BPAConstants.RISKTYPE, bpaRequest.getBPA().getRiskType());
         }
-//		bpaRequest.getBPA().getRtpDetails().setId(UUID.randomUUID().toString());
-//		bpaRequest.getBPA().getAreaMapping().setId(UUID.randomUUID().toString());
-
-		//Land info is incomplete here so adding landinfo to additional details
-		//Will send request to land service once data is complete
-		String landInfo = bpaUtil.getLandInfoAsString(bpaRequest.getBPA().getLandInfo());
-		additionalDetails.put(BPAConstants.LAND_INFO_KEY, landInfo);
 
 //		 BPA Documents
 		if (!CollectionUtils.isEmpty(bpaRequest.getBPA().getDocuments()))

@@ -1,15 +1,38 @@
 package org.egov.bpa.util;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jayway.jsonpath.JsonPath;
-import lombok.extern.slf4j.Slf4j;
+import static org.egov.bpa.util.BPAConstants.BILL_AMOUNT;
+import static org.egov.bpa.util.BPAConstants.DOWNLOAD_OC_LINK_PLACEHOLDER;
+import static org.egov.bpa.util.BPAConstants.DOWNLOAD_PERMIT_LINK_PLACEHOLDER;
+import static org.egov.bpa.util.BPAConstants.EMAIL_SUBJECT;
+import static org.egov.bpa.util.BPAConstants.NIUA_LINK;
+import static org.egov.bpa.util.BPAConstants.PAYMENT_LINK_PLACEHOLDER;
+import static org.egov.bpa.util.BPAConstants.WEBSITE_LINK_PLACEHOLDER;
+import static org.springframework.util.StringUtils.capitalize;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.commons.lang3.StringUtils;
 import org.egov.bpa.config.BPAConfiguration;
 import org.egov.bpa.producer.Producer;
 import org.egov.bpa.repository.ServiceRequestRepository;
 import org.egov.bpa.service.EDCRService;
 import org.egov.bpa.service.UserService;
-import org.egov.bpa.web.model.*;
+import org.egov.bpa.web.model.BPA;
+import org.egov.bpa.web.model.BPARequest;
+import org.egov.bpa.web.model.BPASearchCriteria;
+import org.egov.bpa.web.model.Email;
+import org.egov.bpa.web.model.EmailRequest;
+import org.egov.bpa.web.model.EventRequest;
+import org.egov.bpa.web.model.RequestInfoWrapper;
+import org.egov.bpa.web.model.SMSRequest;
 import org.egov.bpa.web.model.collection.PaymentResponse;
 import org.egov.bpa.web.model.user.UserDetailResponse;
 import org.egov.common.contract.request.RequestInfo;
@@ -22,11 +45,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.client.RestTemplate;
 
-import java.math.BigDecimal;
-import java.util.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jayway.jsonpath.JsonPath;
 
-import static org.egov.bpa.util.BPAConstants.*;
-import static org.springframework.util.StringUtils.capitalize;
+import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Slf4j
@@ -88,31 +110,23 @@ public class NotificationUtil {
 	 */
 	@SuppressWarnings("unchecked")
 	public String getCustomizedMsg(RequestInfo requestInfo, BPA bpa, String localizationMessage) {
-		String message = null, messageTemplate;
-		Map<String, String> edcrResponse = edcrService.getEDCRDetails(requestInfo, bpa);
 
-		String applicationType = edcrResponse.get(BPAConstants.APPLICATIONTYPE);
-		String serviceType = edcrResponse.get(BPAConstants.SERVICETYPE);
+//		Map<String, String> edcrResponse = edcrService.getEDCRDetails(requestInfo, bpa);
+//		String applicationType = edcrResponse.get(BPAConstants.APPLICATIONTYPE);
+//		String serviceType = edcrResponse.get(BPAConstants.SERVICETYPE);
+		String messageCode = getMessageCode(bpa.getStatus());
+		String message = getMessageTemplate(messageCode, localizationMessage);
 
-		if (bpa.getStatus().toString().toUpperCase().equals(BPAConstants.STATUS_REJECTED)) {
-			messageTemplate = getMessageTemplate(
-					applicationType + "_" + serviceType + "_" + BPAConstants.STATUS_REJECTED, localizationMessage);
-			message = getInitiatedMsg(bpa, messageTemplate, serviceType);
-		} else {
+		if (!StringUtils.isEmpty(message)) {
 
-			String messageCode = applicationType + "_" + serviceType + "_" + bpa.getWorkflow().getAction() + "_"
-					+ bpa.getStatus();
-
-			messageTemplate = getMessageTemplate(messageCode, localizationMessage);
-			if (!StringUtils.isEmpty(messageTemplate)) {
-				message = getInitiatedMsg(bpa, messageTemplate, serviceType);
-
-				if (message.contains(AMOUNT_TO_BE_PAID)) {
-					BigDecimal amount = getAmountToBePaid(requestInfo, bpa);
-					message = message.replace(AMOUNT_TO_BE_PAID, amount.toString());
-				}
-				message = getLinksReplaced(message,bpa);
+			if (message.contains(AMOUNT_TO_BE_PAID)) {
+				BigDecimal amount = getAmountToBePaid(requestInfo, bpa);
+				message = message.replace(AMOUNT_TO_BE_PAID, amount.toString());
 			}
+			if (message.contains("{APP_NO}")) {
+				message = message.replace("{APP_NO}", bpa.getApplicationNo());
+			}
+			message = getLinksReplaced(message, bpa);
 		}
 		return message;
 	}
@@ -304,12 +318,12 @@ public class NotificationUtil {
 	 */
 	public List<SMSRequest> createSMSRequest(BPARequest bpaRequest,String message, Map<String, String> mobileNumberToOwner) {
 		List<SMSRequest> smsRequest = new LinkedList<>();
+		String salutation = "Dear {1},";
 
 		for (Map.Entry<String, String> entryset : mobileNumberToOwner.entrySet()) {
-			String customizedMsg = message.replace("{1}", entryset.getValue());
+			String customizedMsg = salutation.replace("{1}", entryset.getValue())+message;
 			if (customizedMsg.contains("{RECEIPT_LINK}")) {
 				String linkToReplace = getApplicationDetailsPageLink(bpaRequest, entryset.getKey());
-//				log.info("Link to replace - "+linkToReplace);
 				customizedMsg = customizedMsg.replace("{RECEIPT_LINK}",linkToReplace);
 			}
 			if (customizedMsg.contains(PAYMENT_LINK_PLACEHOLDER)) {
@@ -443,6 +457,10 @@ public class NotificationUtil {
 			message = message.replace(DOWNLOAD_PERMIT_LINK_PLACEHOLDER, link);
 		}
 
+		if (message.contains(WEBSITE_LINK_PLACEHOLDER)) {
+			message = message.replace(WEBSITE_LINK_PLACEHOLDER, NIUA_LINK);
+		}
+
 		return message;
 	}
 
@@ -520,8 +538,8 @@ public class NotificationUtil {
 				link = getShortnerURL(link);
 				customizedMsg = customizedMsg.replace(PAYMENT_LINK_PLACEHOLDER, link);
 			}
-			String subject = customizedMsg.substring(customizedMsg.indexOf("<h2>")+4,customizedMsg.indexOf("</h2>"));
-			String body = customizedMsg.substring(customizedMsg.indexOf("</h2>")+5);
+			String subject = String.format(EMAIL_SUBJECT, bpaRequest.getBPA().getApplicationNo());
+			String body = customizedMsg;
 			Email emailobj = Email.builder().emailTo(Collections.singleton(entryset.getValue())).isHTML(true).body(body).subject(subject).build();
 			EmailRequest email = new EmailRequest(bpaRequest.getRequestInfo(),emailobj);
 			emailRequest.add(email);
@@ -569,7 +587,7 @@ public class NotificationUtil {
 			userSearchRequest.put("userName", mobileNo);
 			try {
 				Object user = serviceRequestRepository.fetchResult(uri, userSearchRequest);
-				if(null != user) {
+				if(null != user && JsonPath.read(user, "$.user")!=null) {
 					if(JsonPath.read(user, "$.user[0].emailId")!=null) {
 						String email = JsonPath.read(user, "$.user[0].emailId");
 						mapOfPhnoAndEmailIds.put(mobileNo, email);
@@ -612,5 +630,99 @@ public class NotificationUtil {
 		log.info(link);
 		return link;
 	}
+	
+	/**
+     * Maps the incoming status string to the internal message code constant.
+     * @param status The string representing the current workflow status (e.g., "SCRUTINY_PASS").
+     * @return The corresponding constant from BPAConstants, or a default error code.
+     */
+    private String getMessageCode(String status) {
+    	
+        String messageCode;
+        switch (status) {
+            case "APPLY":
+                messageCode = BPAConstants.REGISTRATION_LOGIN;
+                break;
+
+            case "PENDING_RTP_APPROVAL":
+                messageCode = BPAConstants.APPLICATION_SUBMISSION;
+                break;
+
+            case "EDIT_APPLICATION":
+                messageCode = BPAConstants.RTP_ACCEPTANCE;
+                break;
+
+            case "GIS_VALIDATION":
+                messageCode = BPAConstants.DOCUMENT_UPLOAD_BY_RTP;
+                break;
+
+            case "SCRUTINY_PASS":
+                messageCode = BPAConstants.SCRUTINY_PASS;
+                break;
+
+            case "SCRUTINY_FAIL":
+                messageCode = BPAConstants.SCRUTINY_FAIL;
+                break;
+
+            case "SITE_VISIT_VERIFICATION":
+                messageCode = BPAConstants.SITE_VISIT_VERIFICATION;
+                break;
+
+            case "MEMBER_SECRETARY_NOT_RECOMMENDED":
+                messageCode = BPAConstants.MEMBER_SECRETARY_NOT_RECOMMENDED;
+                break;
+
+            case "MEMBER_SECRETARY_RECOMMENDED":
+                messageCode = BPAConstants.MEMBER_SECRETARY_RECOMMENDED;
+                break;
+
+            case "CHAIRMAN_APPROVAL":
+                messageCode = BPAConstants.CHAIRMAN_APPROVAL;
+                break;
+
+            case "PLANNING_PAYMENT_LINK":
+                messageCode = BPAConstants.PLANNING_PAYMENT_LINK;
+                break;
+
+            case "POST_PAYMENT_PLANNING_PERMIT":
+                messageCode = BPAConstants.POST_PAYMENT_PLANNING_PERMIT;
+                break;
+
+            case "TECHNICAL_VERIFICATION":
+                messageCode = BPAConstants.TECHNICAL_VERIFICATION;
+                break;
+
+            case "PENDING_DA_ENGINEER":
+                messageCode = BPAConstants.DD_AD_NOT_RECOMMENDED;
+                break;
+
+            case "PENDING_CHAIRMAN_DA":
+                messageCode = BPAConstants.DD_AD_RECOMMENDED;
+                break;
+
+            case "PAYMENT_PENDING":
+                messageCode = BPAConstants.MB_GP_CHAIRMAN_APPROVAL;
+                break;
+
+            case "CITIZEN_FINAL_PAYMENT":
+                messageCode = BPAConstants.BUILDING_PAYMENT_LINK;
+                break;
+
+            case "APPLICATION_COMPLETED":
+                messageCode = BPAConstants.POST_PAYMENT_BUILDING_PERMIT;
+                break;
+
+            case "":
+                messageCode = BPAConstants.COMPLETION;
+                break;
+
+            default:
+                messageCode = "UNKNOWN_STATUS_ERROR";
+                System.err.println("Unknown status provided: " + status);
+                break;
+        }
+
+        return messageCode;
+    }
 
 }

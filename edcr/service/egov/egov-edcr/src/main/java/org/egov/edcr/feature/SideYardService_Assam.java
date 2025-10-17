@@ -263,7 +263,7 @@ public class SideYardService_Assam extends SideYardService {
 							sideYard2Result);
 				}
 
-				if (isApplicableSubtype(occupancy)) {
+//				if (isApplicableSubtype(occupancy)) {
 					//if (buildingHeight.compareTo(BigDecimal.valueOf(10)) <= 0)
 							//&& block.getBuilding().getFloorsAboveGround().compareTo(BigDecimal.valueOf(3)) <= 0)
 					{
@@ -271,11 +271,11 @@ public class SideYardService_Assam extends SideYardService {
 								setback.getLevel(), pl.getPlot(), minMax[0], minMax[1], occupancy.getTypeHelper(),
 								sideYard1Result, sideYard2Result, errors);
 					}
-				}
+				//}
 
-				addSideYardResult(pl, errors, sideYard1Result, sideYard2Result);
+				
 			}
-
+			addSideYardResult(pl, errors, sideYard1Result, sideYard2Result);
 		} else if (pl.getPlanInformation() != null
 				&& pl.getPlanInformation().getWidthOfPlot().compareTo(BigDecimal.valueOf(10)) <= 0) {
 			// Commented logic retained
@@ -367,7 +367,7 @@ public class SideYardService_Assam extends SideYardService {
 	private Boolean applySpecialRuleForNarrowRoadSideYard(Plan pl, Building building, String blockName, Integer level,
 	        Plot plot, OccupancyTypeHelper mostRestrictiveOccupancy, SideYardResult sideYard1Result,
 	        SideYardResult sideYard2Result, BigDecimal buildingHeight, HashMap<String, String> errors,
-	        BigDecimal roadWidth, BigDecimal plotArea, final double min) {
+	        BigDecimal roadWidth, BigDecimal plotArea, final double min, final double max) {
 
 	    LOG.info("Applying special narrow road rule (Side Yard, 2.40m road) for Block: {}, Level: {}, Plot Area: {}",
 	            blockName, level, plotArea);
@@ -398,18 +398,8 @@ public class SideYardService_Assam extends SideYardService {
 
 	    Boolean valid = (providedMin1 != null && providedMin1.compareTo(minVal) >= 0)
 	            && (providedMin2 != null && providedMin2.compareTo(minVal) >= 0);
-	    compareSideYardResult(
-	    	    blockName,
-	    	    minVal,                          
-	    	    BigDecimal.valueOf(min),         
-	    	    mostRestrictiveOccupancy,
-	    	    subRule,
-	    	    rule,
-	    	    valid,
-	    	    level,
-	    	    sideYard1Result,
-	    	    sideYard2Result
-	    	);
+	    compareSideYardResult(blockName, minVal, BigDecimal.valueOf(min), mostRestrictiveOccupancy,
+		        subRule, rule, valid, level, sideYard1Result, sideYard2Result, BigDecimal.valueOf(max));
 
 	    if (!valid) {
 	        errors.put(blockName + "_SideYard",
@@ -491,7 +481,7 @@ public class SideYardService_Assam extends SideYardService {
 		        Boolean specialValid = applySpecialRuleForNarrowRoadSideYard(
 		                pl, building, blockName, level, plot,
 		                mostRestrictiveOccupancy, sideYard1Result, sideYard2Result,
-		                buildingHeight, errors, roadWidth, plotArea, min);
+		                buildingHeight, errors, roadWidth, plotArea, min, max);
 
 		        if (specialValid != null) {
 		            LOG.info("Special narrow road rule applied for SideYard. Result = {}", specialValid);
@@ -504,47 +494,47 @@ public class SideYardService_Assam extends SideYardService {
 		if (A.equalsIgnoreCase(occupancyCode) || H.equalsIgnoreCase(occupancyCode)) {
 
 			processSideYardResidential(pl, blockName, level, min, mostRestrictiveOccupancy, rule, subRule,
-					buildingHeight, plotArea, sideYard1Result, sideYard2Result);
+					buildingHeight, plotArea, sideYard1Result, sideYard2Result, max);
 		} else if (F.equalsIgnoreCase(occupancyCode)) {
 			if (buildingHeight.compareTo(BUILDING_HEIGHT) <= 0 && plot.getArea().compareTo(PLOT_AREA_802_SQM) <= 0) {
 				// Commercial
 				processSideYardCommercial(pl, blockName, level, min, mostRestrictiveOccupancy, rule, subRule,
-						buildingHeight, plotArea, sideYard1Result, sideYard2Result);
+						buildingHeight, plotArea, sideYard1Result, sideYard2Result, max);
 
 			}else {
-				processSideYardResidential(pl, blockName, level, min, mostRestrictiveOccupancy, rule, subRule,
-						buildingHeight, plotArea, sideYard1Result, sideYard2Result);
+				processSideYardResidential(pl, blockName, level, min,  mostRestrictiveOccupancy, rule, subRule,
+						buildingHeight, plotArea, sideYard1Result, sideYard2Result, max);
 			}
 		}else if (G.equalsIgnoreCase(occupancyCode)) {
 			processSideYardIndustrial(pl, blockName, level, min, mostRestrictiveOccupancy, rule, subRule, buildingHeight,
-					plotArea, sideYard1Result, sideYard2Result);
+					plotArea, sideYard1Result, sideYard2Result, max);
 		
 		}
 		else if ((D.equalsIgnoreCase(occupancyCode) &&  D_AW.equalsIgnoreCase(occupancyCode))) {
 			processSideYardPlaceOfworship(pl, blockName, level, min, mostRestrictiveOccupancy, rule, subRule, buildingHeight,
-					plotArea, sideYard1Result, sideYard2Result);
+					plotArea, sideYard1Result, sideYard2Result, max);
 		
 		}
 		else if (E.equalsIgnoreCase(occupancyCode) && buildingHeight.compareTo(BUILDING_HEIGHT_SCHOOL) <= 0) {
 			processSideYardSchool(pl, blockName, level, min, mostRestrictiveOccupancy, rule, subRule, buildingHeight,
-					plotArea, sideYard1Result, sideYard2Result);
+					plotArea, sideYard1Result, sideYard2Result, max);
 		
 		}
 		 else if (E.equalsIgnoreCase(occupancyCode) && buildingHeight.compareTo(BUILDING_HEIGHT_SCHOOL) > 0) {
 			 processSideYardResidential(pl, blockName, level, min, mostRestrictiveOccupancy, rule, subRule,
-						buildingHeight, plotArea, sideYard1Result, sideYard2Result);
+						buildingHeight, plotArea, sideYard1Result, sideYard2Result, max);
 		 }
 		else if (D.equalsIgnoreCase(occupancyCode) &&  D_M.equalsIgnoreCase(occupancyCode)) {
 			processSideYardMultiplex(pl, blockName, level, min, mostRestrictiveOccupancy, rule, subRule, buildingHeight,
-					plotArea, sideYard1Result, sideYard2Result);
+					plotArea, sideYard1Result, sideYard2Result, max);
 		
 		}else if (C.equalsIgnoreCase(occupancyCode)) {
 			processSideYardHospitalAndNursingHomes(pl, blockName, level, min, mostRestrictiveOccupancy, rule, subRule, buildingHeight,
-					plotArea, sideYard1Result, sideYard2Result);
+					plotArea, sideYard1Result, sideYard2Result, max);
 		
 		}else if (D.equalsIgnoreCase(occupancyCode)) {
 			processSideYardAssembly(pl, blockName, level, min, mostRestrictiveOccupancy, rule, subRule, buildingHeight,
-					plotArea, sideYard1Result, sideYard2Result);
+					plotArea, sideYard1Result, sideYard2Result, max);
 		
 		}
 	}
@@ -566,9 +556,9 @@ public class SideYardService_Assam extends SideYardService {
 	 * @param sideYard2Result          Result object for side yard 2
 	 */
 
-	private Boolean processSideYardResidential(Plan pl, String blockName, Integer level, final double min,
+	private Boolean processSideYardResidential(Plan pl, String blockName, Integer level, final double min, 
 			final OccupancyTypeHelper mostRestrictiveOccupancy, String rule, String subRule, BigDecimal buildingHeight,
-			BigDecimal plotArea, SideYardResult sideYard1Result, SideYardResult sideYard2Result) {
+			BigDecimal plotArea, SideYardResult sideYard1Result, SideYardResult sideYard2Result, final double max) {
 
 		LOG.info("Processing SideYardResidential with MDMS rules:");
 
@@ -612,37 +602,63 @@ public class SideYardService_Assam extends SideYardService {
 		}
 
 		// Compare results and store
-		compareSideYardResult(blockName, minVal, BigDecimal.valueOf(min), mostRestrictiveOccupancy, subRule, rule,
-				valid, level, sideYard1Result, sideYard2Result);
+		
+		compareSideYardResult(blockName, minVal, BigDecimal.valueOf(min), mostRestrictiveOccupancy,
+		        subRule, rule, valid, level, sideYard1Result, sideYard2Result, BigDecimal.valueOf(max));
+
 
 		return valid;
 	}
 
+	
+	/**
+	 * Processes and validates the side yard requirement for Industrial buildings based on MDMS rules.
+	 * 
+	 * <p>This method determines the permissible side yard width depending on the industrial subtype 
+	 * (e.g., Small, Light, or Heavy Industry) retrieved from MDMS configuration. It then compares 
+	 * the measured side yard values with the permissible limits and logs the results for scrutiny.</p>
+	 * 
+	 * @param pl                        The Plan object containing all building details.
+	 * @param blockName                 The name of the block being processed.
+	 * @param level                     The floor or level number being validated.
+	 * @param min                       The minimum measured side yard value.
+	 * @param mostRestrictiveOccupancy  The most restrictive occupancy type helper.
+	 * @param rule                      The main rule reference.
+	 * @param subRule                   The sub-rule reference.
+	 * @param buildingHeight            The total height of the building.
+	 * @param plotArea                  The total plot area of the building.
+	 * @param sideYard1Result           The result object for the first side yard.
+	 * @param sideYard2Result           The result object for the second side yard.
+	 * @param max                       The maximum measured side yard value.
+	 * @return                          True if validation passes based on MDMS permissible values; otherwise false.
+	 */
 	private Boolean processSideYardIndustrial(Plan pl, String blockName, Integer level, final double min,
-			final OccupancyTypeHelper mostRestrictiveOccupancy, String rule, String subRule, BigDecimal buildingHeight,
-			BigDecimal plotArea, SideYardResult sideYard1Result, SideYardResult sideYard2Result) {
+	        final OccupancyTypeHelper mostRestrictiveOccupancy, String rule, String subRule, 
+	        BigDecimal buildingHeight, BigDecimal plotArea,
+	        SideYardResult sideYard1Result, SideYardResult sideYard2Result, final double max) {
 
-		LOG.info("Processing SideYardResidential with MDMS rules:");
+	    LOG.info("Processing SideYardIndustrial with MDMS rules for Block: {}, Level: {}", blockName, level);
 
-		// Initialize values
-		BigDecimal minVal = BigDecimal.ZERO;
-		BigDecimal meanVal = BigDecimal.ZERO;
-		HashMap<String, String> errors = new HashMap<>();
+	    // Initialize variables
+	    BigDecimal minVal = BigDecimal.ZERO;
+	    BigDecimal meanVal = BigDecimal.ZERO;
+	    subRule = SUB_RULE_SIDE_YARD;
+	    Map<String, String> errors = new HashMap<>();
 
-		
-		subRule = SUB_RULE_SIDE_YARD;
-		
-		List<Object> rules = cache.getFeatureRules(pl, FeatureEnum.SIDE_YARD_SERVICE.getValue(), false);
+	    // Fetch rules from MDMS cache for SIDE_YARD_SERVICE
+	    List<Object> rules = cache.getFeatureRules(pl, FeatureEnum.SIDE_YARD_SERVICE.getValue(), false);
 
+	    // Identify applicable rule (active rule)
 	    Optional<SideYardServiceRequirement> matchedRule = rules.stream()
 	            .filter(SideYardServiceRequirement.class::isInstance)
 	            .map(SideYardServiceRequirement.class::cast)
-	            .filter(ruleFeature -> Boolean.TRUE.equals(ruleFeature.getActive()))
+	            .filter(SideYardServiceRequirement::getActive)
 	            .findFirst();
 
 	    if (matchedRule.isPresent()) {
-	    	SideYardServiceRequirement mdmsRule = matchedRule.get();
+	        SideYardServiceRequirement mdmsRule = matchedRule.get();
 
+	        // Determine subtype-specific permissible values
 	        String subtypeCode = mostRestrictiveOccupancy.getSubtype() != null
 	                ? mostRestrictiveOccupancy.getSubtype().getCode()
 	                : null;
@@ -657,36 +673,35 @@ public class SideYardService_Assam extends SideYardService {
 	            meanVal = mdmsRule.getPermissible();
 	        }
 
+	        minVal = meanVal;
+	        LOG.info("Matched MDMS rule for Industrial subtype '{}': Permissible Side Yard = {}", subtypeCode, meanVal);
+
+	    } else {
+	        LOG.warn("No matching MDMS rule found for building height: {}", buildingHeight);
+	        errors.put("MDMS_RULE_MISSING", "No setback rule found for given building height in MDMS.");
 	    }
-		
-		if (matchedRule.isPresent()) {
-			SideYardServiceRequirement mdmsRule = matchedRule.get();
-			meanVal = mdmsRule.getPermissible();
-			minVal = meanVal;
-		} else {
-			LOG.warn("No matching MDMS rule found for building height: {}", buildingHeight);
-			errors.put("MDMS_RULE_MISSING", "No setback rule found for given building height in MDMS.");
-		}
 
-		// Validate actual min value against expected values
-		boolean valid = validateMinimumAndMeanValue(BigDecimal.valueOf(min), minVal, plotArea);
-		if (!valid) {
-			LOG.info("Side Yard Service: min value validity False: actual/expected : {}/{}", min, minVal);
-			errors.put(MIN_AND_MEAN_VALUE, MIN_LESS_REQ_MIN + min + SLASH + minVal);
-		} else {
-			LOG.info("Side Yard Service: min value validity True: actual/expected : {}/{}", min, minVal);
-		}
+	    // Validate actual min value against permissible value
+	    boolean valid = validateMinimumAndMeanValue(BigDecimal.valueOf(min), minVal, plotArea);
 
-		// Compare results and store
-		compareSideYardResult(blockName, minVal, BigDecimal.valueOf(min), mostRestrictiveOccupancy, subRule, rule,
-				valid, level, sideYard1Result, sideYard2Result);
+	    if (!valid) {
+	        LOG.info("Side Yard Industrial: Validation FAILED — Actual: {}, Required: {}", min, minVal);
+	        errors.put(MIN_AND_MEAN_VALUE, MIN_LESS_REQ_MIN + min + SLASH + minVal);
+	    } else {
+	        LOG.info("Side Yard Industrial: Validation PASSED — Actual: {}, Required: {}", min, minVal);
+	    }
 
-		return valid;
+	    // Compare and record results
+	    compareSideYardResult(blockName, minVal, BigDecimal.valueOf(min), mostRestrictiveOccupancy,
+	            subRule, rule, valid, level, sideYard1Result, sideYard2Result, BigDecimal.valueOf(max));
+
+	    return valid;
 	}
+
 	
 	private Boolean processSideYardPlaceOfworship(Plan pl, String blockName, Integer level, final double min,
 			final OccupancyTypeHelper mostRestrictiveOccupancy, String rule, String subRule, BigDecimal buildingHeight,
-			BigDecimal plotArea, SideYardResult sideYard1Result, SideYardResult sideYard2Result) {
+			BigDecimal plotArea, SideYardResult sideYard1Result, SideYardResult sideYard2Result, final double max) {
 
 		LOG.info("Processing SideYardResidential with MDMS rules:");
 
@@ -726,14 +741,44 @@ public class SideYardService_Assam extends SideYardService {
 
 		// Compare results and store
 		compareSideYardResult(blockName, minVal, BigDecimal.valueOf(min), mostRestrictiveOccupancy, subRule, rule,
-				valid, level, sideYard1Result, sideYard2Result);
+				valid, level, sideYard1Result, sideYard2Result, BigDecimal.valueOf(max));
 
 		return valid;
 	}
 	
+	/**
+	 * Processes and validates side yard requirements specifically for hospitals and nursing homes
+	 * based on the plot depth and corresponding MDMS (Master Data Management System) rules.
+	 * <p>
+	 * The method retrieves permissible side yard distances from the cached MDMS configuration,
+	 * compares them against the actual measured values from the plan, and updates the 
+	 * {@link SideYardResult} objects with the validation details.
+	 * </p>
+	 *
+	 * @param pl                       The {@link Plan} object containing building and plot details.
+	 * @param blockName                The name of the block being processed.
+	 * @param level                    The floor level for which the validation is being done.
+	 * @param min                      The minimum actual side yard distance measured on-site.
+	 * @param mostRestrictiveOccupancy  The most restrictive {@link OccupancyTypeHelper} for the block.
+	 * @param rule                     The main rule number or identifier.
+	 * @param subRule                  The sub-rule reference applicable to side yard validation.
+	 * @param buildingHeight            The height of the building in meters.
+	 * @param plotArea                 The total plot area in square meters.
+	 * @param sideYard1Result          The result object to store the first side yard validation outcome.
+	 * @param sideYard2Result          The result object to store the second side yard validation outcome.
+	 * @param max                      The maximum actual side yard distance measured on-site.
+	 *
+	 * @return {@code true} if the side yard distances meet or exceed the permissible requirement
+	 *         from the MDMS rule, {@code false} otherwise.
+	 *
+	 * @see SideYardResult
+	 * @see SideYardServiceRequirement
+	 * @see #compareSideYardResult(String, BigDecimal, BigDecimal, OccupancyTypeHelper, String, String, Boolean, Integer, SideYardResult, SideYardResult, BigDecimal)
+	 */
+	
 	private Boolean processSideYardHospitalAndNursingHomes(Plan pl, String blockName, Integer level, final double min,
 			final OccupancyTypeHelper mostRestrictiveOccupancy, String rule, String subRule, BigDecimal buildingHeight,
-			BigDecimal plotArea, SideYardResult sideYard1Result, SideYardResult sideYard2Result) {
+			BigDecimal plotArea, SideYardResult sideYard1Result, SideYardResult sideYard2Result, final double max) {
 
 		LOG.info("Processing SideYardResidential with MDMS rules:");
 
@@ -771,159 +816,265 @@ public class SideYardService_Assam extends SideYardService {
 
 		// Compare results and store
 		compareSideYardResult(blockName, minVal, BigDecimal.valueOf(min), mostRestrictiveOccupancy, subRule, rule,
-				valid, level, sideYard1Result, sideYard2Result);
+				valid, level, sideYard1Result, sideYard2Result, BigDecimal.valueOf(max));
 
 		return valid;
 	}
 	
+	/**
+	 * Processes and validates the side yard requirements for various types of schools 
+	 * (e.g., Nursery, Primary, High School, College) based on occupancy subtype and 
+	 * corresponding MDMS (Master Data Management System) rules.
+	 * <p>
+	 * This method determines the permissible side yard distances from the MDMS configuration,
+	 * validates the actual measured distances from the building plan against these permissible values,
+	 * and records the results in {@link SideYardResult} objects for reporting and scrutiny.
+	 * </p>
+	 *
+	 * @param pl                       The {@link Plan} object containing building and plot details.
+	 * @param blockName                The name of the block being validated.
+	 * @param level                    The floor level being processed.
+	 * @param min                      The minimum actual side yard distance measured from the plan.
+	 * @param mostRestrictiveOccupancy  The most restrictive {@link OccupancyTypeHelper} for the block.
+	 * @param rule                     The main rule number or identifier applicable to side yard validation.
+	 * @param subRule                  The specific sub-rule reference (e.g., "Side Yard Sub Rule").
+	 * @param buildingHeight           The height of the building in meters.
+	 * @param plotArea                 The total plot area in square meters.
+	 * @param sideYard1Result          The result object storing the validation result for the first side yard.
+	 * @param sideYard2Result          The result object storing the validation result for the second side yard.
+	 * @param max                      The maximum actual side yard distance measured from the plan.
+	 *
+	 * @return {@code true} if the side yard distances meet or exceed the permissible requirement
+	 *         as per MDMS rules; {@code false} otherwise.
+	 *
+	 * @see SideYardServiceRequirement
+	 * @see SideYardResult
+	 * @see #compareSideYardResult(String, BigDecimal, BigDecimal, OccupancyTypeHelper, String, String, Boolean, Integer, SideYardResult, SideYardResult, BigDecimal)
+	 */
 	private Boolean processSideYardSchool(Plan pl, String blockName, Integer level, final double min,
-			final OccupancyTypeHelper mostRestrictiveOccupancy, String rule, String subRule, BigDecimal buildingHeight,
-			BigDecimal plotArea, SideYardResult sideYard1Result, SideYardResult sideYard2Result) {
+	        final OccupancyTypeHelper mostRestrictiveOccupancy, String rule, String subRule, BigDecimal buildingHeight,
+	        BigDecimal plotArea, SideYardResult sideYard1Result, SideYardResult sideYard2Result, final double max) {
 
-		LOG.info("Processing SideYardResidential with MDMS rules:");
+	    LOG.info("Processing Side Yard for School/Nursery/College buildings using MDMS rules for block: {}", blockName);
 
-		// Initialize values
-		BigDecimal minVal = BigDecimal.ZERO;
-		BigDecimal meanVal = BigDecimal.ZERO;
-		HashMap<String, String> errors = new HashMap<>();
+	    // Initialize values
+	    BigDecimal minVal = BigDecimal.ZERO;
+	    BigDecimal meanVal = BigDecimal.ZERO;
+	    HashMap<String, String> errors = new HashMap<>();
 
-		
-		subRule = SUB_RULE_SIDE_YARD;
-		
-		List<Object> rules = cache.getFeatureRules(pl, FeatureEnum.SIDE_YARD_SERVICE.getValue(), false);
+	    subRule = SUB_RULE_SIDE_YARD;
+
+	    // Fetch the rule set from cache
+	    LOG.info("Fetching SIDE_YARD_SERVICE rules from cache for block: {}", blockName);
+	    List<Object> rules = cache.getFeatureRules(pl, FeatureEnum.SIDE_YARD_SERVICE.getValue(), false);
 
 	    Optional<SideYardServiceRequirement> matchedRule = rules.stream()
 	            .filter(SideYardServiceRequirement.class::isInstance)
 	            .map(SideYardServiceRequirement.class::cast)
 	            .filter(ruleFeature -> Boolean.TRUE.equals(ruleFeature.getActive()))
 	            .findFirst();
-	    if (matchedRule.isPresent()) {
-	    	SideYardServiceRequirement mdmsRule = matchedRule.get();
 
+	    if (matchedRule.isPresent()) {
+	        SideYardServiceRequirement mdmsRule = matchedRule.get();
+	        LOG.info("Matched active SIDE_YARD_SERVICE rule from MDMS for block: {}", blockName);
+
+	        // Determine permissible value based on school subtype
 	        String subtypeCode = mostRestrictiveOccupancy.getSubtype() != null
 	                ? mostRestrictiveOccupancy.getSubtype().getCode()
 	                : null;
 
 	        if (E_NS.equalsIgnoreCase(subtypeCode)) {
 	            meanVal = mdmsRule.getPermissibleNursery();
+	            LOG.info("Occupancy subtype: NURSERY | Permissible Side Yard: {}", meanVal);
 	        } else if (E_PS.equalsIgnoreCase(subtypeCode)) {
 	            meanVal = mdmsRule.getPermissiblePrimary();
+	            LOG.info("Occupancy subtype: PRIMARY SCHOOL | Permissible Side Yard: {}", meanVal);
 	        } else if (B2.equalsIgnoreCase(subtypeCode)) {
 	            meanVal = mdmsRule.getPermissibleHighSchool();
-	        }  else if (E_CLG.equalsIgnoreCase(subtypeCode)) {
+	            LOG.info("Occupancy subtype: HIGH SCHOOL | Permissible Side Yard: {}", meanVal);
+	        } else if (E_CLG.equalsIgnoreCase(subtypeCode)) {
 	            meanVal = mdmsRule.getPermissibleCollege();
+	            LOG.info("Occupancy subtype: COLLEGE | Permissible Side Yard: {}", meanVal);
+	        } else {
+	            LOG.warn("No matching occupancy subtype found for school category. Defaulting permissible values to 0.");
+	            meanVal = BigDecimal.ZERO;
 	        }
 
 	        minVal = meanVal;
 	    } else {
+	        LOG.warn("No active MDMS rule found for SIDE_YARD_SERVICE. Setting permissible values to 0.");
 	        meanVal = BigDecimal.ZERO;
 	        minVal = BigDecimal.ZERO;
 	    }
-		
-		
-		// Validate actual min value against expected values
-		boolean valid = validateMinimumAndMeanValue(BigDecimal.valueOf(min), minVal, plotArea);
-		
 
-		// Compare results and store
-		compareSideYardResult(blockName, minVal, BigDecimal.valueOf(min), mostRestrictiveOccupancy, subRule, rule,
-				valid, level, sideYard1Result, sideYard2Result);
+	    // Validate the actual minimum distance against expected permissible values
+	    boolean valid = validateMinimumAndMeanValue(BigDecimal.valueOf(min), minVal, plotArea);
+	    LOG.info("Side Yard validation result for block: {} | Actual Min: {} | Expected: {} | Valid: {}", 
+	            blockName, min, minVal, valid);
 
-		return valid;
+	    // Compare and store results
+	    compareSideYardResult(blockName, minVal, BigDecimal.valueOf(min), mostRestrictiveOccupancy, subRule, rule,
+	            valid, level, sideYard1Result, sideYard2Result, BigDecimal.valueOf(max));
+
+	    LOG.info("Side Yard comparison completed for block: {} | Level: {} | Status: {}", blockName, level, valid);
+
+	    return valid;
 	}
+
 	
+	/**
+	 * Processes and validates the side yard requirements for assembly buildings
+	 * (such as auditoriums, community halls, or similar structures) based on the 
+	 * plot depth and building height using MDMS (Master Data Management System) rules.
+	 * <p>
+	 * The method retrieves permissible side yard distances from the cached MDMS configuration,
+	 * validates the actual measured side yard distances against the permissible values,
+	 * and records the results in {@link SideYardResult} objects for reporting.
+	 * </p>
+	 *
+	 * @param pl                       The {@link Plan} object containing the building and plot details.
+	 * @param blockName                The name of the block being processed.
+	 * @param level                    The floor level under consideration.
+	 * @param min                      The minimum actual side yard distance measured.
+	 * @param mostRestrictiveOccupancy  The most restrictive {@link OccupancyTypeHelper} for the block.
+	 * @param rule                     The main rule number or identifier for this validation.
+	 * @param subRule                  The sub-rule reference specific to side yard validation.
+	 * @param buildingHeight           The height of the building in meters.
+	 * @param plotArea                 The total plot area in square meters.
+	 * @param sideYard1Result          The result object to store the first side yard validation outcome.
+	 * @param sideYard2Result          The result object to store the second side yard validation outcome.
+	 * @param max                      The maximum actual side yard distance measured.
+	 *
+	 * @return {@code true} if the side yard distances meet or exceed the permissible requirement
+	 *         as per MDMS rule; {@code false} otherwise.
+	 *
+	 * @see SideYardResult
+	 * @see SideYardServiceRequirement
+	 * @see #compareSideYardResult(String, BigDecimal, BigDecimal, OccupancyTypeHelper, String, String, Boolean, Integer, SideYardResult, SideYardResult, BigDecimal)
+	 */
 	private Boolean processSideYardAssembly(Plan pl, String blockName, Integer level, final double min,
-			final OccupancyTypeHelper mostRestrictiveOccupancy, String rule, String subRule, BigDecimal buildingHeight,
-			BigDecimal plotArea, SideYardResult sideYard1Result, SideYardResult sideYard2Result) {
+	        final OccupancyTypeHelper mostRestrictiveOccupancy, String rule, String subRule, BigDecimal buildingHeight,
+	        BigDecimal plotArea, SideYardResult sideYard1Result, SideYardResult sideYard2Result, final double max) {
 
-		LOG.info("Processing SideYardResidential with MDMS rules:");
+	    LOG.info("Processing Side Yard for Assembly Occupancy using MDMS rules for block: {}", blockName);
 
-		// Initialize values
-		BigDecimal minVal = BigDecimal.ZERO;
-		BigDecimal meanVal = BigDecimal.ZERO;
-		HashMap<String, String> errors = new HashMap<>();
-		BigDecimal depthOfPlot = pl.getPlanInformation().getDepthOfPlot();
+	    // Initialize values
+	    BigDecimal minVal = BigDecimal.ZERO;
+	    BigDecimal meanVal = BigDecimal.ZERO;
+	    HashMap<String, String> errors = new HashMap<>();
+	    BigDecimal depthOfPlot = pl.getPlanInformation().getDepthOfPlot();
 
+	    subRule = SUB_RULE_SIDE_YARD;
 
-		
-		subRule = SUB_RULE_SIDE_YARD;
+	    // Fetch rule set from cache
+	    LOG.info("Fetching SIDE_YARD_SERVICE rules from cache for block: {}", blockName);
+	    List<Object> rules = cache.getFeatureRules(pl, FeatureEnum.SIDE_YARD_SERVICE.getValue(), false);
 
-		// Fetch rule set from cache
-		List<Object> rules = cache.getFeatureRules(pl, FeatureEnum.SIDE_YARD_SERVICE.getValue(), false);
+	    LOG.debug("Filtering active SIDE_YARD_SERVICE rules based on building height: {}", buildingHeight);
+	    Optional<SideYardServiceRequirement> matchedRule = rules.stream()
+	            .filter(SideYardServiceRequirement.class::isInstance)
+	            .map(SideYardServiceRequirement.class::cast)
+	            .filter(ruleFeature ->
+	                    ruleFeature.getFromPlotDepth() != null && ruleFeature.getToPlotDepth() != null
+	                            && buildingHeight.compareTo(ruleFeature.getFromPlotDepth()) >= 0
+	                            && buildingHeight.compareTo(ruleFeature.getToPlotDepth()) < 0
+	                            && Boolean.TRUE.equals(ruleFeature.getActive()))
+	            .findFirst();
 
-		 Optional<SideYardServiceRequirement> matchedRule = rules.stream()
-			        .filter(SideYardServiceRequirement.class::isInstance)
-			        .map(SideYardServiceRequirement.class::cast)
-			        .filter(ruleFeature ->
-	                ruleFeature.getFromPlotDepth() != null && ruleFeature.getToPlotDepth() != null
-	                && buildingHeight.compareTo(ruleFeature.getFromPlotDepth()) >= 0
-	                && buildingHeight.compareTo(ruleFeature.getToPlotDepth()) < 0
-	                && Boolean.TRUE.equals(ruleFeature.getActive()))
-	        .findFirst();
+	    if (matchedRule.isPresent()) {
+	        SideYardServiceRequirement mdmsRule = matchedRule.get();
+	        meanVal = mdmsRule.getPermissible();
+	        minVal = meanVal; // Keeping minVal same as permissible from MDMS
+	        LOG.info("Matched MDMS rule found for block: {} | Permissible Side Yard: {}", blockName, meanVal);
+	    } else {
+	        LOG.warn("No matching active SIDE_YARD_SERVICE rule found for block: {}. Defaulting permissible value to 0.", blockName);
+	    }
 
-	    
+	    // Validate actual min value against expected permissible value
+	    boolean valid = validateMinimumAndMeanValue(BigDecimal.valueOf(min), minVal, plotArea);
+	    LOG.info("Side Yard validation result for block: {} | Actual Min: {} | Expected: {} | Valid: {}", 
+	            blockName, min, minVal, valid);
 
-		if (matchedRule.isPresent()) {
-			SideYardServiceRequirement mdmsRule = matchedRule.get();
-			meanVal = mdmsRule.getPermissible();
-			minVal = meanVal; // Keeping minVal same as permissible from MDMS
-		} 
-		// Validate actual min value against expected values
-		boolean valid = validateMinimumAndMeanValue(BigDecimal.valueOf(min), minVal, plotArea);
-		
+	    // Compare and store results
+	    LOG.debug("Comparing and storing side yard results for block: {} | Level: {}", blockName, level);
+	    compareSideYardResult(blockName, minVal, BigDecimal.valueOf(min), mostRestrictiveOccupancy, subRule, rule,
+	            valid, level, sideYard1Result, sideYard2Result, BigDecimal.valueOf(max));
 
-		// Compare results and store
-		compareSideYardResult(blockName, minVal, BigDecimal.valueOf(min), mostRestrictiveOccupancy, subRule, rule,
-				valid, level, sideYard1Result, sideYard2Result);
+	    LOG.info("Side Yard comparison completed for Assembly Occupancy | Block: {} | Level: {} | Status: {}", 
+	            blockName, level, valid);
 
-		return valid;
+	    return valid;
 	}
 
 	
+	/**
+	 * Processes and validates the side yard requirement for Multiplex buildings based on MDMS rules.
+	 * 
+	 * <p>This method fetches the permissible side yard values from MDMS for a given plot depth, 
+	 * compares them with the actual measured values from the plan, validates the results, 
+	 * and records them for reporting and scrutiny output.</p>
+	 * 
+	 * @param pl                        The Plan object containing all details of the building plan.
+	 * @param blockName                 The name of the block being processed.
+	 * @param level                     The floor or level number under consideration.
+	 * @param min                       The minimum side yard measured value.
+	 * @param mostRestrictiveOccupancy  The most restrictive occupancy type helper.
+	 * @param rule                      The main rule reference.
+	 * @param subRule                   The sub-rule reference.
+	 * @param buildingHeight            The total building height.
+	 * @param plotArea                  The total plot area.
+	 * @param sideYard1Result           The result object for the first side yard.
+	 * @param sideYard2Result           The result object for the second side yard.
+	 * @param max                       The maximum side yard measured value.
+	 * @return                          True if validation passes based on permissible values, otherwise false.
+	 */
 	private Boolean processSideYardMultiplex(Plan pl, String blockName, Integer level, final double min,
-			final OccupancyTypeHelper mostRestrictiveOccupancy, String rule, String subRule, BigDecimal buildingHeight,
-			BigDecimal plotArea, SideYardResult sideYard1Result, SideYardResult sideYard2Result) {
+	        final OccupancyTypeHelper mostRestrictiveOccupancy, String rule, String subRule, 
+	        BigDecimal buildingHeight, BigDecimal plotArea, 
+	        SideYardResult sideYard1Result, SideYardResult sideYard2Result, final double max) {
 
-		LOG.info("Processing SideYardResidential with MDMS rules:");
+	    LOG.info("Processing SideYardMultiplex with MDMS rules for Block: {}, Level: {}", blockName, level);
 
-		// Initialize values
-		BigDecimal minVal = BigDecimal.ZERO;
-		BigDecimal meanVal = BigDecimal.ZERO;
-		HashMap<String, String> errors = new HashMap<>();
-		BigDecimal depthOfPlot = pl.getPlanInformation().getDepthOfPlot();
-		
-     	subRule = SUB_RULE_SIDE_YARD;
+	    // Initialize permissible and minimum values
+	    BigDecimal minVal = BigDecimal.ZERO;
+	    BigDecimal meanVal = BigDecimal.ZERO;
+	    BigDecimal depthOfPlot = pl.getPlanInformation().getDepthOfPlot();
+	    subRule = SUB_RULE_SIDE_YARD;
 
-		// Fetch rule set from cache
-		List<Object> rules = cache.getFeatureRules(pl, FeatureEnum.SIDE_YARD_SERVICE.getValue(), false);
+	    // Fetch rules from cache for the Side Yard Service feature
+	    List<Object> rules = cache.getFeatureRules(pl, FeatureEnum.SIDE_YARD_SERVICE.getValue(), false);
 
-		Optional<SideYardServiceRequirement> matchedRule = rules.stream()
-		        .filter(SideYardServiceRequirement.class::isInstance)
-		        .map(SideYardServiceRequirement.class::cast)
-		        .filter(ruleFeature ->
-		                ruleFeature.getFromPlotDepth() != null && ruleFeature.getToPlotDepth() != null
-		                && depthOfPlot.compareTo(ruleFeature.getFromPlotDepth()) >= 0
-		                && depthOfPlot.compareTo(ruleFeature.getToPlotDepth()) < 0
-		                && Boolean.TRUE.equals(ruleFeature.getActive()))
-		        .findFirst();
+	    // Find applicable rule based on plot depth range and active flag
+	    Optional<SideYardServiceRequirement> matchedRule = rules.stream()
+	            .filter(SideYardServiceRequirement.class::isInstance)
+	            .map(SideYardServiceRequirement.class::cast)
+	            .filter(ruleFeature -> ruleFeature.getFromPlotDepth() != null 
+	                    && ruleFeature.getToPlotDepth() != null
+	                    && depthOfPlot.compareTo(ruleFeature.getFromPlotDepth()) >= 0
+	                    && depthOfPlot.compareTo(ruleFeature.getToPlotDepth()) < 0
+	                    && Boolean.TRUE.equals(ruleFeature.getActive()))
+	            .findFirst();
 
-	    
+	    if (matchedRule.isPresent()) {
+	        SideYardServiceRequirement mdmsRule = matchedRule.get();
+	        meanVal = mdmsRule.getPermissible();
+	        minVal = meanVal; // For multiplex, permissible value acts as both mean and minimum
+	        LOG.info("Matched MDMS Rule for depth {}: Permissible Side Yard = {}", depthOfPlot, meanVal);
+	    } else {
+	        LOG.warn("No matching MDMS rule found for depth: {}", depthOfPlot);
+	    }
 
-		if (matchedRule.isPresent()) {
-			SideYardServiceRequirement mdmsRule = matchedRule.get();
-			meanVal = mdmsRule.getPermissible();
-			minVal = meanVal; // Keeping minVal same as permissible from MDMS
-		} 
-		// Validate actual min value against expected values
-		boolean valid = validateMinimumAndMeanValue(BigDecimal.valueOf(min), minVal, plotArea);
-		
+	    // Validate the actual minimum side yard value against permissible value
+	    boolean valid = validateMinimumAndMeanValue(BigDecimal.valueOf(min), minVal, plotArea);
+	    LOG.debug("Validation result for Side Yard (Min: {}, Required: {}): {}", min, minVal, valid);
 
-		// Compare results and store
-		compareSideYardResult(blockName, minVal, BigDecimal.valueOf(min), mostRestrictiveOccupancy, subRule, rule,
-				valid, level, sideYard1Result, sideYard2Result);
+	    // Compare and record results for reporting
+	    compareSideYardResult(blockName, minVal, BigDecimal.valueOf(min), mostRestrictiveOccupancy, 
+	            subRule, rule, valid, level, sideYard1Result, sideYard2Result, BigDecimal.valueOf(max));
 
-		return valid;
+	    return valid;
 	}
+
 
 
 	/**
@@ -963,45 +1114,42 @@ public class SideYardService_Assam extends SideYardService {
 	// Added by Bimal 18-March-2924 to check Side yard based on plot are not on
 	// height
 	private void compareSideYardResult(String blockName, BigDecimal exptDistance, BigDecimal actualDistance,
-			OccupancyTypeHelper mostRestrictiveOccupancy, String subRule, String rule, Boolean valid, Integer level,
-			SideYardResult sideYard1Result, SideYardResult sideYard2Result) {
+	        OccupancyTypeHelper mostRestrictiveOccupancy, String subRule, String rule, Boolean valid, Integer level,
+	        SideYardResult sideYard1Result, SideYardResult sideYard2Result, BigDecimal actualDistance2) {
 
-		String occupancyName;
-		if (mostRestrictiveOccupancy.getSubtype() != null)
-			occupancyName = mostRestrictiveOccupancy.getSubtype().getName();
-		else
-			occupancyName = mostRestrictiveOccupancy.getType().getName();
-		LOG.info("SideYard1Result outside: actualDistance/expectedDistance and status:" + actualDistance + " / "
-				+ exptDistance + "and " + valid);
-		// Set the values for the side yard result
-		sideYard1Result.rule = rule;
-		sideYard1Result.occupancy = occupancyName;
-		sideYard1Result.subRule = subRule;
-		sideYard1Result.blockName = blockName;
-		sideYard1Result.level = level;
-		sideYard1Result.actualDistance = actualDistance;
-		sideYard1Result.expectedDistance = exptDistance;
-		sideYard1Result.status = valid;
-		sideYard1Result.desc = PLOT_LESS_200SQM_EXPECTED_DISTANCE_TRUE;
-		LOG.info("SideYard1Result: actualDistance/expectedDistance and status:" + sideYard1Result.actualDistance + "/"
+	    String occupancyName;
+	    if (mostRestrictiveOccupancy.getSubtype() != null)
+	        occupancyName = mostRestrictiveOccupancy.getSubtype().getName();
+	    else
+	        occupancyName = mostRestrictiveOccupancy.getType().getName();
+
+	    // SideYard1
+	    sideYard1Result.rule = rule;
+	    sideYard1Result.occupancy = occupancyName;
+	    sideYard1Result.subRule = subRule;
+	    sideYard1Result.blockName = blockName;
+	    sideYard1Result.level = level;
+	    sideYard1Result.actualDistance = actualDistance;
+	    sideYard1Result.expectedDistance = exptDistance;
+	    sideYard1Result.status = valid;
+	    sideYard1Result.desc = PLOT_LESS_200SQM_EXPECTED_DISTANCE_TRUE;
+
+	    LOG.info("SideYard1Result: actualDistance/expectedDistance and status:" + sideYard1Result.actualDistance + "/"
 				+ sideYard1Result.expectedDistance + "and " + sideYard1Result.status);
-		// sideYard2Result = sideYard1Result; for both side assuming same value
-		sideYard2Result.rule = rule;
-		sideYard2Result.occupancy = occupancyName;
-		sideYard2Result.subRule = subRule;
-		sideYard2Result.blockName = blockName;
-		sideYard2Result.level = level;
-		sideYard2Result.actualDistance = actualDistance;
-		sideYard2Result.expectedDistance = exptDistance;
-		sideYard2Result.desc = PLOT_LESS_200SQM_EXPECTED_DISTANCE_TRUE;
-		if (valid) {
-			// Set status for the side yard result
-			sideYard2Result.status = valid;
-
-		} else {
-			// Set status for the side yard result
-			sideYard2Result.status = valid;
-		}
+	    // SideYard2 
+	    if (sideYard2Result != null) {
+	        sideYard2Result.rule = rule;
+	        sideYard2Result.occupancy = occupancyName;
+	        sideYard2Result.subRule = subRule;
+	        sideYard2Result.blockName = blockName;
+	        sideYard2Result.level = level;
+	        sideYard2Result.actualDistance = actualDistance2; 
+	        sideYard2Result.expectedDistance = exptDistance;
+	        sideYard2Result.status = valid;
+	        sideYard2Result.desc = PLOT_LESS_200SQM_EXPECTED_DISTANCE_TRUE;
+	    }
+	    LOG.info("sideYard2Result: actualDistance/expectedDistance and status:" + sideYard2Result.actualDistance + "/"
+				+ sideYard2Result.expectedDistance + "and " + sideYard2Result.status);
 	}
 
 	/**
@@ -1293,10 +1441,34 @@ public class SideYardService_Assam extends SideYardService {
 		}
 	}
 
+	/**
+	 * Processes and validates the Side Yard requirements for Commercial buildings based on MDMS rules.
+	 *
+	 * <p>This method retrieves the permissible side yard width from MDMS configuration 
+	 * using the plot depth as a reference. It then compares the actual measured values 
+	 * against the permissible minimum values, logs the results, and updates the 
+	 * corresponding {@link SideYardResult} objects for further scrutiny or reporting.</p>
+	 *
+	 * @param pl                        The {@link Plan} object containing building and plot details.
+	 * @param blockName                 The name of the block being processed.
+	 * @param level                     The floor or level number being validated.
+	 * @param min                       The minimum measured side yard width.
+	 * @param mostRestrictiveOccupancy  The most restrictive occupancy type helper.
+	 * @param rule                      The main rule reference from the building regulation.
+	 * @param subRule                   The sub-rule identifier for the side yard.
+	 * @param buildingHeight            The total height of the building.
+	 * @param plotArea                  The total plot area being considered.
+	 * @param sideYard1Result           The result object to store evaluation details for the first side yard.
+	 * @param sideYard2Result           The result object to store evaluation details for the second side yard.
+	 * @param max                       The maximum measured side yard width.
+	 * 
+	 * @return                          {@code true} if the side yard measurement meets or exceeds 
+	 *                                  the permissible requirement; {@code false} otherwise.
+	 */
 	private Boolean processSideYardCommercial(Plan pl, String blockName, Integer level, final double min,
 	        final OccupancyTypeHelper mostRestrictiveOccupancy, String rule, String subRule,
 	        BigDecimal buildingHeight, BigDecimal plotArea,
-	        SideYardResult sideYard1Result, SideYardResult sideYard2Result) {
+	        SideYardResult sideYard1Result, SideYardResult sideYard2Result, final double max) {
 
 	    LOG.info("Processing SideYardCommercial with MDMS rules:");
 
@@ -1322,7 +1494,7 @@ public class SideYardService_Assam extends SideYardService {
 	                    ruleFeature.getFromPlotDepth() != null &&
 	                    ruleFeature.getToPlotDepth() != null &&
 	                    depthOfPlot.compareTo(ruleFeature.getFromPlotDepth()) >= 0 &&
-	                    depthOfPlot.compareTo(ruleFeature.getToPlotDepth()) < 0 &&
+	                    depthOfPlot.compareTo(ruleFeature.getToPlotDepth()) <= 0 &&
 	                    Boolean.TRUE.equals(ruleFeature.getActive()))
 	            .findFirst();
 
@@ -1346,7 +1518,7 @@ public class SideYardService_Assam extends SideYardService {
 
 	    // Compare results and store
 	    compareSideYardResult(blockName, minVal, BigDecimal.valueOf(min),
-	            mostRestrictiveOccupancy, subRule, rule, valid, level, sideYard1Result, sideYard2Result);
+	            mostRestrictiveOccupancy, subRule, rule, valid, level, sideYard1Result, sideYard2Result, BigDecimal.valueOf(max));
 
 	    return valid;
 	}

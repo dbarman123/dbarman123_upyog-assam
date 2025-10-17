@@ -115,15 +115,17 @@ public class Verandah extends FeatureProcess {
 	        if (block.getBuilding() == null || block.getBuilding().getFloors() == null) continue;
 
 	        for (Floor floor : block.getBuilding().getFloors()) {
-	            if (floor.getVerandah() == null || floor.getVerandah().getMeasurements() == null
-	                    || floor.getVerandah().getMeasurements().isEmpty()) {
+	        	for (FloorUnit unit : floor.getUnits()) {
+	            if (unit.getVerandah() == null || unit.getVerandah().getMeasurements() == null
+	                    || unit.getVerandah().getMeasurements().isEmpty()) {
 	                continue;
 	            }
 
-	            evaluateVerandahWidth(pl, scrutinyDetail, floor, permissibleWidth);
-	            evaluateVerandahDepth(pl, scrutinyDetail, floor, permissibleDepth);
+	            evaluateVerandahWidth(pl, scrutinyDetail, floor, unit, permissibleWidth);
+	            evaluateVerandahDepth(pl, scrutinyDetail, floor, unit, permissibleDepth);
 	        }
 	    }
+	 }      
 	    return pl;
 	}
 
@@ -170,8 +172,8 @@ public class Verandah extends FeatureProcess {
 	 * @param floor The floor containing verandah measurements
 	 * @param permissibleWidth The minimum required verandah width
 	 */
-	private void evaluateVerandahWidth(Plan pl, ScrutinyDetail scrutinyDetail, Floor floor, BigDecimal permissibleWidth) {
-	    List<BigDecimal> verandahWidths = floor.getVerandah().getVerandahWidth();
+	private void evaluateVerandahWidth(Plan pl, ScrutinyDetail scrutinyDetail, Floor floor, FloorUnit unit, BigDecimal permissibleWidth) {
+	    List<BigDecimal> verandahWidths = unit.getVerandah().getVerandahWidth();
 
 	    if (verandahWidths != null && !verandahWidths.isEmpty()) {
 	        // Take minimum width from extracted verandah widths
@@ -201,8 +203,8 @@ public class Verandah extends FeatureProcess {
 	 * @param floor The floor containing verandah measurements
 	 * @param permissibleDepth The maximum allowed verandah depth
 	 */
-	private void evaluateVerandahDepth(Plan pl, ScrutinyDetail scrutinyDetail, Floor floor, BigDecimal permissibleDepth) {
-	    Optional<BigDecimal> minDepthOpt = floor.getVerandah().getHeightOrDepth().stream()
+	private void evaluateVerandahDepth(Plan pl, ScrutinyDetail scrutinyDetail, Floor floor, FloorUnit unit, BigDecimal permissibleDepth) {
+	    Optional<BigDecimal> minDepthOpt = unit.getVerandah().getHeightOrDepth().stream()
 	            .min(Comparator.naturalOrder());
 
 	    if (minDepthOpt.isPresent() && minDepthOpt.get().compareTo(BigDecimal.ZERO) > 0) {

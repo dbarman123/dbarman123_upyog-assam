@@ -52,6 +52,7 @@ import org.egov.common.entity.dcr.helper.EdcrApplicationInfo;
 import org.egov.common.entity.edcr.Block;
 import org.egov.common.entity.edcr.Floor;
 import org.egov.common.entity.edcr.FloorDescription;
+import org.egov.common.entity.edcr.FloorUnit;
 import org.egov.common.entity.edcr.Occupancy;
 import org.egov.common.entity.edcr.Plan;
 import org.egov.edcr.entity.EdcrApplicationDetail;
@@ -192,9 +193,19 @@ public class EdcrExternalService {
                         for (Occupancy occupancy : f.getOccupancies()) {
                             occupancy.setBuiltUpArea(occupancy.getBuiltUpArea().subtract(occupancy.getExistingBuiltUpArea()));
                             occupancy.setFloorArea(occupancy.getFloorArea().subtract(occupancy.getExistingFloorArea()));
-                            occupancy.setCarpetArea(occupancy.getCarpetArea().subtract(occupancy.getExistingCarpetArea()));
+                            
                         }
+                    	 for (FloorUnit unit : f.getUnits()) {
+                             for (Occupancy occupancy : unit.getOccupancies()) {
+                          	   occupancy.setCarpetArea(occupancy.getCarpetArea().subtract(occupancy.getExistingCarpetArea()));
+                             }
+                         }
+                        
                     }
+                    
+                   
+                  
+               
 
                     /*
                      * This was used to get actual occupancies of proposed buildings, when auto populate sub occupancies, we need

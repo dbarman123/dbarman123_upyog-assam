@@ -180,6 +180,7 @@ public class DxfFileConstants {
     public static final String DAGNO = "DAG_NO";
     public static final String DEVELOPMENTZONE = "DEVELOPMENT_ZONE";
     public static final String WARDNO = "WARD_NO";
+    public static final String MATERIAL_TYPE = "MATERIAL_TYPE";
     public static final String TWO_WHEELER_SLOW_CHARGER = "TWO_WHEELER_SLOW_CHARGER";
     public static final String TWO_WHEELER_FAST_CHARGER = "TWO_WHEELER_FAST_CHARGER";
     public static final String FOUR_WHEELER_SLOW_CHARGER = "FOUR_WHEELER_SLOW_CHARGER";

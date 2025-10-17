@@ -26,7 +26,7 @@ const useInboxTableConfig = ({ parentRoute, onPageSizeChange, formState, totalCo
             setSelectedAction(null);
             setApplicationNo(null);
             window.location.reload(); // Reload page after toast
-          }, 3000);
+          }, 1000);
           return () => clearTimeout(timer);
         }
     }, [showToast, error]);

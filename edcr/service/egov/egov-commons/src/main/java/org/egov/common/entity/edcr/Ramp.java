@@ -58,8 +58,28 @@ public class Ramp extends Measurement {
     private Integer number;
 
     private BigDecimal slope;
+    
+    private List<BigDecimal> rampWidth;
+    
+    private List<BigDecimal> rampLength;
 
-    private transient List<Measurement> ramps;  
+    public List<BigDecimal> getRampWidth() {
+		return rampWidth;
+	}
+
+	public void setRampWidth(List<BigDecimal> rampWidth) {
+		this.rampWidth = rampWidth;
+	}
+
+	public List<BigDecimal> getRampLength() {
+		return rampLength;
+	}
+
+	public void setRampLength(List<BigDecimal> rampLength) {
+		this.rampLength = rampLength;
+	}
+
+	private transient List<Measurement> ramps;  
 
     private List<Flight> flights = new ArrayList<>();
 

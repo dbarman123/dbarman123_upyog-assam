@@ -331,7 +331,7 @@ public class BPAConstants {
 
 	public static final String M_APP_REJECTED = "M_APPLICATION_REJECTED_MSG";
 
-	public static final String SEARCH_MODULE = "rainmaker-bpa";
+	public static final String SEARCH_MODULE = "rainmaker-obpsv2";
 
 //	public static final String INVALID_SEARCH = "INVALID SEARCH";
 
@@ -402,8 +402,34 @@ public class BPAConstants {
 	public static final String DOWNLOAD_PERMIT_LINK_PLACEHOLDER = "{DOWNLOAD_PERMIT_LINK}";
 
 	public static final String PAYMENT_LINK_PLACEHOLDER = "{PAYMENT_LINK}";
-	
+
+	public static final String WEBSITE_LINK_PLACEHOLDER = "{WEBSITE_LINK}";
+
+	public static final String NIUA_LINK = "http://assamuat.niua.in/";
+
 	public static final String TENANTID_MDC_STRING = "TENANTID";
+
+	public static final String REGISTRATION_LOGIN = "REGISTRATION_LOGIN";
+	public static final String APPLICATION_SUBMISSION = "APPLICATION_SUBMISSION";
+	public static final String RTP_ACCEPTANCE = "RTP_ACCEPTANCE";
+	public static final String DOCUMENT_UPLOAD_BY_RTP = "DOCUMENT_UPLOAD_BY_RTP";
+	public static final String SCRUTINY_PASS = "SCRUTINY_PASS";
+	public static final String SCRUTINY_FAIL = "SCRUTINY_FAIL";
+	public static final String SITE_VISIT_VERIFICATION = "SITE_VISIT_VERIFICATION";
+	public static final String TECHNICAL_VERIFICATION = "TECHNICAL_VERIFICATION";
+	public static final String MEMBER_SECRETARY_NOT_RECOMMENDED = "MEMBER_SECRETARY_NOT_RECOMMENDED";
+	public static final String MEMBER_SECRETARY_RECOMMENDED = "MEMBER_SECRETARY_RECOMMENDED";
+	public static final String CHAIRMAN_APPROVAL = "CHAIRMAN_APPROVAL";
+	public static final String PLANNING_PAYMENT_LINK = "PLANNING_PAYMENT_LINK";
+	public static final String POST_PAYMENT_PLANNING_PERMIT = "POST_PAYMENT_PLANNING_PERMIT";
+	public static final String DD_AD_NOT_RECOMMENDED = "DD_AD_NOT_RECOMMENDED";
+	public static final String DD_AD_RECOMMENDED = "DD_AD_RECOMMENDED";
+	public static final String MB_GP_CHAIRMAN_APPROVAL = "MB_GP_CHAIRMAN_APPROVAL";
+	public static final String BUILDING_PAYMENT_LINK = "BUILDING_PAYMENT_LINK";
+	public static final String POST_PAYMENT_BUILDING_PERMIT = "POST_PAYMENT_BUILDING_PERMIT";
+	public static final String COMPLETION = "COMPLETION";
+
+	public static final String EMAIL_SUBJECT = "APPLICATION STATUS UPDATE OF : %s";
 
 
 

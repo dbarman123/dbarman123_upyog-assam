@@ -115,29 +115,29 @@ console.log("citizenServicesObjcitizenServicesObj",citizenServicesObj)
     options: [
       {
         name: t(citizenServicesObj?.props?.[0]?.label),
-        Icon: <ComplaintIcon />,
+        Icon: <OBPSIcon />,
         onClick: () => history.push(citizenServicesObj?.props?.[0]?.navigationUrl.replace("/digit-ui/","/upyog-ui/")),
       },
-      {
-        name: t(citizenServicesObj?.props?.[1]?.label),
-        Icon: <PTIcon className="fill-path-primary-main" />,
-        onClick: () => history.push(citizenServicesObj?.props?.[1]?.navigationUrl.replace("/digit-ui/","/upyog-ui/")),
-      },
-      {
-        name: t(citizenServicesObj?.props?.[2]?.label),
-        Icon: <CaseIcon className="fill-path-primary-main" />,
-        onClick: () => history.push(citizenServicesObj?.props?.[2]?.navigationUrl.replace("/digit-ui/","/upyog-ui/")),
-      },
+      // {
+      //   name: t(citizenServicesObj?.props?.[1]?.label),
+      //   Icon: <PTIcon className="fill-path-primary-main" />,
+      //   onClick: () => history.push(citizenServicesObj?.props?.[1]?.navigationUrl.replace("/digit-ui/","/upyog-ui/")),
+      // },
+      // {
+      //   name: t(citizenServicesObj?.props?.[2]?.label),
+      //   Icon: <CaseIcon className="fill-path-primary-main" />,
+      //   onClick: () => history.push(citizenServicesObj?.props?.[2]?.navigationUrl.replace("/digit-ui/","/upyog-ui/")),
+      // },
       // {
       //     name: t("ACTION_TEST_WATER_AND_SEWERAGE"),
       //     Icon: <DropIcon/>,
       //     onClick: () => history.push("/upyog-ui/citizen")
       // },
-      {
-        name: t(citizenServicesObj?.props?.[3]?.label),
-        Icon: <WSICon />,
-        onClick: () => history.push(citizenServicesObj?.props?.[3]?.navigationUrl.replace("/digit-ui/","/upyog-ui/")),
-      },
+      // {
+      //   name: t(citizenServicesObj?.props?.[3]?.label),
+      //   Icon: <WSICon />,
+      //   onClick: () => history.push(citizenServicesObj?.props?.[3]?.navigationUrl.replace("/digit-ui/","/upyog-ui/")),
+      // },
     ],
     styles: { display: "flex", flexWrap: "wrap", justifyContent: "flex-start", width: "100%" },
   };

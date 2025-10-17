@@ -159,8 +159,11 @@ public class Sanitation extends FeatureProcess {
                     case DxfFileConstants.A_SR:
                     case DxfFileConstants.A_AF:
                         if (sanityDetails.getTotalSPWC() == 0)
-                            pl.addError(BLDG_PART_SPECIAL_WATER_CLOSET, getLocaleMessage(MSG_ERROR_MANDATORY,
-                                    FEATURE_NAME, BLDG_PART_SPECIAL_WATER_CLOSET, b.getNumber()));
+							/*
+							 * pl.addError(BLDG_PART_SPECIAL_WATER_CLOSET,
+							 * getLocaleMessage(MSG_ERROR_MANDATORY, FEATURE_NAME,
+							 * BLDG_PART_SPECIAL_WATER_CLOSET, b.getNumber()));
+							 */
                         break;
                     case DxfFileConstants.A_HE:
                         commonSanitationValidations(pl, b, sanityDetails, o);

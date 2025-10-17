@@ -1,8 +1,33 @@
 package org.egov.bpa.service.notification;
 
-import com.jayway.jsonpath.Filter;
-import com.jayway.jsonpath.JsonPath;
-import lombok.extern.slf4j.Slf4j;
+import static com.jayway.jsonpath.Criteria.where;
+import static com.jayway.jsonpath.Filter.filter;
+import static org.egov.bpa.util.BPAConstants.ACTION;
+import static org.egov.bpa.util.BPAConstants.ACTION_STATUS_DOC_VERIFICATION;
+import static org.egov.bpa.util.BPAConstants.APPROVED_STATE;
+import static org.egov.bpa.util.BPAConstants.BPA_BUSINESSSERVICE;
+import static org.egov.bpa.util.BPAConstants.BUILDING_PLAN;
+import static org.egov.bpa.util.BPAConstants.BUILDING_PLAN_OC;
+import static org.egov.bpa.util.BPAConstants.CHANNEL;
+import static org.egov.bpa.util.BPAConstants.CHANNEL_LIST;
+import static org.egov.bpa.util.BPAConstants.CHANNEL_NAME_EMAIL;
+import static org.egov.bpa.util.BPAConstants.CHANNEL_NAME_EVENT;
+import static org.egov.bpa.util.BPAConstants.CHANNEL_NAME_SMS;
+import static org.egov.bpa.util.BPAConstants.MODULE;
+import static org.egov.bpa.util.BPAConstants.USREVENTS_EVENT_DOWNLOAD_OCCUPANCY_CERTIFICATE_CODE;
+import static org.egov.bpa.util.BPAConstants.USREVENTS_EVENT_DOWNLOAD_PERMIT_ORDER_CODE;
+import static org.egov.bpa.util.BPAConstants.USREVENTS_EVENT_DOWNLOAD_RECEIPT_CODE;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.apache.commons.lang3.StringUtils;
 import org.egov.bpa.config.BPAConfiguration;
 import org.egov.bpa.repository.ServiceRequestRepository;
@@ -12,7 +37,16 @@ import org.egov.bpa.service.UserService;
 import org.egov.bpa.util.BPAConstants;
 import org.egov.bpa.util.BPAUtil;
 import org.egov.bpa.util.NotificationUtil;
-import org.egov.bpa.web.model.*;
+import org.egov.bpa.web.model.Action;
+import org.egov.bpa.web.model.ActionItem;
+import org.egov.bpa.web.model.BPA;
+import org.egov.bpa.web.model.BPARequest;
+import org.egov.bpa.web.model.BPASearchCriteria;
+import org.egov.bpa.web.model.EmailRequest;
+import org.egov.bpa.web.model.Event;
+import org.egov.bpa.web.model.EventRequest;
+import org.egov.bpa.web.model.Recepient;
+import org.egov.bpa.web.model.SMSRequest;
 import org.egov.bpa.web.model.landInfo.LandInfo;
 import org.egov.bpa.web.model.landInfo.LandSearchCriteria;
 import org.egov.bpa.web.model.landInfo.Source;
@@ -23,18 +57,17 @@ import org.egov.mdms.model.MasterDetail;
 import org.egov.mdms.model.MdmsCriteria;
 import org.egov.mdms.model.MdmsCriteriaReq;
 import org.egov.mdms.model.ModuleDetail;
+import org.egov.tracer.model.CustomException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import com.jayway.jsonpath.Filter;
+import com.jayway.jsonpath.JsonPath;
 
-import static com.jayway.jsonpath.Criteria.where;
-import static com.jayway.jsonpath.Filter.filter;
-import static org.egov.bpa.util.BPAConstants.*;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
@@ -92,50 +125,98 @@ public class BPANotificationService {
 	 */
 	public void process(BPARequest bpaRequest) {
 		RequestInfo requestInfo = bpaRequest.getRequestInfo();
-		Map<String, String> mobileNumberToOwner = new HashMap<>();
 		String tenantId = bpaRequest.getBPA().getTenantId();
 		String action = bpaRequest.getBPA().getWorkflow().getAction();
-		List<String> configuredChannelNames =  fetchChannelList(new RequestInfo(), tenantId, BPA_BUSINESSSERVICE, action);
-		Set<String> mobileNumbers = new HashSet<>();
-		mobileNumberToOwner = getUserList(bpaRequest);
+		List<String> configuredChannelNames = fetchChannelList(new RequestInfo(), tenantId, BPA_BUSINESSSERVICE,
+				action);
 
-		for (Map.Entry<String, String> entryset : mobileNumberToOwner.entrySet()) {
-			mobileNumbers.add(entryset.getKey());
-		}
+		Map<String, String> mobileNumberToOwner = getUserList(bpaRequest);
+		String localizationMessages = util.getLocalizationMessages(bpaRequest.getBPA().getTenantId(),
+				bpaRequest.getRequestInfo());
+		String message = util.getCustomizedMsg(bpaRequest.getRequestInfo(), bpaRequest.getBPA(), localizationMessages);
 
-			if(configuredChannelNames.contains(CHANNEL_NAME_SMS)){
 		List<SMSRequest> smsRequests = new LinkedList<>();
-		if (null != config.getIsSMSEnabled()) {
-			if (config.getIsSMSEnabled()) {
-				enrichSMSRequest(bpaRequest, smsRequests);
-				if (!CollectionUtils.isEmpty(smsRequests))
-					util.sendSMS(smsRequests, config.getIsSMSEnabled(),"");
-			}
-		}
-		}
+		smsRequests.addAll(util.createSMSRequest(bpaRequest, message, mobileNumberToOwner));
 
-		if(configuredChannelNames.contains(CHANNEL_NAME_EVENT)){
-			if (null != config.getIsUserEventsNotificationEnabled()) {
-				if (config.getIsUserEventsNotificationEnabled()) {
-				EventRequest eventRequest = getEvents(bpaRequest);
-				if (null != eventRequest)
-					util.sendEventNotification(eventRequest,"");
-			    }
-		    }
-		}
-
-		if(configuredChannelNames.contains(CHANNEL_NAME_EMAIL)){
-//			EMAIL block TBD
-			if (null != config.getIsEmailNotificationEnabled()) {
-				if (config.getIsEmailNotificationEnabled()) {
-					Map<String, String> mapOfPhnoAndEmail = util.fetchUserEmailIds(mobileNumbers, requestInfo, tenantId);
-					String localizationMessages = util.getLocalizationMessages(tenantId, bpaRequest.getRequestInfo());
-					String message = util.getEmailCustomizedMsg(bpaRequest.getRequestInfo(), bpaRequest.getBPA(), localizationMessages);
-					List<EmailRequest> emailRequests = util.createEmailRequest(bpaRequest, message, mapOfPhnoAndEmail,mobileNumberToOwner);
-					util.sendEmail(emailRequests, tenantId);
+		if (configuredChannelNames.contains(CHANNEL_NAME_SMS)) {
+			if (null != config.getIsSMSEnabled()) {
+				if (config.getIsSMSEnabled()) {
+					if (!CollectionUtils.isEmpty(smsRequests)) {
+						System.out.println("SMS Requests : " + smsRequests);
+						util.sendSMS(smsRequests, config.getIsSMSEnabled(), "");
+					}
 				}
 			}
 		}
+
+		if (configuredChannelNames.contains(CHANNEL_NAME_EVENT)) {
+			if (null != config.getIsUserEventsNotificationEnabled()) {
+				if (config.getIsUserEventsNotificationEnabled()) {
+					EventRequest eventRequest = getEventNotification(bpaRequest, smsRequests);
+					if (null != eventRequest) {
+						System.out.println("Event Requests : " + eventRequest);
+						util.sendEventNotification(eventRequest, "");
+					}
+				}
+			}
+		}
+
+		if (configuredChannelNames.contains(CHANNEL_NAME_EMAIL)) {
+			if (null != config.getIsEmailNotificationEnabled()) {
+				if (config.getIsEmailNotificationEnabled()) {
+
+					Set<String> mobileNumbers = new HashSet<>();
+					for (Map.Entry<String, String> entryset : mobileNumberToOwner.entrySet()) {
+						mobileNumbers.add(entryset.getKey());
+					}
+					Map<String, String> mapOfPhnoAndEmail = util.fetchUserEmailIds(mobileNumbers, requestInfo,
+							tenantId);
+
+					List<EmailRequest> emailRequests = util.createEmailRequest(bpaRequest, message, mapOfPhnoAndEmail,
+							mobileNumberToOwner);
+					if (!CollectionUtils.isEmpty(emailRequests)) {
+						System.out.println("Email Requests : " + emailRequests);
+						util.sendEmail(emailRequests, tenantId);
+					}
+				}
+			}
+		}
+	}
+
+	public EventRequest getEventNotification(BPARequest bpaRequest, List<SMSRequest> smsRequests) {
+
+		List<Event> events = new ArrayList<>();
+//		Map<String, String> edcrResponse = edcrService.getEDCRDetails(bpaRequest.getRequestInfo(), bpaRequest.getBPA());
+//		String applicationType = edcrResponse.get(BPAConstants.APPLICATIONTYPE);
+		BPA bpaApplication = bpaRequest.getBPA();
+		Action action = null;
+		Set<String> mobileNumbers = smsRequests.stream().map(SMSRequest::getMobileNumber).collect(Collectors.toSet());
+		Map<String, String> mapOfPhnoAndUUIDs = fetchUserUUIDs(mobileNumbers, bpaRequest.getRequestInfo(),
+				bpaRequest.getBPA().getTenantId());
+
+		Map<String, String> mobileNumberToMsg = smsRequests.stream()
+				.collect(Collectors.toMap(SMSRequest::getMobileNumber, SMSRequest::getMessage));
+
+		for (String mobile : mobileNumbers) {
+			if (null == mapOfPhnoAndUUIDs.get(mobile) || null == mobileNumberToMsg.get(mobile)) {
+				log.error("No UUID/SMS for mobile {} skipping event", mobile);
+				continue;
+			}
+			List<String> toUsers = new ArrayList<>();
+			toUsers.add(mapOfPhnoAndUUIDs.get(mobile));
+			Recepient recepient = Recepient.builder().toUsers(toUsers).toRoles(null).build();
+			events.add(Event.builder().tenantId(bpaApplication.getTenantId()).description(mobileNumberToMsg.get(mobile))
+					.eventType(BPAConstants.USREVENTS_EVENT_TYPE).name(BPAConstants.USREVENTS_EVENT_NAME)
+					.postedBy(BPAConstants.USREVENTS_EVENT_POSTEDBY).source(Source.WEBAPP).recepient(recepient)
+					.eventDetails(null).actions(action).build());
+		}
+
+		if (!CollectionUtils.isEmpty(events)) {
+			return EventRequest.builder().requestInfo(bpaRequest.getRequestInfo()).events(events).build();
+		} else {
+			return null;
+		}
+
 	}
 
 	/**
@@ -145,6 +226,7 @@ public class BPANotificationService {
 	 * Assumption - The bpaRequest received will always contain only one BPA.
 	 *
 	 * @param bpaRequest
+	 * @param smsRequests 
 	 * @return
 	 */
 	public EventRequest getEvents(BPARequest bpaRequest) {
@@ -253,7 +335,7 @@ public class BPANotificationService {
 			userSearchRequest.put("userName", mobileNo);
 			try {
 				Object user = serviceRequestRepository.fetchResult(uri, userSearchRequest);
-				if (null != user) {
+				if (null != user && JsonPath.read(user, "$.user")!=null ) {
 					String uuid = JsonPath.read(user, "$.user[0].uuid");
 					mapOfPhnoAndUUIDs.put(mobileNo, uuid);
 				} else {
@@ -277,8 +359,8 @@ public class BPANotificationService {
 	 *            List of SMSRequets
 	 */
 	private void enrichSMSRequest(BPARequest bpaRequest, List<SMSRequest> smsRequests) {
-		String tenantId = bpaRequest.getBPA().getTenantId();
-		String localizationMessages = util.getLocalizationMessages(tenantId, bpaRequest.getRequestInfo());
+
+		String localizationMessages = util.getLocalizationMessages(bpaRequest.getBPA().getTenantId(), bpaRequest.getRequestInfo());
 		String message = util.getCustomizedMsg(bpaRequest.getRequestInfo(), bpaRequest.getBPA(), localizationMessages);
 		Map<String, String> mobileNumberToOwner = getUserList(bpaRequest);
 		smsRequests.addAll(util.createSMSRequest(bpaRequest,message, mobileNumberToOwner));
@@ -308,8 +390,10 @@ public class BPANotificationService {
 		landcriteria.setIds(Arrays.asList(bpaRequest.getBPA().getLandId()));
 		List<LandInfo> landInfo = bpalandService.searchLandInfoToBPA(bpaRequest.getRequestInfo(), landcriteria);
 
+		if(!userDetailResponse.getUser().isEmpty()) {
 		mobileNumberToOwner.put(userDetailResponse.getUser().get(0).getUserName(),
 				userDetailResponse.getUser().get(0).getName());
+		}
 
 
 		if (bpaRequest.getBPA().getLandInfo() == null) {
@@ -323,7 +407,7 @@ public class BPANotificationService {
 				&& bpaRequest.getBPA().getStatus().equals("INPROGRESS"))) {
 
 			bpaRequest.getBPA().getLandInfo().getOwners().forEach(owner -> {
-				if (owner.getMobileNumber() != null && owner.getIsPrimaryOwner()) {
+				if (owner.getMobileNumber() != null && Boolean.TRUE.equals(owner.getIsPrimaryOwner())) {
 					mobileNumberToOwner.put(owner.getMobileNumber(), owner.getName());
 				}
 			});

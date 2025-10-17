@@ -193,6 +193,7 @@ const InboxComposer = ({
         <div style={propsForInboxTable?.tableStyle ? { flex: 1, overflowX : "scroll", style:{marginLeft:"24px"}, ...propsForInboxTable?.tableStyle}:{flex: 1,  overflowX : "scroll",style:{marginLeft:"24px"}}}>
           <div style= {{marginTop: "10px", marginBottom: "16px"}}>
           <SearchForm onSubmit={onSearchFormSubmit} handleSubmit={handleSearchFormSubmit} id="search-form" className="rm-mb form-field-flex-one">
+          <div style={{flex: 1, width:"80%", gap:"10px"}}>
             <SearchFormFields
               registerRef={registerSearchFormField}
               searchFormState={searchFormState}
@@ -206,6 +207,7 @@ const InboxComposer = ({
                 </div>
               }
             />
+            </div>
           </SearchForm>
 </div>
 

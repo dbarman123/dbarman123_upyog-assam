@@ -753,6 +753,10 @@ public class PlanInfoFeatureExtract extends FeatureExtract {
 		if (StringUtils.isNotBlank(dagNo))
 			pi.setWardNo(wardNo);
 		
+		String materialType = planInfoProperties.get(DxfFileConstants.MATERIAL_TYPE);
+			if (StringUtils.isNotBlank(materialType))
+				pi.setMaterialType(materialType);
+		
 		String developementZone = planInfoProperties.get(DxfFileConstants.DEVELOPMENTZONE);
 		if (StringUtils.isNotBlank(developementZone))
 			pi.setDevelopementZone(developementZone);

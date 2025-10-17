@@ -1,4 +1,4 @@
-import React, { useEffect, useReducer, useState } from "react"
+import React, { useState, useEffect, useReducer } from "react";
 import UploadFile from "../atoms/UploadFile"
 
 const displayError = ({ t, error, name }) => (
@@ -14,13 +14,9 @@ const fileValidationStatus = (file, regex, maxSize, t) => {
 
     if (!regex.test(file.type) && (file.size / 1024 / 1024) > maxSize) {
         status.valid = false; status.error = t(`NOT_SUPPORTED_FILE_TYPE_AND_FILE_SIZE_EXCEEDED`);
-    }
-
-    if (!regex.test(file.type)) {
+    } else if (!regex.test(file.type)) {
         status.valid = false; status.error = t(`NOT_SUPPORTED_FILE_TYPE`);
-    }
-
-    if ((file.size / 1024 / 1024) > maxSize) {
+    } else if ((file.size / 1024 / 1024) > maxSize) {
         status.valid = false; status.error = t(`FILE_SIZE_EXCEEDED`);
     }
 
@@ -42,16 +38,30 @@ const checkIfAllValidFiles = (files, regex, maxSize, t) => {
 
 // can use react hook form to set validations @neeraj-egov
 const MultiUploadWrapper = ({ t, module = "PGR", tenantId = Digit.ULBService.getStateId(), getFormState, requestSpecifcFileRemoval, extraStyleName="",setuploadedstate = [], showHintBelow, hintText, allowedFileTypesRegex=/(.*?)(jpg|jpeg|webp|aif|png|image|pdf|msword|openxmlformats-officedocument)$/i, allowedMaxSizeInMB=10, acceptFiles = "image/*, .jpg, .jpeg, .webp, .aif, .png, .image, .pdf, .msword, .openxmlformats-officedocument, .dxf" }) => {
+    const FILE_UPLOAD_INIT = "FILE_UPLOAD_INIT"
     const FILES_UPLOADED = "FILES_UPLOADED"
     const TARGET_FILE_REMOVAL = "TARGET_FILE_REMOVAL"
 
     const [fileErrors, setFileErrors] = useState([]);
+    const [uploadStatus, setUploadStatus] = useState({}); // Track loading state of each file
 
-    const uploadMultipleFiles = (state, payload) => {
-        const { files, fileStoreIds } = payload;
-        const filesData = Array.from(files)
-        const newUploads = filesData?.map((file, index) => [file.name, { file, fileStoreId: fileStoreIds[index] }])
-        return [...state, ...newUploads]
+    const uploadMultipleFilesInit = (state, payload) => {
+        const { files } = payload;
+        const filesData = Array.from(files);
+        const existingFileNames = state.map(item => item[0]);
+        const newUploads = filesData
+            .filter(file => !existingFileNames.includes(file.name))
+            .map((file) => [file.name, { file, fileStoreId: null, status: 'loading' }]);
+        return [...state, ...newUploads];
+    };
+    const updateFileStoreId = (state, payload) => {
+        const { fileName, fileStoreId } = payload;
+        return state.map(([name, details]) => {
+            if (name === fileName) {
+                return [name, { ...details, fileStoreId }];
+            }
+            return [name, details];
+        });
     }
 
     const removeFile = (state, payload) => {
@@ -62,14 +72,26 @@ const MultiUploadWrapper = ({ t, module = "PGR", tenantId = Digit.ULBService.get
 
     const uploadReducer = (state, action) => {
         switch (action.type) {
+            case FILE_UPLOAD_INIT:
+                return uploadMultipleFilesInit(state, action.payload);
             case FILES_UPLOADED:
-                return uploadMultipleFiles(state, action.payload)
+                const { files, fileStoreIds } = action.payload;
+                let currentState = [...state];
+                files.forEach((file, index) => {
+                    currentState = updateFileStoreId(currentState, {
+                        fileName: file.name,
+                        fileStoreId: fileStoreIds[index]
+                    });
+                });
+                return currentState;
             case TARGET_FILE_REMOVAL:
                 return removeFile(state, action.payload)
             default:
-                break;
+                return state;
         }
-    }
+    };
+    const LoadingSpinner = () => <div className="loading-spinner" />;
+    const [state, dispatch] = useReducer(uploadReducer, [...setuploadedstate]);
 
     const onUploadMultipleFiles = async (e) => {
         setFileErrors([])
@@ -77,16 +99,33 @@ const MultiUploadWrapper = ({ t, module = "PGR", tenantId = Digit.ULBService.get
         if (!files.length) return;
         const [validationMsg, error] = checkIfAllValidFiles(files, allowedFileTypesRegex, allowedMaxSizeInMB, t);
         if (!error) {
+            files.forEach((file) => {
+                dispatch({
+                    type: FILE_UPLOAD_INIT,
+                    payload: { files: [file] }
+                });
+                setUploadStatus((prev) => ({ ...prev, [file.name]: 'loading' }));
+            });
+
             try {
-                const { data: { files: fileStoreIds } = {} } = await Digit.UploadServices.MultipleFilesStorage(module, e.target.files, tenantId)
-                return dispatch({ type: FILES_UPLOADED, payload: { files: e.target.files, fileStoreIds } })
+                const { data: { files: fileStoreIds } = {} } = await Digit.UploadServices.MultipleFilesStorage(module, e.target.files, tenantId);
+                files.forEach((file, index) => {
+                    dispatch({
+                        type: FILES_UPLOADED,
+                        payload: { files: [file], fileStoreIds: [fileStoreIds[index]] }
+                    });
+                    setUploadStatus((prev) => ({ ...prev, [file.name]: 'uploaded' }));
+                });
             } catch (err) {
+                files.forEach((file) => {
+                    setUploadStatus((prev) => ({ ...prev, [file.name]: 'failed' }));
+                });
+                setFileErrors([{ valid: false, error: t('UPLOAD_FAILED'), name: '' }]);
             }
         } else {
-            setFileErrors(validationMsg)
+            setFileErrors(validationMsg);
         }
     }
-    const [state, dispatch] = useReducer(uploadReducer, [...setuploadedstate])
 
     useEffect(() => getFormState(state), [state])
 
@@ -98,7 +137,14 @@ const MultiUploadWrapper = ({ t, module = "PGR", tenantId = Digit.ULBService.get
         <div>
             <UploadFile
                 onUpload={(e) => onUploadMultipleFiles(e)}
-                removeTargetedFile={(fileDetailsData) => dispatch({ type: TARGET_FILE_REMOVAL, payload: fileDetailsData })}
+                removeTargetedFile={(fileDetailsData) => {
+                    setUploadStatus((prev) => {
+                        const newState = { ...prev };
+                        delete newState[fileDetailsData.file.name];
+                        return newState;
+                    });
+                    dispatch({ type: TARGET_FILE_REMOVAL, payload: fileDetailsData })
+                }}
                 uploadedFiles={state}
                 multiple={true}
                 showHintBelow={showHintBelow}
@@ -110,11 +156,35 @@ const MultiUploadWrapper = ({ t, module = "PGR", tenantId = Digit.ULBService.get
                 accept={acceptFiles}
             />
             <span style={{ display: 'flex' }}>
-                {fileErrors.length ? fileErrors.map(({ valid, name, type, size, error }) => (
+                {fileErrors.length ? fileErrors.map(({ valid, name, error }) => (
                     valid ? null : displayError({ t, error, name })
                 )) : null}
             </span>
-        </div>)
-}
+            <div>
+                {state.map(([fileName]) => {
+                    const status = uploadStatus[fileName];
+                    return (
+                        <div key={fileName}>
+                            
+                            {status === 'loading' && (
+                                <div style={{ display: 'flex', gap: '8px' }}>
+                                    <LoadingSpinner />
+                                    <span>{fileName} uploading...</span>
+                                </div>
+                            )}
+                            
+                            {status === 'uploaded' && (
+                                <div>{fileName} uploaded successfully!</div>
+                            )}
+                            {status === 'failed' && (
+                                <div style={{ color: 'red' }}>{fileName} failed to upload</div>
+                            )}
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
+};
 
 export default MultiUploadWrapper

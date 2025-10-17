@@ -73,7 +73,7 @@ import static org.egov.edcr.service.FeatureUtil.mapReportDetails;
 @Service
 public class ToiletDetails extends FeatureProcess {
 
-    private static final Logger LOG = LogManager.getLogger(ToiletDetails.class);
+    private static final Logger LOG = LogManager.getLogger(ToiletDetails_Assam.class);
 
     /**
      * Validates the building plan for toilet requirements.
@@ -122,9 +122,10 @@ public class ToiletDetails extends FeatureProcess {
         scrutinyDetail.addColumnHeading(1, RULE_NO);
         scrutinyDetail.addColumnHeading(2, DESCRIPTION);
         scrutinyDetail.addColumnHeading(3, FLOOR_NO);
-        scrutinyDetail.addColumnHeading(4, REQUIRED);
-        scrutinyDetail.addColumnHeading(5, PROVIDED);
-        scrutinyDetail.addColumnHeading(6, STATUS);
+        scrutinyDetail.addColumnHeading(4, UNIT);
+        scrutinyDetail.addColumnHeading(5, REQUIRED);
+        scrutinyDetail.addColumnHeading(6, PROVIDED);
+        scrutinyDetail.addColumnHeading(7, STATUS);
         return scrutinyDetail;
     }
 
@@ -141,16 +142,23 @@ public class ToiletDetails extends FeatureProcess {
         if (block.getBuilding() == null || block.getBuilding().getFloors() == null) return;
 
         for (Floor floor : block.getBuilding().getFloors()) {
-            if (floor.getToilet() == null || floor.getToilet().isEmpty()) continue;
+        	 for (FloorUnit unit : floor.getUnits()){
+            if (unit.getToilet() == null || unit.getToilet().isEmpty()) continue;
 
-            for (Toilet toilet : floor.getToilet()) {
+            for (Toilet toilet : unit.getToilet()) {
                 if (toilet.getToilets() == null || toilet.getToilets().isEmpty()) continue;
 
                 for (Measurement toiletMeasurement : toilet.getToilets()) {
-                    evaluateToiletMeasurement(pl, floor, toilet, toiletMeasurement, scrutinyDetail);
+                    evaluateToiletMeasurement(pl, floor, unit, toilet, toiletMeasurement, scrutinyDetail);
                 }
+                
+                evaluateToiletVentilation(pl, floor, unit, block, toilet, toilet.getToilets(), scrutinyDetail);
+
             }
+     
         }
+     
+      }
     }
 
     /**
@@ -164,32 +172,32 @@ public class ToiletDetails extends FeatureProcess {
      * @param measurement The specific toilet measurement to validate
      * @param scrutinyDetail The scrutiny detail object to add results to
      */
-    private void evaluateToiletMeasurement(Plan pl, Floor floor, Toilet toilet, Measurement measurement,
+    private void evaluateToiletMeasurement(Plan pl, Floor floor, FloorUnit unit, Toilet toilet, Measurement measurement,
                                            ScrutinyDetail scrutinyDetail) {
         BigDecimal area = measurement.getArea().setScale(2, RoundingMode.HALF_UP);
         BigDecimal width = measurement.getWidth().setScale(2, RoundingMode.HALF_UP);
-        BigDecimal ventilationHeight = toilet.getToiletVentilation() != null
-                ? toilet.getToiletVentilation().setScale(2, RoundingMode.HALF_UP)
-                : BigDecimal.ZERO;
+        
 
         ReportScrutinyDetail detail = new ReportScrutinyDetail();
         detail.setRuleNo(RULE_41_5_5);
         detail.setDescription(TOILET_DESCRIPTION);
         detail.setFloorNo(String.valueOf(floor.getNumber()));
+        detail.setUnitNumber(unit.getUnitNumber());
+        
 
         Optional<ToiletRequirement> toiletRule = getToiletRule(pl);
         if (toiletRule == null) return;
         ToiletRequirement rule = toiletRule.get();
         BigDecimal minArea = rule.getMinToiletArea();
         BigDecimal minWidth = rule.getMinToiletWidth();
-        BigDecimal minVentilation = rule.getMinToiletVentilation();
+      
 
-        String required = TOTAL_AREA_STRING + GREATER_THAN_EQUAL + minArea + COMMA_WIDTH_STRING + GREATER_THAN_EQUAL + minWidth + VENTILATION_STRING + GREATER_THAN_EQUAL + minVentilation;
-        String provided = TOTAL_AREA_STRING + IS_EQUAL_TO + area + COMMA_WIDTH_STRING + IS_EQUAL_TO + width + VENTILATION_HEIGHT_STRING + ventilationHeight;
+        String required = TOTAL_AREA_STRING + GREATER_THAN_EQUAL + minArea + COMMA_WIDTH_STRING + GREATER_THAN_EQUAL + minWidth;
+        String provided = TOTAL_AREA_STRING + IS_EQUAL_TO + area + COMMA_WIDTH_STRING + IS_EQUAL_TO + width;
 
         detail.setRequired(required);
         detail.setProvided(provided);
-        if (area.compareTo(minArea) >= 0 && width.compareTo(minWidth) >= 0 && ventilationHeight.compareTo(minVentilation) >= 0) {
+        if (area.compareTo(minArea) >= 0 && width.compareTo(minWidth) >= 0 ) {
             detail.setStatus(Result.Accepted.getResultVal());
         } else {
             detail.setStatus(Result.Not_Accepted.getResultVal());
@@ -198,6 +206,89 @@ public class ToiletDetails extends FeatureProcess {
         Map<String, String> details = mapReportDetails(detail);
         scrutinyDetail.getDetail().add(details);
     }
+    
+    /**
+     * Evaluates the ventilation adequacy of a toilet based on its floor area and provided window openings.
+     * <p>
+     * The method checks if the total provided ventilation area (sum of all window widths × height) 
+     * meets or exceeds the required ventilation area. By default, the requirement is 1/6th of the total 
+     * toilet floor area, unless rules specify otherwise. It records the evaluation in the scrutiny report.
+     * </p>
+     *
+     * <b>Logic:</b>
+     * <ul>
+     *   <li>Skips evaluation if no toilet, window width, or ventilation height is provided.</li>
+     *   <li>Calculates total toilet area = sum of all toilet room areas.</li>
+     *   <li>Calculates provided ventilation area = Σ(width × windowHeight).</li>
+     *   <li>Calculates required ventilation area = toiletArea ÷ 6.</li>
+     *   <li>Compares provided vs required and marks result as Accepted or Not Accepted.</li>
+     *   <li>Appends the result into {@link ScrutinyDetail} for reporting.</li>
+     * </ul>
+     *
+     * @param pl              The complete {@link Plan} being evaluated.
+     * @param floor           The {@link Floor} that contains the toilet(s).
+     * @param block           The {@link Block} in which the floor resides.
+     * @param toilet          The {@link Toilet} object with ventilation details (widths and height).
+     * @param toilets         The list of all toilets (with their areas) in the floor.
+     * @param scrutinyDetail  The {@link ScrutinyDetail} object to which evaluation results will be added.
+     */
+    
+    private void evaluateToiletVentilation(Plan pl, Floor floor, FloorUnit unit, Block block,
+			            Toilet toilet, List<Measurement> toilets,
+			            ScrutinyDetail scrutinyDetail) {
+			if (toilet == null
+			|| toilet.getToiletWindowWidth() == null
+			|| toilet.getToiletWindowWidth().isEmpty()
+			|| toilet.getToiletVentilation() == null) {
+			return;
+			}
+
+		// Toilet floor area = sum of all toilet room areas
+		BigDecimal toiletArea = toilets.stream()
+		.map(Measurement::getArea)
+		.reduce(BigDecimal.ZERO, BigDecimal::add)
+		.setScale(2, RoundingMode.HALF_UP);
+		
+		// Window height
+		BigDecimal windowHeight = toilet.getToiletVentilation().setScale(2, RoundingMode.HALF_UP);
+		
+		// Provided ventilation area = sum(width × height)
+		BigDecimal providedVentilationArea = toilet.getToiletWindowWidth().stream()
+			    .map(width -> width.multiply(windowHeight))
+			    .reduce(BigDecimal.ZERO, BigDecimal::add)
+			    .setScale(2, RoundingMode.HALF_UP);
+
+		
+		// Required ventilation area = 1/6th of toilet floor area (adjust if rule says otherwise)
+		BigDecimal requiredVentilationArea = toiletArea.divide(BigDecimal.valueOf(6), 2, RoundingMode.HALF_UP);
+		
+		LOG.info("Evaluating toilet ventilation for Floor: {}. ToiletArea: {}, RequiredVentilationArea: {}, ProvidedWindowArea: {}",
+		floor.getNumber(), toiletArea, requiredVentilationArea, providedVentilationArea);
+		
+		// --- Build scrutiny report row ---
+		ReportScrutinyDetail detail = new ReportScrutinyDetail();
+		detail.setRuleNo(SUB_RULE_53_5);  // Create/use the right constant for ventilation
+		detail.setDescription("Toilet Ventilation");
+		detail.setFloorNo(String.valueOf(floor.getNumber()));
+		detail.setUnitNumber(unit.getUnitNumber());
+		
+		String required = "Ventilation Area ≥ " + requiredVentilationArea + " m²";
+		String provided = "Ventilation Area = " + providedVentilationArea + " m²";
+		
+		detail.setRequired(required);
+		detail.setProvided(provided);
+		
+		if (providedVentilationArea.compareTo(requiredVentilationArea) >= 0) {
+		detail.setStatus(Result.Accepted.getResultVal());
+		} else {
+		detail.setStatus(Result.Not_Accepted.getResultVal());
+		}
+		
+		Map<String, String> details = mapReportDetails(detail);
+		scrutinyDetail.getDetail().add(details);
+		}
+
+
 
     /**
      * Retrieves toilet requirement rules from MDMS cache.

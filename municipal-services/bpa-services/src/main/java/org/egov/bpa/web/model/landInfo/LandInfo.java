@@ -138,13 +138,6 @@ public class LandInfo {
     this.documents.add(documentsItem);
   }
 
-  public void addAddressItem(Address addressesItem) {
-    if (this.ownerAddresses == null) {
-      this.ownerAddresses = new ArrayList<>();
-    }
-    this.ownerAddresses.add(addressesItem);
-  }
-
   public void addOwnerItem(OwnerInfoV2 ownersItem) {
     if (this.owners == null) {
       this.owners = new ArrayList<>();

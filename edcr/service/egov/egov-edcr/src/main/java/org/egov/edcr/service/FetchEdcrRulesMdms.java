@@ -77,6 +77,7 @@ import org.egov.common.entity.edcr.VentilationRequirement;
 import org.egov.common.entity.edcr.VerandahRequirement;
 import org.egov.common.entity.edcr.WaterClosetsRequirement;
 import org.egov.common.entity.edcr.WaterTankCapacityRequirement;
+import org.egov.common.entity.edcr.WindowsRequirement;
 import org.egov.commons.mdms.BpaMdmsUtil;
 import org.egov.edcr.config.EdcrConfigProperties;
 import org.egov.edcr.constants.EdcrRulesMdmsConstants;
@@ -318,6 +319,8 @@ public class FetchEdcrRulesMdms {
 				return AdditionalFeatureRequirement.class;
 			case ROOF_SLOPE:
 				return RoofSlopeRequirement.class;
+			case WINDOWS:
+				return WindowsRequirement.class;
 
 	        default:
 	            return MdmsFeatureRule.class; // Fallback

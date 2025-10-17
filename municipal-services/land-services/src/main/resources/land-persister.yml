@@ -498,20 +498,20 @@ serviceMaps:
               type: JSON
               dbType: JSONB
 
-        # Upsert Documents
+        # DELETE existing documents (only table using DELETE+INSERT)
+        - query: >
+            DELETE FROM public.ug_land_document 
+            WHERE land_info_id = ?;
+          basePath: landInfo
+          jsonMaps:
+            - jsonPath: $.landInfo.id
+
+        # INSERT documents (only table using DELETE+INSERT)
         - query: >
             INSERT INTO ug_land_document (
               id, document_type, file_store_id, document_uid, land_info_id,
               created_by, last_modified_by, created_time, last_modified_time, additional_details
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?::JSONB)
-            ON CONFLICT (id) DO UPDATE SET
-              document_type = EXCLUDED.document_type,
-              file_store_id = EXCLUDED.file_store_id,
-              document_uid = EXCLUDED.document_uid,
-              land_info_id = EXCLUDED.land_info_id,
-              last_modified_by = EXCLUDED.last_modified_by,
-              last_modified_time = EXCLUDED.last_modified_time,
-              additional_details = EXCLUDED.additional_details;
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?::JSONB);
           basePath: landInfo.documents.*
           jsonMaps:
             - jsonPath: $.landInfo.documents.*.id
@@ -526,6 +526,11 @@ serviceMaps:
             - jsonPath: $.landInfo.documents.*.additionalDetails
               type: JSON
               dbType: JSONB
+
+        - query: INSERT INTO ug_land_document_audit_details SELECT * FROM ug_land_document WHERE land_info_id = ?;
+          basePath: landInfo
+          jsonMaps:
+            - jsonPath: $.landInfo.id
 
         # Upsert Units
         - query: >

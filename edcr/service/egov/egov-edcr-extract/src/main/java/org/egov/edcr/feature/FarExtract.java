@@ -1,28 +1,36 @@
 package org.egov.edcr.feature;
 
+import static org.egov.edcr.constants.DxfFileConstants.OCCUPANCY_A2_PARKING_WITHATTACHBATH_COLOR_CODE;
+import static org.egov.edcr.constants.DxfFileConstants.OCCUPANCY_A2_PARKING_WITHDINE_COLOR_CODE;
+import static org.egov.edcr.constants.DxfFileConstants.OCCUPANCY_A2_PARKING_WOATTACHBATH_COLOR_CODE;
+import static org.egov.edcr.utility.DcrConstants.FLOOR_HEIGHT_DESC;
 import static org.egov.edcr.utility.DcrConstants.OBJECTNOTDEFINED;
 import static org.egov.edcr.utility.DcrConstants.PLOT_AREA;
+import static org.egov.edcr.utility.DcrConstants.UNIT;
+import static org.egov.edcr.utility.DcrConstants.UNIT_LAYER;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.egov.common.entity.bpa.SubOccupancy;
 import org.egov.common.entity.bpa.Usage;
 import org.egov.common.entity.edcr.Block;
 import org.egov.common.entity.edcr.Building;
 import org.egov.common.entity.edcr.FireStair;
 import org.egov.common.entity.edcr.Floor;
+import org.egov.common.entity.edcr.FloorUnit;
 import org.egov.common.entity.edcr.GeneralStair;
 import org.egov.common.entity.edcr.Lift;
 import org.egov.common.entity.edcr.Occupancy;
+import org.egov.common.entity.edcr.OccupancyType;
 import org.egov.common.entity.edcr.Stair;
 import org.egov.common.entity.edcr.SubFeatureColorCode;
 import org.egov.common.entity.edcr.TypicalFloor;
@@ -35,20 +43,20 @@ import org.egov.commons.service.SubOccupancyService;
 import org.egov.commons.service.UsageService;
 import org.egov.edcr.entity.blackbox.FloorDetail;
 import org.egov.edcr.entity.blackbox.LiftDetail;
+import org.egov.edcr.entity.blackbox.MeasurementDetail;
 import org.egov.edcr.entity.blackbox.OccupancyDetail;
 import org.egov.edcr.entity.blackbox.PlanDetail;
 import org.egov.edcr.entity.blackbox.StairDetail;
 import org.egov.edcr.service.LayerNames;
 import org.egov.edcr.utility.DcrConstants;
-
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.egov.edcr.utility.DcrConstants.FLOOR_HEIGHT_DESC;
 import org.egov.edcr.utility.Util;
-import org.egov.infra.admin.master.entity.City;
+import org.egov.edcr.utility.math.Polygon;
+import org.egov.edcr.utility.math.Ray;
 import org.egov.infra.admin.master.service.CityService;
-import org.egov.infra.config.core.ApplicationThreadLocals;
-import org.egov.infra.microservice.models.RequestInfo;
+import org.kabeja.dxf.DXFDocument;
 import org.kabeja.dxf.DXFLWPolyline;
+import org.kabeja.dxf.DXFVertex;
+import org.kabeja.dxf.helpers.Point;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -77,6 +85,7 @@ public class FarExtract extends FeatureExtract {
 
     private static final String VALIDATION_WRONG_COLORCODE_FLOORAREA = "msg.error.wrong.colourcode.floorarea";
     public static final String RULE_31_1 = "31(1)";
+    final Ray rayCasting = new Ray(new Point(-1.123456789, -1.987654321, 0d));
 
     /**
      * @param doc
@@ -206,6 +215,33 @@ public class FarExtract extends FeatureExtract {
                     List<DXFLWPolyline> floorBuiltUpPolyLines = Util.getPolyLinesByLayer(pl.getDoc(), String.format(
                             layerNames.getLayerName("LAYER_NAME_FLOOR_BLT_UP"), block.getNumber(), floor.getNumber()));
                     ((FloorDetail) floor).setBuiltUpAreaPolyLine(floorBuiltUpPolyLines);
+                    
+                    // Unit layer extraction
+                    String layerRegEx = layerNames.getLayerName("LAYER_NAME_BLOCK_NAME_PREFIX") + block.getNumber() + "_"
+                            + layerNames.getLayerName("LAYER_NAME_FLOOR_NAME_PREFIX") + floor.getNumber() + "_"
+                            + layerNames.getLayerName("LAYER_NAME_UNIT") + "_" + "\\d";
+                    
+                    List<String> layerNamesUnit = Util.getLayerNamesLike(pl.getDoc(), layerRegEx);
+                    
+                   if(layerNamesUnit.isEmpty() || layerNamesUnit == null) {
+						pl.addError(UNIT_LAYER,
+								 UNIT);
+                   }
+                    
+                    List<DXFLWPolyline> occupancyUnits = new ArrayList<>();
+                    for (String layerName : layerNamesUnit) {
+                        occupancyUnits.addAll(Util.getPolyLinesByLayer(pl.getDoc(), layerName));
+                        int unitNo = Integer.valueOf(layerName.split("_")[5]);
+
+                        FloorUnit unit = floor.getUnitNumber(unitNo);
+                        if (unit == null) {
+                            unit = new FloorUnit();
+                            unit.setUnitNumber(unitNo);
+                            floor.getUnits().add(unit);
+                        }
+                        extractByLayer(pl, pl.getDoc(), block, floor, unit, occupancyUnits);
+                    }
+                   
                 }
 
         for (Block b : pl.getBlocks()) {
@@ -294,9 +330,12 @@ public class FarExtract extends FeatureExtract {
             Building building = block.getBuilding();
             if (building != null && !building.getFloors().isEmpty())
                 for (Floor floor : building.getFloors()) {
+                	
+                	
+                	 for (FloorUnit unit : floor.getUnits()) {
                     BigDecimal existingBltUpArea = BigDecimal.ZERO;
 
-                    addCarpetArea(pl, block, floor);
+                    addCarpetArea(pl, block, floor, unit);
 
                     // existing carpet area is added only when existing builtup area is present in
                     // that floor
@@ -307,9 +346,12 @@ public class FarExtract extends FeatureExtract {
                                         : BigDecimal.ZERO);
 
                     if (existingBltUpArea.compareTo(BigDecimal.ZERO) > 0)
-                        addExistingCarpetArea(pl, block, floor);
+                        addExistingCarpetArea(pl, block, floor, unit);
 
+                    
                 }
+            }
+            
         }
 
         // parts of building
@@ -331,9 +373,10 @@ public class FarExtract extends FeatureExtract {
         return pl;
     }
 
-    private void addExistingCarpetArea(PlanDetail pl, Block block, Floor floor) {
+    private void addExistingCarpetArea(PlanDetail pl, Block block, Floor floor, FloorUnit unit) {
         String existingCarpetAreaLayer = layerNames.getLayerName("LAYER_NAME_BLOCK_NAME_PREFIX") + block.getNumber()
                 + "_" + layerNames.getLayerName("LAYER_NAME_FLOOR_NAME_PREFIX") + floor.getNumber()
+                + "_" + layerNames.getLayerName("LAYER_NAME_UNIT") +  "_" + unit.getUnitNumber() 
                 + layerNames.getLayerName("LAYER_NAME_CRPT_UP_AREA")
                 + layerNames.getLayerName("LAYER_NAME_EXISTING_PREFIX");
         List<DXFLWPolyline> polylines = Util.getPolyLinesByLayer(pl.getDoc(), existingCarpetAreaLayer);
@@ -354,7 +397,7 @@ public class FarExtract extends FeatureExtract {
                 pl.addError(VALIDATION_WRONG_COLORCODE_FLOORAREA, getLocaleMessage(VALIDATION_WRONG_COLORCODE_FLOORAREA,
                         String.valueOf(pline.getColor()), existingCarpetAreaLayer));
             else
-                floor.addCarpetArea(occupancy);
+                unit.addCarpetArea(occupancy);
 
         }
 
@@ -362,6 +405,7 @@ public class FarExtract extends FeatureExtract {
 
         String existingCarpetAreaDeductByFloor = layerNames.getLayerName("LAYER_NAME_BLOCK_NAME_PREFIX") + "%s" + "_"
                 + layerNames.getLayerName("LAYER_NAME_FLOOR_NAME_PREFIX") + "%s" + "_"
+                + layerNames.getLayerName("LAYER_NAME_UNIT") +  "%s" + "_"
                 + layerNames.getLayerName("LAYER_NAME_CRPT_AREA_DEDUCT")
                 + layerNames.getLayerName("LAYER_NAME_EXISTING_PREFIX");
 
@@ -378,14 +422,15 @@ public class FarExtract extends FeatureExtract {
                 pl.addError(VALIDATION_WRONG_COLORCODE_FLOORAREA, getLocaleMessage(VALIDATION_WRONG_COLORCODE_FLOORAREA,
                         String.valueOf(pline.getColor()), deductLayerName));
             else
-                floor.addCarpetDeductionArea(occupancy);
+                unit.addCarpetDeductionArea(occupancy);
         }
         // }
     }
 
-    private void addCarpetArea(PlanDetail pl, Block block, Floor floor) {
+    private void addCarpetArea(PlanDetail pl, Block block, Floor floor, FloorUnit unit) {
         String carpetAreaLayer = layerNames.getLayerName("LAYER_NAME_BLOCK_NAME_PREFIX") + block.getNumber() + "_"
                 + layerNames.getLayerName("LAYER_NAME_FLOOR_NAME_PREFIX") + floor.getNumber() + "_"
+                + layerNames.getLayerName("LAYER_NAME_UNIT") +  "_" + unit.getUnitNumber() + "_"
                 + layerNames.getLayerName("LAYER_NAME_CRPT_UP_AREA");
         LOG.error("Working on Block  " + block.getNumber() + " For layer Name " + carpetAreaLayer);
         List<DXFLWPolyline> polyLinesByLayer = Util.getPolyLinesByLayer(pl.getDoc(), carpetAreaLayer);
@@ -408,15 +453,16 @@ public class FarExtract extends FeatureExtract {
                 pl.addError(VALIDATION_WRONG_COLORCODE_FLOORAREA, getLocaleMessage(VALIDATION_WRONG_COLORCODE_FLOORAREA,
                         String.valueOf(pline.getColor()), carpetAreaLayer));
             else
-                floor.addCarpetArea(occupancy);
+                unit.addCarpetArea(occupancy);
         }
 
         // find carpet deduction
         String carpetAreaDeductByFloor = layerNames.getLayerName("LAYER_NAME_BLOCK_NAME_PREFIX") + "%s" + "_"
                 + layerNames.getLayerName("LAYER_NAME_FLOOR_NAME_PREFIX") + "%s" + "_"
+                + layerNames.getLayerName("LAYER_NAME_UNIT") + "_" + "%s" + "_"
                 + layerNames.getLayerName("LAYER_NAME_CRPT_AREA_DEDUCT");
 
-        String deductLayerName = String.format(carpetAreaDeductByFloor, block.getNumber(), floor.getNumber());
+        String deductLayerName = String.format(carpetAreaDeductByFloor, block.getNumber(), floor.getNumber(), unit.getUnitNumber());
 
         LOG.error("Working on Block carpet deduction  " + deductLayerName);
 
@@ -436,7 +482,7 @@ public class FarExtract extends FeatureExtract {
                 pl.addError(VALIDATION_WRONG_COLORCODE_FLOORAREA, getLocaleMessage(VALIDATION_WRONG_COLORCODE_FLOORAREA,
                         String.valueOf(pline.getColor()), deductLayerName));
             else
-                floor.addCarpetDeductionArea(occupancy);
+                unit.addCarpetDeductionArea(occupancy);
         }
         // }
     }
@@ -643,6 +689,62 @@ public class FarExtract extends FeatureExtract {
         return builtUpArea.doubleValue() > 0 && totalStairArea.doubleValue() > 0
                 && builtUpArea.compareTo(totalStairArea) <= 0 ? Boolean.TRUE : Boolean.FALSE;
 
+    }
+    
+    private void extractByLayer(PlanDetail pl, DXFDocument doc, Block block, Floor floor,
+            FloorUnit unit, List<DXFLWPolyline> dxflwPolylines) {
+if (!dxflwPolylines.isEmpty()) {
+			BigDecimal totalDeduction = BigDecimal.ZERO;
+			
+			for (DXFLWPolyline flrUnitPLine : dxflwPolylines) {
+			unit.setColorCode(flrUnitPLine.getColor());
+			
+			Occupancy occupancy = new Occupancy();
+			Util.setOccupancyType(flrUnitPLine, occupancy);
+			occupancy.setTypeHelper(Util.findOccupancyType(flrUnitPLine, pl));
+			specialCaseCheckForOccupancyType(flrUnitPLine, occupancy);
+			unit.setOccupancy(occupancy);
+			
+			unit.setArea(Util.getPolyLineArea(flrUnitPLine));
+			
+			// Deduction logic
+			Polygon polygon = Util.getPolygon(flrUnitPLine);
+			String deductLayerName = layerNames.getLayerName("LAYER_NAME_BLOCK_NAME_PREFIX") + block.getNumber()
+			    + "_" + layerNames.getLayerName("LAYER_NAME_FLOOR_NAME_PREFIX") + floor.getNumber() + "_"
+			    + layerNames.getLayerName("LAYER_NAME_UNITFA_DEDUCT");
+			
+			for (DXFLWPolyline occupancyDeduct : Util.getPolyLinesByLayer(doc, deductLayerName)) {
+			boolean contains = false;
+			Iterator buildingIterator = occupancyDeduct.getVertexIterator();
+			while (buildingIterator.hasNext()) {
+			    DXFVertex dxfVertex = (DXFVertex) buildingIterator.next();
+			    Point point = dxfVertex.getPoint();
+			    if (rayCasting.contains(point, polygon)) {
+			        contains = true;
+			        MeasurementDetail measurement = new MeasurementDetail();
+			        measurement.setPolyLine(occupancyDeduct);
+			        measurement.setArea(Util.getPolyLineArea(occupancyDeduct));
+			        unit.getDeductions().add(measurement);
+			        totalDeduction = totalDeduction.add(Util.getPolyLineArea(occupancyDeduct));
+			    }
+			}
+		}
+	}
+			unit.setTotalUnitDeduction(totalDeduction);
+			}
+}
+    
+    private void specialCaseCheckForOccupancyType(DXFLWPolyline pLine, Occupancy occupancy) {
+        if (pLine.getColor() == OCCUPANCY_A2_PARKING_WITHATTACHBATH_COLOR_CODE) {
+            occupancy.setWithAttachedBath(true);
+            occupancy.setType(OccupancyType.OCCUPANCY_A2);
+        } else if (pLine.getColor() == OCCUPANCY_A2_PARKING_WOATTACHBATH_COLOR_CODE) {
+            occupancy.setWithOutAttachedBath(true);
+            occupancy.setType(OccupancyType.OCCUPANCY_A2);
+        } else if (pLine.getColor() == OCCUPANCY_A2_PARKING_WITHDINE_COLOR_CODE) {
+            occupancy.setWithDinningSpace(true);
+            occupancy.setType(OccupancyType.OCCUPANCY_A2);
+        }
     }
 
 }

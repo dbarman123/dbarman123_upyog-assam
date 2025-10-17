@@ -122,9 +122,10 @@ public class ToiletDetails_Assam extends FeatureProcess {
         scrutinyDetail.addColumnHeading(1, RULE_NO);
         scrutinyDetail.addColumnHeading(2, DESCRIPTION);
         scrutinyDetail.addColumnHeading(3, FLOOR_NO);
-        scrutinyDetail.addColumnHeading(4, REQUIRED);
-        scrutinyDetail.addColumnHeading(5, PROVIDED);
-        scrutinyDetail.addColumnHeading(6, STATUS);
+        scrutinyDetail.addColumnHeading(4, UNIT);
+        scrutinyDetail.addColumnHeading(5, REQUIRED);
+        scrutinyDetail.addColumnHeading(6, PROVIDED);
+        scrutinyDetail.addColumnHeading(7, STATUS);
         return scrutinyDetail;
     }
 
@@ -141,19 +142,23 @@ public class ToiletDetails_Assam extends FeatureProcess {
         if (block.getBuilding() == null || block.getBuilding().getFloors() == null) return;
 
         for (Floor floor : block.getBuilding().getFloors()) {
-            if (floor.getToilet() == null || floor.getToilet().isEmpty()) continue;
+        	 for (FloorUnit unit : floor.getUnits()){
+            if (unit.getToilet() == null || unit.getToilet().isEmpty()) continue;
 
-            for (Toilet toilet : floor.getToilet()) {
+            for (Toilet toilet : unit.getToilet()) {
                 if (toilet.getToilets() == null || toilet.getToilets().isEmpty()) continue;
 
                 for (Measurement toiletMeasurement : toilet.getToilets()) {
-                    evaluateToiletMeasurement(pl, floor, toilet, toiletMeasurement, scrutinyDetail);
+                    evaluateToiletMeasurement(pl, floor, unit, toilet, toiletMeasurement, scrutinyDetail);
                 }
                 
-                evaluateToiletVentilation(pl, floor, block, toilet, toilet.getToilets(), scrutinyDetail);
+                evaluateToiletVentilation(pl, floor, unit, block, toilet, toilet.getToilets(), scrutinyDetail);
 
             }
+     
         }
+     
+      }
     }
 
     /**
@@ -167,7 +172,7 @@ public class ToiletDetails_Assam extends FeatureProcess {
      * @param measurement The specific toilet measurement to validate
      * @param scrutinyDetail The scrutiny detail object to add results to
      */
-    private void evaluateToiletMeasurement(Plan pl, Floor floor, Toilet toilet, Measurement measurement,
+    private void evaluateToiletMeasurement(Plan pl, Floor floor, FloorUnit unit, Toilet toilet, Measurement measurement,
                                            ScrutinyDetail scrutinyDetail) {
         BigDecimal area = measurement.getArea().setScale(2, RoundingMode.HALF_UP);
         BigDecimal width = measurement.getWidth().setScale(2, RoundingMode.HALF_UP);
@@ -177,6 +182,8 @@ public class ToiletDetails_Assam extends FeatureProcess {
         detail.setRuleNo(RULE_41_5_5);
         detail.setDescription(TOILET_DESCRIPTION);
         detail.setFloorNo(String.valueOf(floor.getNumber()));
+        detail.setUnitNumber(unit.getUnitNumber());
+        
 
         Optional<ToiletRequirement> toiletRule = getToiletRule(pl);
         if (toiletRule == null) return;
@@ -226,7 +233,7 @@ public class ToiletDetails_Assam extends FeatureProcess {
      * @param scrutinyDetail  The {@link ScrutinyDetail} object to which evaluation results will be added.
      */
     
-    private void evaluateToiletVentilation(Plan pl, Floor floor, Block block,
+    private void evaluateToiletVentilation(Plan pl, Floor floor, FloorUnit unit, Block block,
 			            Toilet toilet, List<Measurement> toilets,
 			            ScrutinyDetail scrutinyDetail) {
 			if (toilet == null
@@ -263,6 +270,7 @@ public class ToiletDetails_Assam extends FeatureProcess {
 		detail.setRuleNo(SUB_RULE_53_5);  // Create/use the right constant for ventilation
 		detail.setDescription("Toilet Ventilation");
 		detail.setFloorNo(String.valueOf(floor.getNumber()));
+		detail.setUnitNumber(unit.getUnitNumber());
 		
 		String required = "Ventilation Area ≥ " + requiredVentilationArea + " m²";
 		String provided = "Ventilation Area = " + providedVentilationArea + " m²";

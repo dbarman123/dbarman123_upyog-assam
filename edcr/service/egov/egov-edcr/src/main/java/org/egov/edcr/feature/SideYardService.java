@@ -189,13 +189,13 @@ public class SideYardService extends GeneralRule {
                             occupancy.getTypeHelper(), sideYard1Result, sideYard2Result);
                 }
 
-                if (isApplicableSubtype(occupancy)) {
-                    if (buildingHeight.compareTo(BigDecimal.valueOf(10)) <= 0
-                            && block.getBuilding().getFloorsAboveGround().compareTo(BigDecimal.valueOf(3)) <= 0) {
+//                if (isApplicableSubtype(occupancy)) {
+//                    if (buildingHeight.compareTo(BigDecimal.valueOf(10)) <= 0
+ //                           && block.getBuilding().getFloorsAboveGround().compareTo(BigDecimal.valueOf(3)) <= 0) {
                         checkSideYardCommon(pl, block.getBuilding(), buildingHeight, block.getName(), setback.getLevel(),
                                 pl.getPlot(), minMax[0], minMax[1], occupancy.getTypeHelper(), sideYard1Result, sideYard2Result);
-                    }
-                }
+//                    }
+//                }
 
                 addSideYardResult(pl, errors, sideYard1Result, sideYard2Result);
             }

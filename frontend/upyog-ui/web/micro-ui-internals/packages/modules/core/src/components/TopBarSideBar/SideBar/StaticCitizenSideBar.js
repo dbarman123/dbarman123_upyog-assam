@@ -153,7 +153,7 @@ const StaticCitizenSideBar = ({ linkData, islinkDataLoading }) => {
   const redirectToScrutinyPage = () => {
     // localStorage.clear();
     // sessionStorage.clear();
-    history.push(`${APPLICATION_PATH}/citizen/core/edcr/scrutiny`);
+    history.push(`${APPLICATION_PATH}/citizen/obpsv2/rtp/apply/home`);
   };
   const showProfilePage = () => {
     history.push(`${APPLICATION_PATH}/citizen/user/profile`);

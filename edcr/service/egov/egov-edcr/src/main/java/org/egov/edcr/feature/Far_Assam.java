@@ -164,10 +164,18 @@ public class Far_Assam extends Far {
                             occupancy.getExistingBuiltUpArea() == null ? BigDecimal.ZERO : occupancy.getExistingBuiltUpArea());
                     flrArea = flrArea.add(occupancy.getFloorArea());
                     existingFlrArea = existingFlrArea.add(occupancy.getExistingFloorArea());
+                    
+                }
+            }
+
+            for (Floor flr : building.getFloors()) {
+            	 for (FloorUnit unit : flr.getUnits()) {
+                for (Occupancy occupancy : unit.getOccupancies()) {
                     carpetArea = carpetArea.add(occupancy.getCarpetArea());
                     existingCarpetArea = existingCarpetArea.add(occupancy.getExistingCarpetArea());
                 }
             }
+        }
 
             building.setTotalFloorArea(flrArea);
             building.setTotalBuitUpArea(bltUpArea);
@@ -433,7 +441,7 @@ public class Far_Assam extends Far {
             String subOccCode = occupancy.getSubtype() != null ? occupancy.getSubtype().getCode() : null;
 
             // Educational, Medical, Government/Public, Hotels
-            if (B.equalsIgnoreCase(occCode) || C.equalsIgnoreCase(occCode) || K.equalsIgnoreCase(occCode)
+            if (B.equalsIgnoreCase(occCode) || C.equalsIgnoreCase(occCode) || J.equalsIgnoreCase(occCode)
                     || (F_H.equals(subOccCode) && pl.getPlanInformation().getFourFiveStaredHotel())) {
                 qualifiesForCorridorExemption = true;
             }
@@ -767,13 +775,24 @@ public class Far_Assam extends Far {
                 existingBltUpArea = existingBltUpArea.add(occupancy.getExistingBuiltUpArea() == null ? BigDecimal.ZERO : occupancy.getExistingBuiltUpArea());
                 flrArea = flrArea.add(occupancy.getFloorArea());
                 existingFlrArea = existingFlrArea.add(occupancy.getExistingFloorArea());
-                carpetArea = carpetArea.add(occupancy.getCarpetArea());
-                existingCarpetArea = existingCarpetArea.add(occupancy.getExistingCarpetArea());
+               
 
-                LOG.info("Updated occupancy areas -> FloorArea: {}, BuiltUpArea: {}, ExistingFloorArea: {}, ExistingBuiltUpArea: {}, CarpetArea: {}, ExistingCarpetArea: {}",
-                        flrArea, bltUpArea, existingFlrArea, existingBltUpArea, carpetArea, existingCarpetArea);
+                LOG.info("Updated occupancy areas -> FloorArea: {}, BuiltUpArea: {}, ExistingFloorArea: {}, ExistingBuiltUpArea: {}",
+                        flrArea, bltUpArea, existingFlrArea, existingBltUpArea);
             }
         }
+        
+        for (Floor flr : building.getFloors()) {
+       	 for (FloorUnit unit : flr.getUnits()) {
+           for (Occupancy occupancy : unit.getOccupancies()) {
+               carpetArea = carpetArea.add(occupancy.getCarpetArea());
+               existingCarpetArea = existingCarpetArea.add(occupancy.getExistingCarpetArea());
+               LOG.info("Updated occupancy areas ->  CarpetArea: {}, ExistingCarpetArea: {}",
+                        carpetArea, existingCarpetArea);
+           }
+       }
+   }
+        
 
         building.setTotalFloorArea(flrArea);
         building.setTotalBuitUpArea(bltUpArea);
@@ -1033,10 +1052,12 @@ public class Far_Assam extends Far {
             LOG.info("Block Number: {} set most restrictive FAR: {}", blk.getNumber(), mostRestrictiveFar);
 
             for (Floor flr : building.getFloors()) {
-                validateFloorAreas(pl, blk, flr, mostRestrictiveFar);
+            	 for (FloorUnit unit : flr.getUnits()) {
+                validateFloorAreas(pl, blk, flr, unit, mostRestrictiveFar);
             }
         }
     }
+   }
 
     /**
      * Extracts set of distinct occupancy types in a building.
@@ -1062,7 +1083,7 @@ public class Far_Assam extends Far {
      * @param flr the floor being validated
      * @param mostRestrictiveFar the most restrictive occupancy type helper for the block
      */
-    private void validateFloorAreas(Plan pl, Block blk, Floor flr, OccupancyTypeHelper mostRestrictiveFar) {
+    private void validateFloorAreas(Plan pl, Block blk, Floor flr, FloorUnit unit, OccupancyTypeHelper mostRestrictiveFar) {
         BigDecimal flrArea = BigDecimal.ZERO;
         BigDecimal existingFlrArea = BigDecimal.ZERO;
         BigDecimal carpetArea = BigDecimal.ZERO;
@@ -1072,9 +1093,18 @@ public class Far_Assam extends Far {
         for (Occupancy occupancy : flr.getOccupancies()) {
             flrArea = flrArea.add(occupancy.getFloorArea());
             existingFlrArea = existingFlrArea.add(occupancy.getExistingFloorArea());
-            carpetArea = carpetArea.add(occupancy.getCarpetArea());
-            existingCarpetArea = existingCarpetArea.add(occupancy.getExistingCarpetArea());
+           
         }
+        
+          	 for (FloorUnit units : flr.getUnits()) {
+              for (Occupancy occupancy : units.getOccupancies()) {
+            	  carpetArea = carpetArea.add(occupancy.getCarpetArea());
+                  existingCarpetArea = existingCarpetArea.add(occupancy.getExistingCarpetArea());
+                  LOG.info("Updated occupancy areas ->  CarpetArea: {}, ExistingCarpetArea: {}",
+                           carpetArea, existingCarpetArea);
+              }
+          }
+      
 
         for (Occupancy occupancy : flr.getOccupancies()) {
             existingBltUpArea = existingBltUpArea.add(
@@ -1084,13 +1114,12 @@ public class Far_Assam extends Far {
         if (mostRestrictiveFar != null && mostRestrictiveFar.getConvertedSubtype() != null
                 && !A_R.equals(mostRestrictiveFar.getSubtype().getCode())) {
             if (carpetArea.compareTo(BigDecimal.ZERO) == 0) {
-                pl.addError(CARPET_AREA_BLOCK + blk.getNumber() + FLOOR_SPACED + flr.getNumber(),
-                        CARPET_AREA_NOT_DEFINED_BLOCK + blk.getNumber() + FLOOR_SPACED + flr.getNumber());
+                pl.addError(CARPET_AREA_BLOCK + blk.getNumber() + FLOOR_SPACED + flr.getNumber(), UNIT + unit.getUnitNumber() +  CARPET_AREA_NOT_DEFINED_BLOCK + blk.getNumber() + FLOOR_SPACED + flr.getNumber());
             }
 
             if (existingBltUpArea.compareTo(BigDecimal.ZERO) > 0
                     && existingCarpetArea.compareTo(BigDecimal.ZERO) == 0) {
-                pl.addError(EXISTING_CARPET_AREA_BLOCK + blk.getNumber() + FLOOR_SPACED + flr.getNumber(),
+                pl.addError(EXISTING_CARPET_AREA_BLOCK + blk.getNumber() + FLOOR_SPACED + flr.getNumber(), UNIT + unit.getUnitNumber() +
                         EXISTING_CARPET_AREA_NOT_DEFINED + blk.getNumber() + FLOOR_SPACED
                                 + flr.getNumber());
             }
@@ -1678,7 +1707,7 @@ public class Far_Assam extends Far {
                             && roadWidth.compareTo(rule.getToRoadWidth()) < 0)
                     .findFirst();
 
-        } else if (J.equalsIgnoreCase(occCode)) {
+        } else if (K.equalsIgnoreCase(occCode)) {
             LOG.info("Matching FAR based on plot area only for special occupancy.");
             return rules.stream().filter(FarRequirement.class::isInstance).map(FarRequirement.class::cast)
                     .filter(rule -> plotArea.compareTo(rule.getFromPlotArea()) >= 0
@@ -1871,7 +1900,8 @@ public class Far_Assam extends Far {
     private boolean hasValidEWSLIGUnits(Plan pl) {
         for (Block block : pl.getBlocks()) {
             for (Floor floor : block.getBuilding().getFloors()) {
-                for (Occupancy occupancy : floor.getOccupancies()) {
+            	 for (FloorUnit unit : floor.getUnits()) {
+                for (Occupancy occupancy : unit.getOccupancies()) {
                     BigDecimal carpetArea = occupancy.getCarpetArea();
                     if (carpetArea != null) {
                         // EWS units: 31-34 sq.m carpet area
@@ -1888,7 +1918,7 @@ public class Far_Assam extends Far {
                         }
                     }
                 }
-            }
+            	 } }
         }
         return false;
     }

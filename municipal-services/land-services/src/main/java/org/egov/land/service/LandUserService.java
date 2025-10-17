@@ -72,7 +72,11 @@ public class LandUserService {
 					OwnerInfo ownerInfo = convertToOwnerInfo(owner);
 					log.info("ownerInfo-->" + ownerInfo);
 					userDetailResponse = userCall(new CreateUserRequest(requestInfo, ownerInfo), uri);
+					owner.setUuid(userDetailResponse.getUser().get(0).getUuid());
 					log.debug("owner created --> " + userDetailResponse.getUser().get(0).getUuid());
+				}else{
+					owner.setUuid(userDetailResponse.getUser().get(0).getUuid());
+					log.info("user already exists adding uuid to ownerinfo --> " + owner.getUuid());
 				}
 
 			} else {
@@ -99,21 +103,23 @@ public class LandUserService {
 			if (existingUserResponse != null && !CollectionUtils.isEmpty(existingUserResponse.getUser())) {
 				existingOwnerInfo = existingUserResponse.getUser().get(0);
 				log.info("User found "+existingOwnerInfo.getUserName() );
+			}else{
+				throw new CustomException(LandConstants.UPDATE_ERROR, "User not found in UserService");
 			}
 
 			// Step 4: Convert incoming owner v2 to OwnerInfo for comparison
-			OwnerInfo ownerInfoToCompare = convertToOwnerInfo(ownerInfoV2);
+			OwnerInfo ownerInfoFromUI = convertToOwnerInfo(ownerInfoV2);
 
 			// Step 5: Check if owner info has changed
-			if (existingOwnerInfo != null && ownerInfoV2.compareWithExistingUser(existingOwnerInfo)) {
+			if (existingOwnerInfo != null && !ownerInfoFromUI.compareWithExistingUser(existingOwnerInfo)) {
 				// Step 5a: Add default fields for a Citizen user
-				ownerInfoToCompare.setRoles(existingOwnerInfo.getRoles());
+				ownerInfoFromUI.setRoles(existingOwnerInfo.getRoles());
 
 				// Step 5b: Call UserService to create or update user
 				String uri = config.getUserHost() +
 						config.getUserUpdateEndpoint();
 
-				userCall(new CreateUserRequest(requestInfo, ownerInfoToCompare), new StringBuilder(uri));
+				userCall(new CreateUserRequest(requestInfo, ownerInfoFromUI), new StringBuilder(uri));
 			}
 
 			// Note: No need to update id/uuid here as they are immutable in UserService
@@ -130,15 +136,19 @@ public class LandUserService {
 		ownerInfo.setFatherOrHusbandName(ownerInfoV2.getFatherOrHusbandName());
 		ownerInfo.setGender(ownerInfoV2.getGender());
 		ownerInfo.setId(ownerInfoV2.getId());
+		ownerInfo.altContactNumber(ownerInfoV2.getAltContactNumber());
 		ownerInfo.setAadhaarNumber(ownerInfoV2.getAadhaarNumber());
 		ownerInfo.setPan(ownerInfoV2.getPanNumber());
 		ownerInfo.setMobileNumber(ownerInfoV2.getMobileNumber());
 		ownerInfo.setName(ownerInfoV2.getName());
+		ownerInfo.setRelationship(ownerInfoV2.getRelationship());
 		if(ownerInfoV2.getPermanentAddress() != null){
 			ownerInfo.setPermanentAddress(ownerInfoV2.getPermanentAddress().getAddressLine1());
+			ownerInfo.setPermanentPincode(ownerInfoV2.getPermanentAddress().getPincode());
 		}
 		if(ownerInfoV2.getCorrespondenceAddress() != null){
 			ownerInfo.setCorrespondenceAddress(ownerInfoV2.getCorrespondenceAddress().getAddressLine1());
+			ownerInfo.setCorrespondencePincode(ownerInfoV2.getCorrespondenceAddress().getPincode());
 		}
 		ownerInfo.setUuid(ownerInfoV2.getUuid());
 		ownerInfo.setUserName(ownerInfoV2.getUserName());
@@ -178,7 +188,7 @@ public class LandUserService {
 		if(isCreate){
 			userSearchRequest.setMobileNumber(owner.getMobileNumber());
 			userSearchRequest.setUserType("CITIZEN");
-			userSearchRequest.setPan(owner.getAadhaarNumber());
+			userSearchRequest.setPan(owner.getPanNumber());
 			userSearchRequest.setAadhaarNumber(owner.getAadhaarNumber());
 			userSearchRequest.setActive(true);
 			userSearchRequest.setName(owner.getName());
@@ -208,7 +218,7 @@ public class LandUserService {
 	 *
 	 */
 	private void setUserName(OwnerInfoV2 owner, LandInfo landInfo) {
-		owner.setUserName(LandUtil.getRandonUUID());
+		owner.setUserName(landInfo.getId());
 	}
 
 	/**

@@ -66,6 +66,9 @@ import static org.egov.edcr.constants.CommonFeatureConstants.SINGLE_SPACE_STRING
 import static org.egov.edcr.constants.CommonFeatureConstants.STILT_PARKING_AREA;
 import static org.egov.edcr.constants.CommonKeyConstants.COMMON_PARKING;
 import static org.egov.edcr.constants.DxfFileConstants.A;
+import static org.egov.edcr.constants.DxfFileConstants.J;
+import static org.egov.edcr.constants.EdcrReportConstants.EWS;
+import static org.egov.edcr.constants.EdcrReportConstants.LIG;
 import static org.egov.edcr.constants.DxfFileConstants.C;
 import static org.egov.edcr.constants.DxfFileConstants.D_M;
 import static org.egov.edcr.constants.DxfFileConstants.E_CLG;
@@ -90,12 +93,16 @@ import static org.egov.edcr.constants.EdcrReportConstants.BSMNT_PARKING_DIM_DESC
 import static org.egov.edcr.constants.EdcrReportConstants.COVER_ECS;
 import static org.egov.edcr.constants.EdcrReportConstants.COVER_PARKING_DIM_DESC;
 import static org.egov.edcr.constants.EdcrReportConstants.DA_PARKING_MIN_AREA;
+import static org.egov.edcr.constants.EdcrReportConstants.EV_PARKING_DESCRIPTION;
+import static org.egov.edcr.constants.EdcrReportConstants.EV_PARKING_PROVIDED;
+import static org.egov.edcr.constants.EdcrReportConstants.EV_PARKING_REQUIRED;
 import static org.egov.edcr.constants.EdcrReportConstants.LABEL_CAR_PARKING;
 import static org.egov.edcr.constants.EdcrReportConstants.LABEL_TWO_WHEELER_PARKING;
 import static org.egov.edcr.constants.EdcrReportConstants.LABEL_VISITOR_PARKING;
 import static org.egov.edcr.constants.EdcrReportConstants.LOADING_UNLOADING_AREA;
 import static org.egov.edcr.constants.EdcrReportConstants.MECHANICAL_PARKING;
 import static org.egov.edcr.constants.EdcrReportConstants.MECH_PARKING_DESC;
+import static org.egov.edcr.constants.EdcrReportConstants.CARPETAREA_THRESHHOLD;
 import static org.egov.edcr.constants.EdcrReportConstants.MECH_PARKING_DIM_DESC;
 import static org.egov.edcr.constants.EdcrReportConstants.MECH_PARKING_DIM_DESC_NA;
 import static org.egov.edcr.constants.EdcrReportConstants.MECH_PARKING_HEIGHT;
@@ -114,6 +121,7 @@ import static org.egov.edcr.constants.EdcrReportConstants.PARKING_SLOT_HEIGHT;
 import static org.egov.edcr.constants.EdcrReportConstants.PARKING_SLOT_WIDTH;
 import static org.egov.edcr.constants.EdcrReportConstants.PARKING_VIOLATED_DIM;
 import static org.egov.edcr.constants.EdcrReportConstants.PARKING_VIOLATED_MINIMUM_AREA;
+import static org.egov.edcr.constants.EdcrReportConstants.RULE117;
 import static org.egov.edcr.constants.EdcrReportConstants.RULE__DESCRIPTION;
 import static org.egov.edcr.constants.EdcrReportConstants.SECTION_CAR_PARKING;
 import static org.egov.edcr.constants.EdcrReportConstants.SLOT_HAVING_GT_4_PTS;
@@ -135,10 +143,6 @@ import static org.egov.edcr.constants.EdcrReportConstants.TWO_WHEEL_PARKING_AREA
 import static org.egov.edcr.constants.EdcrReportConstants.T_RULE;
 import static org.egov.edcr.constants.RuleKeyConstants.FOUR_P_TWO_P_ONE;
 import static org.egov.edcr.utility.DcrConstants.SQMTRS;
-import static org.egov.edcr.constants.EdcrReportConstants.EV_PARKING_DESCRIPTION;
-import static org.egov.edcr.constants.EdcrReportConstants.EV_PARKING_REQUIRED;
-import static org.egov.edcr.constants.EdcrReportConstants.EV_PARKING_PROVIDED;
-import static org.egov.edcr.constants.EdcrReportConstants.RULE117;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -153,6 +157,7 @@ import org.apache.logging.log4j.Logger;
 import org.egov.common.entity.edcr.Block;
 import org.egov.common.entity.edcr.FeatureEnum;
 import org.egov.common.entity.edcr.Floor;
+import org.egov.common.entity.edcr.FloorUnit;
 import org.egov.common.entity.edcr.Measurement;
 import org.egov.common.entity.edcr.Occupancy;
 import org.egov.common.entity.edcr.OccupancyType;
@@ -195,18 +200,29 @@ public class Parking_Assam extends Parking {
 		scrutinyDetail.addColumnHeading(5, STATUS);
 
 		// processParking(pl);
-		OccupancyTypeHelper mostRestrictiveOccupancy = pl.getVirtualBuilding() != null
-				? pl.getVirtualBuilding().getMostRestrictiveFarHelper()
-				: null;
+		 OccupancyTypeHelper mostRestrictiveOccupancy = pl.getVirtualBuilding() != null
+		            ? pl.getVirtualBuilding().getMostRestrictiveFarHelper()
+		            : null;
 
-		if (mostRestrictiveOccupancy != null && A.equals(mostRestrictiveOccupancy.getType().getCode())) {
-			processParking(pl, OccupancyType.OCCUPANCY_A1.getOccupancyType());
+		    if (mostRestrictiveOccupancy != null) {
+		        String typeCode = mostRestrictiveOccupancy.getType().getCode();
 
-		}
-		// processMechanicalParking(pl);
-		return pl;
+		        if (A.equals(typeCode)) {
+		            processParking(pl, OccupancyType.OCCUPANCY_A1.getOccupancyType());
+		        } else if (F.equals(typeCode)) {
+		            processParking(pl, OccupancyType.OCCUPANCY_F.getOccupancyType());
+		        } 
+		        else if (G.equals(typeCode)) {
+		            processParking(pl, OccupancyType.OCCUPANCY_G1.getOccupancyType());
+		        } else {
+		            pl.addError("Parking", "Unsupported occupancy type for parking: " + typeCode);
+		        }
+		    } else {
+		        pl.addError("Parking", "Most restrictive occupancy could not be determined.");
+		    }
+		 // processMechanicalParking(pl);
+		    return pl;
 	}
-
 	private void validateDimensions(Plan pl) {
 		ParkingDetails parkDtls = pl.getParkingDetails();
 		if (!parkDtls.getCars().isEmpty()) {
@@ -398,6 +414,54 @@ public class Parking_Assam extends Parking {
 	}
 
 
+	/**
+	 * Calculates the total number of car parkings required based on unit carpet areas.
+	 * 
+	 * Rule:
+	 * - 1 per dwelling unit measuring 66 sqm and above.
+	 * - 2 per dwelling unit measuring 120 sqm and above.
+	 * 
+	 * @param pl the plan object containing blocks, floors, and units
+	 * @return total number of required car parkings
+	 */
+	private double calculateRequiredCarParkingByCarpetArea(Plan pl) {
+	    int noOfUnits66 = 0;
+	    int noOfUnits120 = 0;
+
+	    for (Block block : pl.getBlocks()) {
+	        if (block.getBuilding() != null && block.getBuilding().getFloors() != null) {
+	            for (Floor floor : block.getBuilding().getFloors()) {
+	                if (floor.getUnits() != null) {
+	                    for (FloorUnit unit : floor.getUnits()) {
+	                        BigDecimal totalCarpetAreaUnit = BigDecimal.ZERO;
+
+	                        if (unit.getOccupancies() != null) {
+	                            for (Occupancy occ : unit.getOccupancies()) {
+	                                if (occ.getCarpetArea() != null) {
+	                                    totalCarpetAreaUnit = totalCarpetAreaUnit.add(occ.getCarpetArea());
+	                                }
+	                            }
+	                        }
+
+	                        // --- Categorize based on thresholds ---
+	                        if (totalCarpetAreaUnit.compareTo(BigDecimal.valueOf(120)) >= 0) {
+	                        	noOfUnits120++; // 2 car parks per unit
+	                        } else if (totalCarpetAreaUnit.compareTo(BigDecimal.valueOf(66)) >= 0) {
+	                        	noOfUnits66++; // 1 car park per unit
+	                        }
+	                    }
+	                }
+	            }
+	        }
+	        
+	    }
+	    LOGGER.debug("Units between 66–120 sqm: {}", noOfUnits66);
+	    LOGGER.debug("Units ≥120 sqm: {}", noOfUnits120);
+
+	    // --- Total car parking count ---
+	    return (noOfUnits66 * 1) + (noOfUnits120 * 2);
+	}
+
 	private double processCarParking(Plan pl, String occupancyType) {
 		BigDecimal totalCarpetArea = getTotalCarpetAreaByOccupancy(pl, occupancyType);
 		BigDecimal totalBuiltupArea = pl.getOccupancies().stream().map(Occupancy::getBuiltUpArea)
@@ -405,6 +469,7 @@ public class Parking_Assam extends Parking {
 		BigDecimal basement = BigDecimal.ZERO;
 		BigDecimal open = BigDecimal.ZERO;
 		BigDecimal stilt = BigDecimal.ZERO;
+		double totalNoOfUnits = 0;
 		double ecsArea = 0d;
 
 		double builtupArea = totalBuiltupArea.doubleValue();
@@ -422,6 +487,9 @@ public class Parking_Assam extends Parking {
 		
 	   for (Block block : pl.getBlocks()) {
 			for (Floor floor : block.getBuilding().getFloors()) {
+				
+					double unitsInFloor = floor.getUnits().size();
+					totalNoOfUnits += unitsInFloor;
 				
 				basement = basement.add(floor.getParking().getBasementCars().stream().map(Measurement::getArea)
 						.reduce(BigDecimal.ZERO, BigDecimal::add)).setScale(2, RoundingMode.UP);
@@ -459,31 +527,32 @@ public class Parking_Assam extends Parking {
 		};
 
 		if (A.equals(typeCode)) { // Residential
-			double perArea = ruleResult.getPerAreaCar();
-			double noOfParking = ruleResult.getNoOfRequiredParking();
-			
-			if (open.doubleValue() > 0 && basement.doubleValue() > 0 ) {
-			
-			 ecsArea = ruleResult.getPermissibleCarBasement();
-			}else if (open.doubleValue() > 0) {
-				 ecsArea = ruleResult.getPermissibleCarOpen();
-			}
-			else if (stilt.doubleValue() > 0) {
-				 ecsArea = ruleResult.getPermissibleCarStilt();
-			}
-			else if (basement.doubleValue() > 0) {
-				 ecsArea = ruleResult.getPermissibleCarBasement();
-			}
+		    double noOfCarParking = 0d;
 
-			if (carpetArea <= ecsArea) {
-				noOfParking = 0;
-			}
+		    // --- Determine ECS area based on parking type ---
+		    if (open.doubleValue() > 0) {
+		        ecsArea = ruleResult.getPermissibleCarOpen();
+		    } else if (stilt.doubleValue() > 0) {
+		        ecsArea = ruleResult.getPermissibleCarStilt();
+		    } else if (basement.doubleValue() > 0) {
+		        ecsArea = ruleResult.getPermissibleCarBasement();
+		    }
 
-			double ecsPerUnit = carpetArea / perArea;
-			double requiredECS = Math.ceil(ecsPerUnit) * noOfParking;
-			requiredCarParkingArea = requiredECS * ecsArea;
+		  
+		    // --- Calculate required car parking count ---
+		    double noOfCarParkingRequired = calculateRequiredCarParkingByCarpetArea(pl);
 
-		} else if (F.equals(typeCode)) {
+		
+		    // --- Calculate total required car parking area ---
+		    requiredCarParkingArea = noOfCarParkingRequired * ecsArea;
+
+		   
+		    LOGGER.debug("Total car parking slots required: {}", noOfCarParking);
+		    LOGGER.debug("ECS Area used: {}", ecsArea);
+		    LOGGER.debug("Total required car parking area: {}", requiredCarParkingArea);
+		}
+
+            else if (F.equals(typeCode)) {
 			double noOfParking = ruleResult.getNoOfRequiredParking();
 			if (open.doubleValue() > 0 && basement.doubleValue() > 0 ) {
 				
@@ -563,7 +632,7 @@ public class Parking_Assam extends Parking {
 
 				requiredCarParkingArea = requiredCarParkingAreaPerRoom + requiredCarParkingAreaPerArea;
 			}
-		} else if (K.equals(typeCode)) { // Govt
+		} else if (J.equals(typeCode)) { // Govt
 			if (open.doubleValue() > 0 && basement.doubleValue() > 0 ) {
 				
 				 ecsArea = ruleResult.getPermissibleCarBasement();
@@ -764,6 +833,44 @@ public class Parking_Assam extends Parking {
 		return requiredCarParkingArea;
 	}
 
+	/**
+	 * Counts total number of units where carpet area <= given threshold.
+	 *
+	 * @param pl         Plan object
+	 * @param threshold  Carpet area threshold (e.g., 66 sqm)
+	 * @return Number of qualifying units
+	 */
+	private int countUnitsByCarpetArea(Plan pl, double threshold) {
+	    int noOfUnits = 0;
+
+	    for (Block block : pl.getBlocks()) {
+	        if (block.getBuilding() != null && block.getBuilding().getFloors() != null) {
+	            for (Floor floor : block.getBuilding().getFloors()) {
+	                if (floor.getUnits() != null) {
+	                    for (FloorUnit unit : floor.getUnits()) {
+	                        BigDecimal totalCarpetAreaUnit = BigDecimal.ZERO;
+
+	                        if (unit.getOccupancies() != null) {
+	                            for (Occupancy occ : unit.getOccupancies()) {
+	                                if (occ.getCarpetArea() != null) {
+	                                    totalCarpetAreaUnit = totalCarpetAreaUnit.add(occ.getCarpetArea());
+	                                }
+	                            }
+	                        }
+
+	                        // --- Check condition: carpet area <= threshold ---
+	                        if (totalCarpetAreaUnit.compareTo(BigDecimal.valueOf(threshold)) <= 0) {
+	                        	noOfUnits++;
+	                        }
+	                    }
+	                }
+	            }
+	        }
+	    }
+
+	    return noOfUnits;
+	}
+
 	private double processTwoWheelerParking(Plan pl, String occupancyType) {
 
 		BigDecimal totalCarpetArea = getTotalCarpetAreaByOccupancy(pl, occupancyType);
@@ -797,15 +904,15 @@ public class Parking_Assam extends Parking {
 		double perArea = ruleResult.perAreaTwoWheeler;
 		double noOfParking = ruleResult.noOfRequiredParking;
 		double ecsArea = ruleResult.permissibleTwoWheeler;
+		double carpetAreaThreshhold = CARPETAREA_THRESHHOLD.doubleValue();
 
-		if (carpetArea > ecsArea) {
-			noOfParking = 0;
-		}
+		
+		int noOfUnits = countUnitsByCarpetArea(pl, carpetAreaThreshhold);
 
 		if (A.equals(typeCode)) {
-			double ecsPerUnit = carpetArea / perArea;
-			double requiredECS = Math.ceil(ecsPerUnit) * noOfParking;
-			requiredTwoWheelerParkingArea = requiredECS * ecsArea;
+			
+			double requiredECS = noOfUnits * 1;
+ 			requiredTwoWheelerParkingArea = requiredECS * ecsArea;
 		} else if (F.equals(typeCode)) {
 
 			double ecsPerUnit = builtupArea / perArea;
@@ -824,7 +931,7 @@ public class Parking_Assam extends Parking {
 				double requiredECS = Math.ceil(ecsPerUnit) * noOfParking;
 				requiredTwoWheelerParkingArea = requiredECS * ecsArea;
 			}
-		} else if (K.equals(typeCode)) { // Govt
+		} else if (J.equals(typeCode)) { // Govt
 			ecsArea = ruleResult.getPermissibleTwoWheeler();
 			noOfParking = ruleResult.getNoOfRequiredParking();
 			perArea = ruleResult.getPerAreaInstitutionalPSPTwoWheeler();
@@ -858,6 +965,47 @@ public class Parking_Assam extends Parking {
 		return requiredTwoWheelerParkingArea;
 	}
 
+
+	/**
+	 * Counts the number of units within a given carpet area range (inclusive).
+	 *
+	 * @param pl        Plan object
+	 * @param minArea   Minimum carpet area (sqm)
+	 * @param maxArea   Maximum carpet area (sqm)
+	 * @return Number of qualifying units
+	 */
+	private int countUnitsByCarpetAreaRange(Plan pl, double minArea, double maxArea) {
+	    int qualifyingUnits = 0;
+
+	    for (Block block : pl.getBlocks()) {
+	        if (block.getBuilding() != null && block.getBuilding().getFloors() != null) {
+	            for (Floor floor : block.getBuilding().getFloors()) {
+	                if (floor.getUnits() != null) {
+	                    for (FloorUnit unit : floor.getUnits()) {
+	                        BigDecimal totalCarpetAreaUnit = BigDecimal.ZERO;
+
+	                        if (unit.getOccupancies() != null) {
+	                            for (Occupancy occ : unit.getOccupancies()) {
+	                                if (occ.getCarpetArea() != null) {
+	                                    totalCarpetAreaUnit = totalCarpetAreaUnit.add(occ.getCarpetArea());
+	                                }
+	                            }
+	                        }
+
+	                        double area = totalCarpetAreaUnit.doubleValue();
+	                        if (area >= minArea && area <= maxArea) {
+	                            qualifyingUnits++;
+	                        }
+	                    }
+	                }
+	            }
+	        }
+	    }
+
+	    return qualifyingUnits;
+	}
+
+
 	private double processVisitorsParking(Plan pl, String occupancyType) {
 
 		BigDecimal totalCarpetArea = getTotalCarpetAreaByOccupancy(pl, occupancyType);
@@ -888,18 +1036,29 @@ public class Parking_Assam extends Parking {
 				? mostRestrictiveOccupancy.getSubtype().getCode()
 				: null;
 
+		   
+	    // --- Count dwelling units by carpet area range ---
+	    int unitsUpTo66 = 0;
+	    int unitsAbove66 = countUnitsByCarpetAreaRange(pl, 66.01, Double.MAX_VALUE); // default for >66 sqm
+	    double visitorSlotsForUpTo66 = 0.0;
+
+	    if (pl.getPlanInformation() != null && pl.getPlanInformation().getPlotType() != null &&
+	        (pl.getPlanInformation().getPlotType().equalsIgnoreCase(EWS)
+	        || pl.getPlanInformation().getPlotType().equalsIgnoreCase(LIG))) {
+
+	        unitsUpTo66 = countUnitsByCarpetAreaRange(pl, 0, 66);
+	    }
+
+	    // --- Calculate required visitor parking slots ---
+	    if (unitsUpTo66 > 0) {
+	        visitorSlotsForUpTo66 = Math.ceil(unitsUpTo66 / 10.0);
+	    }
+	    double visitorSlotsForAbove66 = Math.ceil(unitsAbove66 / 10.0); // 1 per 10 units
+
 		if (A.equals(typeCode)) {
-			double perArea = ruleResult.perAreaVisitor;
-			double noOfParking = ruleResult.noOfRequiredParking;
 			double ecsArea = ruleResult.permissibleVisitor;
-
-			if (carpetArea <= ecsArea) {
-				noOfParking = 0;
-			}
-
-			double ecsPerUnit = carpetArea / perArea;
-			double requiredECS = Math.ceil(ecsPerUnit) * noOfParking;
-			requiredVisitorsParkingArea = requiredECS * ecsArea;
+			double totalVisitorSlots = visitorSlotsForUpTo66 + visitorSlotsForAbove66;
+			requiredVisitorsParkingArea = totalVisitorSlots * ecsArea;
 		} else if (F.equals(typeCode)) {
 			double perArea = ruleResult.perAreaVisitor;
 			double noOfParking = ruleResult.noOfRequiredParking;
@@ -909,7 +1068,7 @@ public class Parking_Assam extends Parking {
 			double requiredECS = Math.ceil(ecsPerUnit) * noOfParking;
 			requiredVisitorsParkingArea = requiredECS * ecsArea;
 
-		} else if (K.equals(typeCode)) { // Govt
+		} else if (J.equals(typeCode)) { // Govt
 			double ecsArea = ruleResult.getPermissibleVisitor();
 			double noOfParking = ruleResult.getNoOfRequiredParking();
 			double perArea = ruleResult.getPerAreaInstitutionalPSPVisitor();

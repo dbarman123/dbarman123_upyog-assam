@@ -166,8 +166,17 @@ public class PlanInformation implements Serializable {
     private transient Boolean isFourFiveStaredHotel = false;
     private transient Boolean isEconomicallyWeakerSection = false;
     private transient Boolean isLowerIncomeGroup = false;
+    private String materialType;
 
-    private BigDecimal twoWheelerSlowCharger = BigDecimal.ZERO;
+    public String getMaterialType() {
+		return materialType;
+	}
+
+	public void setMaterialType(String materialType) {
+		this.materialType = materialType;
+	}
+
+	private BigDecimal twoWheelerSlowCharger = BigDecimal.ZERO;
     
   
     private BigDecimal twoWheelerFastCharger =  BigDecimal.ZERO;

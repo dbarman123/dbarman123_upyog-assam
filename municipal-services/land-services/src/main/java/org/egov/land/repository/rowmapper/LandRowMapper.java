@@ -148,40 +148,74 @@ public class LandRowMapper implements ResultSetExtractor<List<LandInfo>> {
 
 		// Owner - check if already exists
 		String ownerId = rs.getString("owner_id");
-		if (ownerId != null && !isOwnerAlreadyAdded(landInfo, ownerId)) {
-			OwnerInfoV2 owner = OwnerInfoV2.builder()
-					.tenantId(tenantId)
-					.ownerId(ownerId)
-					.uuid(rs.getString("owner_uuid"))
-					.isPrimaryOwner((Boolean) rs.getObject("is_primary_owner"))
-					.ownerShipPercentage(rs.getBigDecimal("ownership_percentage"))
-					.institutionId(rs.getString("owner_institution_id"))
-					.motherName(rs.getString("owner_mother_name"))
-					.status((Boolean) rs.getObject("owner_status"))
-					.auditDetails(auditdetails)
-					.build();
+		if (ownerId != null) {
+			// Try to get existing owner
+			OwnerInfoV2 owner = landInfo.getOwners() != null
+					? landInfo.getOwners().stream()
+					.filter(o -> ownerId.equals(o.getOwnerId()))
+					.findFirst()
+					.orElse(null)
+					: null;
+
+			if (owner == null) {
+				owner = OwnerInfoV2.builder()
+						.tenantId(tenantId)
+						.ownerId(ownerId)
+						.uuid(rs.getString("owner_uuid"))
+						.isPrimaryOwner((Boolean) rs.getObject("is_primary_owner"))
+						.ownerShipPercentage(rs.getBigDecimal("ownership_percentage"))
+						.institutionId(rs.getString("owner_institution_id"))
+						.motherName(rs.getString("owner_mother_name"))
+						.status((Boolean) rs.getObject("owner_status"))
+						.auditDetails(auditdetails)
+						.build();
+
+				landInfo.addOwnerItem(owner);
+			}
 
 			// Owner Address
-			String ownerAddressId = rs.getString("owner_address_id");
-			if (ownerAddressId != null) {
-				Address ownerAddress = Address.builder()
-						.id(ownerAddressId)
+			String ownerAddressId = rs.getString("owner_info_id");
+			String addressType = rs.getString("owner_address_type");
+
+			if (ownerAddressId != null && "PERMANENT_ADDRESS".equals(addressType)) {
+				Address permanentAddress = Address.builder()
+						.id(rs.getString("owner_address_id"))
+						.ownerInfoId(ownerAddressId)
 						.houseNo(rs.getString("owner_house_no"))
 						.addressLine1(rs.getString("owner_address_line1"))
 						.addressLine2(rs.getString("owner_address_line2"))
 						.landmark(rs.getString("owner_landmark"))
 						.district(rs.getString("owner_district"))
+						.localityCode(rs.getString("owner_locality"))
 						.region(rs.getString("owner_region"))
 						.state(rs.getString("owner_state"))
 						.country(rs.getString("owner_country"))
 						.pincode(rs.getString("owner_pincode"))
-						.addressType(rs.getString("owner_address_type"))
+						.addressType(addressType)
 						.tenantId(tenantId)
 						.build();
-				owner.setPermanentAddress(ownerAddress);
+				owner.setPermanentAddress(permanentAddress);
 			}
 
-			landInfo.addOwnerItem(owner);
+			if (ownerAddressId != null && "CORRESPONDENCE_ADDRESS".equals(addressType)) {
+				Address correspondenceAddress = Address.builder()
+						.id(rs.getString("owner_address_id"))
+						.ownerInfoId(ownerAddressId)
+						.houseNo(rs.getString("owner_house_no"))
+						.addressLine1(rs.getString("owner_address_line1"))
+						.addressLine2(rs.getString("owner_address_line2"))
+						.landmark(rs.getString("owner_landmark"))
+						.localityCode(rs.getString("owner_locality"))
+						.district(rs.getString("owner_district"))
+						.region(rs.getString("owner_region"))
+						.state(rs.getString("owner_state"))
+						.country(rs.getString("owner_country"))
+						.pincode(rs.getString("owner_pincode"))
+						.addressType(addressType)
+						.tenantId(tenantId)
+						.build();
+				owner.setCorrespondenceAddress(correspondenceAddress);
+			}
 		}
 
 		// Institution - only set if not already set

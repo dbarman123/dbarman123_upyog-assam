@@ -7,6 +7,7 @@ import lombok.ToString;
 import org.egov.common.contract.request.RequestInfo;
 import org.egov.user.config.UserServiceConstants;
 import org.egov.user.domain.model.UserSearchCriteria;
+import org.egov.user.domain.model.enums.GuardianRelation;
 import org.egov.user.domain.model.enums.UserType;
 
 import javax.validation.constraints.Pattern;
@@ -36,9 +37,18 @@ public class UserSearchRequest {
     @JsonProperty("name")
     private String name;
 
+    @Pattern(regexp = UserServiceConstants.PATTERN_GENDER)
+    @Size(max = 15)
+    private String gender;
+
     @Pattern(regexp = UserServiceConstants.PATTERN_MOBILE)
     @JsonProperty("mobileNumber")
     private String mobileNumber;
+
+    @Pattern(regexp = UserServiceConstants.PATTERN_NAME)
+    @Size(max = 50)
+    private String fatherOrHusbandName;
+    private GuardianRelation relationship;
 
     @Size(max = 20)
     @JsonProperty("aadhaarNumber")
@@ -58,6 +68,10 @@ public class UserSearchRequest {
     @JsonProperty("active")
     @Setter
     private Boolean active;
+
+    @Pattern(regexp = UserServiceConstants.PATTERN_MOBILE)
+    @Size(max = 50)
+    private String altContactNumber;
 
     @Pattern(regexp = UserServiceConstants.PATTERN_TENANT)
     @Size(max = 256)
@@ -86,7 +100,12 @@ public class UserSearchRequest {
                 .userName(userName)
                 .name(name)
                 .mobileNumber(mobileNumber)
-//				.pan(pan)
+				.pan(pan)
+                .altContactNumber(altContactNumber)
+                .guardian(fatherOrHusbandName)
+                .guardianRelation(relationship)
+                .aadhaarNumber(aadhaarNumber)
+                .gender(gender)
                 .emailId(emailId)
                 .fuzzyLogic(fuzzyLogic)
                 .active(active)

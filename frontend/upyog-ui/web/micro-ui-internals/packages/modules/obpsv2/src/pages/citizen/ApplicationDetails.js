@@ -57,6 +57,8 @@ import {
       tenantId,
       filters: { applicationNo: acknowledgementIds },
     });
+    const [hasAccess, setHasAccess] = useState(false);
+    const { roles } = Digit.UserService.getUser().info;
     const [workflowDetails, setWorkflowDetails] = useState(null);
 
     useEffect(() => {
@@ -67,6 +69,12 @@ import {
 
       fetchWorkflow();
     }, [acknowledgementIds, tenantId]);
+
+    useEffect(() => {
+      const nextActionRoles = workflowDetails?.ProcessInstances?.[0]?.nextActions[0]?.roles || [];
+      const access = roles?.some(role => nextActionRoles.includes(role?.code));
+      setHasAccess(access);
+    }, [roles])
 
    const client = useQueryClient();
     const [actioneError, setActionError] = useState(null);
@@ -83,6 +91,8 @@ import {
     const [loader, setLoader] = useState(false);
     let bpa_details = (bpaApplicationDetail && bpaApplicationDetail.length > 0 && bpaApplicationDetail[0]) || {};
     const application = bpa_details;
+    const [isUploading, setIsUploading] = useState(false);
+    const [file, setFile] = useState(null);
     sessionStorage.setItem("bpa", JSON.stringify(application));
   
     const mutation = Digit.Hooks.obpsv2.useBPACreateUpdateApi(tenantId, "update");
@@ -96,6 +106,32 @@ import {
       },
       { enabled: acknowledgementIds ? true : false }
     );
+    useEffect(() => {
+      (async () => {
+        setActionError(null);
+        if (file) {
+          if (file.size >= 5242880) {
+            setActionError(t("CS_MAXIMUM_UPLOAD_SIZE_EXCEEDED"));
+          } else {
+            try {
+              setUploadedFile(null);
+              setIsUploading(true);
+              // TODO: change module in file storage
+              const response = await Digit.UploadServices.Filestorage("OBPSV2", file, Digit.ULBService.getStateId());
+              if (response?.data?.files?.length > 0) {
+                setUploadedFile(response?.data?.files[0]?.fileStoreId);
+              } else {
+                setActionError(t("CS_FILE_UPLOAD_ERROR"));
+              }
+            } catch (err) {
+              setActionError(t("CS_FILE_UPLOAD_ERROR"));
+            } finally {
+              setIsUploading(false);
+            }
+          }
+        }
+      })();
+    }, [file]);
     async function onAssign(selectedAction, comments, type) {
   setPopup(false);
 
@@ -110,7 +146,13 @@ import {
           action: selectedAction,
           comments: comments,
             assignes: null,
-            varificationDocuments: null
+            varificationDocuments: uploadedFile ? [
+              {
+                documentType: file.type,
+                fileName: file?.name,
+                fileStoreId: uploadedFile,
+              },
+            ] : null
         },
       },
     
@@ -125,7 +167,7 @@ import {
     await refetch();
     const updatedWorkflowDetails = await Digit.WorkflowService.getByBusinessId(tenantId, acknowledgementIds);
     setWorkflowDetails(updatedWorkflowDetails);
-    
+    window.location.reload();
     setTimeout(() => setToast(false), 10000);
   } catch (err) {
     console.error("Error while assigning:", err);
@@ -181,6 +223,9 @@ import {
    const Heading = (props) => {
      return <h1 className="heading-m">{props.label}</h1>;
    };
+   const LoadingSpinner = () => (
+    <div className="loading-spinner" />
+  );
    function closeToast() {
     setToast(false);
   }
@@ -248,6 +293,18 @@ import {
         setDisplayMenu(false);
         break;
       case "SEND_BACK_TO_RTP":
+        setPopup(true);
+        setDisplayMenu(false);
+        break;
+      case "SUBMIT_REPORT":
+        setPopup(true);
+        setDisplayMenu(false);
+        break;
+      case "SEND_BACK_TO_GMDA":
+        setPopup(true);
+        setDisplayMenu(false);
+        break;
+      case "RECOMMEND_TO_CEO":
         setPopup(true);
         setDisplayMenu(false);
         break;
@@ -350,9 +407,17 @@ import {
                 label={t("BPA_EMAIL_ID")}
                 text={primaryOwner?.emailId || t("CS_NA")}
               />
+               <Row
+                label={t("BPA_GENDER")}
+                text={t(primaryOwner?.gender) || t("CS_NA")}
+              />
               <Row
-                label={t("BPA_FATHER_NAME")}
+                label={t("BPA_GUARDIAN")}
                 text={primaryOwner?.fatherOrHusbandName || t("CS_NA")}
+              />
+               <Row
+                label={t("BPA_RELATIONSHIP")}
+                text={t(primaryOwner?.relationship) || t("CS_NA")}
               />
               <Row
                 label={t("BPA_MOTHER_NAME")}
@@ -591,7 +656,7 @@ import {
         t("CS_COMMON_SUBMIT")
       }
       actionSaveOnSubmit={() => {
-        if(selectedAction==="APPROVE"||selectedAction==="ACCEPT"||selectedAction==="REJECT"||selectedAction==="SEND"||selectedAction==="VALIDATE_GIS" ||selectedAction==="SEND_BACK_TO_RTP" )
+        if(selectedAction==="APPROVE"||selectedAction==="ACCEPT"||selectedAction==="REJECT"||selectedAction==="SEND"||selectedAction==="VALIDATE_GIS" ||selectedAction==="SEND_BACK_TO_RTP" || selectedAction==="SUBMIT_REPORT" || selectedAction==="RECOMMEND_TO_CEO" || selectedAction==="SEND_BACK_TO_GMDA")
           onAssign(selectedAction, comments, "Edit");
       if(selectedAction==="NEWRTP" &&!oldRTPName)
         setActionError(t("CS_OLD_RTP_NAME_MANDATORY"))
@@ -606,7 +671,7 @@ import {
     >
       <Card>
   <React.Fragment>
-    {(selectedAction === "APPROVE" || selectedAction === "ACCEPT" || selectedAction === "SEND" || selectedAction === "REJECT"|| selectedAction==="SEND_BACK_TO_RTP") && (
+    {(selectedAction === "APPROVE" || selectedAction === "ACCEPT" || selectedAction === "SEND" || selectedAction === "REJECT"|| selectedAction==="SEND_BACK_TO_RTP" || selectedAction==="SUBMIT_REPORT" || selectedAction==="RECOMMEND_TO_CEO" || selectedAction==="SEND_BACK_TO_GMDA") && (
       <div>
         <CardLabel>{t("COMMENTS")}</CardLabel>
         <TextArea 
@@ -625,7 +690,12 @@ import {
           accept=".jpg"
           onUpload={selectfile}
           onDelete={() => setUploadedFile(null)}
-          message={
+          message={isUploading ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <LoadingSpinner />
+                        <span>Uploading...</span>
+                      </div>
+                      ) : 
             uploadedFile
               ? `1 ${t("CS_ACTION_FILEUPLOADED")}`
               : t("CS_ACTION_NO_FILEUPLOADED")
@@ -695,12 +765,13 @@ import {
               />
             )}
             {toast && <Toast label={t(assignResponse ? `CS_ACTION_UPDATE_${selectedAction}_TEXT` : "CS_ACTION_ASSIGN_FAILED")} onClose={closeToast} />}
-             <ActionBar>
+             {hasAccess && <ActionBar>
               {displayMenu && workflowDetails?.ProcessInstances?.[0]?.nextActions ? (
                   <Menu options={workflowDetails?.ProcessInstances?.[0]?.nextActions.map((action) => action.action)} t={t} onSelect={onActionSelect} />
               ) : null}
               <SubmitBar label={t("WF_TAKE_ACTION")} onSubmit={() => setDisplayMenu(!displayMenu)} />
             </ActionBar>
+             }
           </Card>
         </div>
       </React.Fragment>

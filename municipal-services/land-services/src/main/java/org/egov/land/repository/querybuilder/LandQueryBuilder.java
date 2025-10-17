@@ -37,7 +37,7 @@ public class LandQueryBuilder {
 			+ "landOwner.ownership_percentage AS ownership_percentage, landOwner.institution_id AS owner_institution_id, "
 			+ "landOwner.mother_name AS owner_mother_name, landOwner.status AS owner_status, "
 
-			+ "ownerAddress.id AS owner_address_id, ownerAddress.house_no AS owner_house_no, "
+			+ "ownerAddress.id AS owner_address_id, ownerAddress.owner_info_id AS owner_info_id, ownerAddress.house_no AS owner_house_no, "
 			+ "ownerAddress.address_line_1 AS owner_address_line1, ownerAddress.address_line_2 AS owner_address_line2, "
 			+ "ownerAddress.landmark AS owner_landmark, ownerAddress.locality AS owner_locality, ownerAddress.district AS owner_district, "
 			+ "ownerAddress.region AS owner_region, ownerAddress.state AS owner_state, ownerAddress.country AS owner_country, "

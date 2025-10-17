@@ -50,6 +50,7 @@ package org.egov.common.entity.edcr;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class FloorUnit extends Measurement {
 
@@ -59,14 +60,69 @@ public class FloorUnit extends Measurement {
     private List<Occupancy> occupancies = new ArrayList<>();
     private List<Measurement> deductions = new ArrayList<>();
     private BigDecimal totalUnitDeduction;
+    private List<Room> regularRooms = new ArrayList<>();
+    private Integer unitNumber;
+    private List<Room> acRooms = new ArrayList<>();
+    private List<Room> nonInhabitationalRooms = new ArrayList<>();
+    private List<Door> nonaHabitationalDoors = new ArrayList<>();
+    private List<Door> doors = new ArrayList<>();
+    private List<Window> windows = new ArrayList<>();
+    private List<Toilet> toilet;
+    private MeasurementWithHeight verandah = new MeasurementWithHeight();
+    
+    public List<Window> getWindows() {
+		return windows;
+	}
+
+	public void setWindows(List<Window> windows) {
+		this.windows = windows;
+	}
+
+	public List<Door> getDoors() {
+		return doors;
+	}
+
+	public List<Occupancy> getOccupancies() {
+		return occupancies;
+	}
+
+	public void setOccupancies(List<Occupancy> occupancies) {
+		this.occupancies = occupancies;
+	}
+
+	public MeasurementWithHeight getVerandah() {
+		return verandah;
+	}
+
+	public void setVerandah(MeasurementWithHeight verandah) {
+		this.verandah = verandah;
+	}
+
+	public void setDoors(List<Door> doors) {
+		this.doors = doors;
+	}
+	
+	public List<Toilet> getToilet() {
+	        return toilet;
+    }
+
+    public void setToilet(List<Toilet> toilet) {
+	        this.toilet = toilet;
+    }
+
+	public List<Room> getNonInhabitationalRooms() {
+		return nonInhabitationalRooms;
+	}
+
+	public void setNonInhabitationalRooms(List<Room> nonInhabitationalRooms) {
+		this.nonInhabitationalRooms = nonInhabitationalRooms;
+	}
     private List<Balcony> balconies = new ArrayList<>();
     private Integer number;
     private MeasurementWithHeight lightAndVentilation = new MeasurementWithHeight();
     private MeasurementWithHeight laundryOrRecreationalVentilation = new MeasurementWithHeight();
     private Room kitchen;
     private Room bathRoom;
-    private List<Room> regularRooms = new ArrayList<>();
-    private List<Room> acRooms = new ArrayList<>();
     private Room commonRoom;
     private Room bathRoomWaterClosets;
     private List<ServiceRoom> serviceRooms = new ArrayList<>();
@@ -77,7 +133,23 @@ public class FloorUnit extends Measurement {
         return occupancy;
     }
 
-    public void setOccupancy(Occupancy occupancy) {
+    public List<Room> getAcRooms() {
+		return acRooms;
+	}
+
+	public void setAcRooms(List<Room> acRooms) {
+		this.acRooms = acRooms;
+	}
+
+	public Integer getUnitNumber() {
+		return unitNumber;
+	}
+
+	public void setUnitNumber(Integer unitNumber) {
+		this.unitNumber = unitNumber;
+	}
+
+	public void setOccupancy(Occupancy occupancy) {
         this.occupancy = occupancy;
     }
 
@@ -96,6 +168,101 @@ public class FloorUnit extends Measurement {
     public void setDeductions(List<Measurement> deductions) {
         this.deductions = deductions;
     }
+    
+    public void addWindow(Window window) {
+        this.windows.add(window);
+    }
+
+    /**
+     * @return the regularRooms
+     */
+    public List<Room> getRegularRooms() {
+        return regularRooms;
+    }
+
+    public void addRegularRoom(Room regularRoom) {
+        this.regularRooms.add(regularRoom);
+    }
+
+    /**
+     * @param regularRooms the regularRooms to set
+     */
+    public void setRegularRooms(List<Room> regularRooms) {
+        this.regularRooms = regularRooms;
+    }
+    
+    public void addAcRoom(Room acRoom) {
+        this.acRooms.add(acRoom);
+    }
+
+    public void addNonInhabitationalRooms(Room nonInhabitationalRooms) {
+        this.nonInhabitationalRooms.add(nonInhabitationalRooms);
+    }
+    
+    public void addDoor(Door door) {
+        this.doors.add(door);
+    }
+    
+    public List<Door> getNonaHabitationalDoors() {
+        return nonaHabitationalDoors;
+    }
+
+    public void setNonaHabitationalDoors(List<Door> nonaHabitationalDoors) {
+        this.nonaHabitationalDoors = nonaHabitationalDoors;
+    }
+
+    public void addNonaHabitationalDoors(Door nonaHabitationalDoors) {
+        this.nonaHabitationalDoors.add(nonaHabitationalDoors);
+    }
+    
+    
+    public void addCarpetArea(Occupancy occupancy) {
+        if (occupancies == null) {
+            occupancies = new ArrayList<>();
+            occupancies.add(occupancy);
+        } else if (occupancies.contains(occupancy)) {
+            occupancies.get(occupancies.indexOf(occupancy))
+                    .setCarpetArea((occupancies.get(occupancies.indexOf(occupancy)).getCarpetArea() == null
+                            ? BigDecimal.ZERO
+                            : occupancies.get(occupancies.indexOf(occupancy)).getCarpetArea())
+                                    .add(occupancy.getCarpetArea()));
+
+            occupancies.get(occupancies.indexOf(occupancy)).setExistingCarpetArea(
+                    (occupancies.get(occupancies.indexOf(occupancy)).getExistingCarpetArea() == null ? BigDecimal.ZERO
+                            : occupancies.get(occupancies.indexOf(occupancy)).getExistingCarpetArea())
+                                    .add(occupancy.getExistingCarpetArea()));
+        } else
+            occupancies.add(occupancy);
+
+    }
+    
+    
+    public void addCarpetDeductionArea(Occupancy occupancy) {
+        if (occupancies == null) {
+            occupancies = new ArrayList<>();
+            occupancies.add(occupancy);
+        } else {
+            List<Occupancy> collect = occupancies.stream().filter(o -> o.getTypeHelper() != null
+                    && (o.getTypeHelper().getType().getCode()
+                            .equalsIgnoreCase(occupancy.getTypeHelper().getType().getCode())))
+                    .collect(Collectors.toList());
+            if (!collect.isEmpty()) {
+                collect.get(0)
+                        .setCarpetAreaDeduction(collect.get(0).getCarpetAreaDeduction() == null
+                                ? BigDecimal.ZERO
+                                : collect.get(0).getCarpetAreaDeduction()
+                                        .add(occupancy.getCarpetAreaDeduction()));
+                collect.get(0).setExistingCarpetAreaDeduction(
+                        (collect.get(0).getExistingCarpetAreaDeduction() == null ? BigDecimal.ZERO
+                                : collect.get(0).getExistingCarpetAreaDeduction())
+                                        .add(occupancy.getExistingCarpetAreaDeduction()));
+            } else
+                occupancies.add(occupancy);
+        }
+
+    }
+
+
 
     public List<Balcony> getBalconies() {
         return balconies;
@@ -145,29 +312,7 @@ public class FloorUnit extends Measurement {
         this.laundryOrRecreationalVentilation = laundryOrRecreationalVentilation;
     }
 
-    public List<Room> getRegularRooms() {
-        return regularRooms;
-    }
-
-    public void setRegularRooms(List<Room> regularRooms) {
-        this.regularRooms = regularRooms;
-    }
-
-    public List<Room> getAcRooms() {
-        return acRooms;
-    }
-
-    public void setAcRooms(List<Room> acRooms) {
-        this.acRooms = acRooms;
-    }
-
-    public List<Occupancy> getOccupancies() {
-        return occupancies;
-    }
-
-    public void setOccupancies(List<Occupancy> occupancies) {
-        this.occupancies = occupancies;
-    }
+    
 
     public Room getCommonRoom() {
         return commonRoom;

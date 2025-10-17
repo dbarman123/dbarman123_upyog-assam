@@ -104,20 +104,11 @@ public class ExitWidth extends FeatureProcess {
                             && A_R.equalsIgnoreCase(mostRestrictiveOccupancyType.getSubtype().getCode())) {
                         continue blk;
                     }
-                    for (Floor floor : block.getBuilding().getFloors()) {
-                        if (floor.getExitWidthDoor().isEmpty() && floor.getExitWidthStair().isEmpty()) {
-                            errors.put(String.format(DcrConstants.EXIT_WIDTH_DOORSTAIRWAYS, block.getNumber(),
-                                    floor.getNumber()),
-                                    edcrMessageSource.getMessage(DcrConstants.OBJECTNOTDEFINED,
-                                            new String[] { String.format(DcrConstants.EXIT_WIDTH_DOORSTAIRWAYS, block.getNumber(),
-                                                    floor.getNumber()) },
-                                            LocaleContextHolder.getLocale()));
-                            pl.addErrors(errors);
-                        }
+                  
                     }
                 }
             }
-        }
+        
         return pl;
     }
     
