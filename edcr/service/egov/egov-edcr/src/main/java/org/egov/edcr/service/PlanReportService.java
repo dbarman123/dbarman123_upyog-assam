@@ -681,7 +681,7 @@ public class PlanReportService {
             List<DcrReportBlockDetail> blockDetails = new ArrayList<>();
 
             List<DcrReportBlockDetail> existingBlockDetails = buildBlockWiseExistingInfo(plan);
-            VirtualBuildingReport virtualBuildingReport = buildVirtualBuilding(plan.getVirtualBuilding());
+            VirtualBuildingReport virtualBuildingReport = buildVirtualBuilding(plan.getVirtualBuilding(), plan);
 
             List<String> combinedSummary = new ArrayList<>();
             combinedSummary.add(COMBINED_BLOCKS_SUMMARY_DETAILS);
@@ -1285,10 +1285,28 @@ public class PlanReportService {
         return dcrReportBlockDetails;
     }
 
-    private VirtualBuildingReport buildVirtualBuilding(VirtualBuilding virtualBuilding) {
+    private VirtualBuildingReport buildVirtualBuilding(VirtualBuilding virtualBuilding, Plan plan) {
         VirtualBuildingReport virtualBuildingReport = new VirtualBuildingReport();
 
         if (virtualBuilding != null) {
+            BigDecimal calculatedTotalFloorArea = BigDecimal.ZERO;
+            if (plan != null && plan.getBlocks() != null) {
+                for (Block block : plan.getBlocks()) {
+                    if (block.getBuilding() != null && block.getBuilding().getFloors() != null) {
+                        for (Floor floor : block.getBuilding().getFloors()) {
+                            if (floor.getOccupancies() != null) {
+                                for (Occupancy occupancy : floor.getOccupancies()) {
+                                    BigDecimal floorArea = occupancy.getExistingFloorArea().compareTo(BigDecimal.ZERO) > 0
+                                            ? occupancy.getFloorArea().subtract(occupancy.getExistingFloorArea())
+                                            : occupancy.getFloorArea();
+                                    calculatedTotalFloorArea = calculatedTotalFloorArea.add(floorArea);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             if (virtualBuilding.getTotalExistingBuiltUpArea() != null) {
                 virtualBuildingReport.setProposedBuitUpArea(
                         virtualBuilding.getTotalBuitUpArea().subtract(virtualBuilding.getTotalExistingBuiltUpArea()));
@@ -1298,16 +1316,16 @@ public class PlanReportService {
                         virtualBuilding.getTotalCarpetArea().subtract(virtualBuilding.getTotalExistingCarpetArea()));
             }
             virtualBuildingReport.setTotalExistingBuiltUpArea(virtualBuilding.getTotalExistingBuiltUpArea());
-
             virtualBuildingReport.setTotalExistingFloorArea(virtualBuilding.getTotalExistingFloorArea());
             virtualBuildingReport.setTotalExistingCarpetArea(virtualBuilding.getTotalExistingCarpetArea());
-
             virtualBuildingReport.setTotalCoverageArea(virtualBuilding.getTotalCoverageArea());
 
             virtualBuildingReport.setTotalBuitUpArea(virtualBuilding.getTotalBuitUpArea());
-            virtualBuildingReport.setTotalFloorArea(virtualBuilding.getTotalFloorArea());
-            virtualBuildingReport.setTotalCarpetArea(virtualBuilding.getTotalCarpetArea());
+//            virtualBuildingReport.setTotalFloorArea(virtualBuilding.getTotalFloorArea());
+            // Use calculated total instead of virtualBuilding.getTotalFloorArea()
+            virtualBuildingReport.setTotalFloorArea(calculatedTotalFloorArea);
 
+            virtualBuildingReport.setTotalCarpetArea(virtualBuilding.getTotalCarpetArea());
             virtualBuildingReport.setTotalConstructedArea(virtualBuilding.getTotalConstructedArea());
         }
         return virtualBuildingReport;

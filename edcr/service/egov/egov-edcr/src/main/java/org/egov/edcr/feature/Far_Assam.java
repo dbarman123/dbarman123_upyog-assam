@@ -508,8 +508,6 @@ public class Far_Assam extends Far {
                 occupancyD.subtractFloorArea(totalAreaToDeduct);
             }
 
-        pl.getVirtualBuilding().subtractFloorArea(totalAreaToDeduct);
-
         return totalAreaToDeduct;
     }
 
