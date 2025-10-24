@@ -285,7 +285,6 @@ public class Balcony_Assam extends FeatureProcess {
             widthDetail.setStatus(isWidthCompliant ? Result.Accepted.getResultVal() : Result.Not_Accepted.getResultVal());
             widthDetail.setFloorNo(floor.getNumber().toString());
 
-            LOG.info("ye hai isWidthCompliant detail {}", isWidthCompliant);
             Map<String, String> widthDetails = mapReportDetails(widthDetail);
             scrutinyDetail.getDetail().add(widthDetails);
         }
