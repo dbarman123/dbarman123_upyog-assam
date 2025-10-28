@@ -216,36 +216,15 @@ CREATE TABLE IF NOT EXISTS ug_bpa_rtp_detail_audit (
 -- ========================================================
 
 
--- First create ENUM types if they do not exist
+-- First create ENUM types
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'planning_permit_authority_enum') THEN
-        CREATE TYPE planning_permit_authority_enum AS ENUM (
-            'DA', 'TACP', 'GMDA', 'CMA',
-            'NALBARI_DA', 'BARPETA_DA', 'DIBRUGARH_DA', 'TINSUKIA_DA', 'SILCHAR_DA'
-        );
+        CREATE TYPE planning_permit_authority_enum AS ENUM ('DEVELOPMENT_AUTHORITY', 'TACP', 'GMDA', 'CMA');
     END IF;
 
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'building_permit_authority_enum') THEN
-        CREATE TYPE building_permit_authority_enum AS ENUM (
-            'MB', 'GP', 'GMC', 'NGMB',
-            'NALBARI_MB', 'PUB_BAHJANI', 'BALITARA_BATAHGILA', 'SARIATOLI', 'CHANDAKUCHI',
-            'UTTAR_PUB_DHARMAPUR', 'MADHYA_BAHJANI', 'HATI_NAMATI', 'DAKSHIN_NALBARI',
-            'UTTAR_PUB_KHATA', 'PUB_NALBARI', 'UPPER_BARBHAG_KHATA', 'DIGHELI', 'NATUN_DEHAR',
-            'PANIGAON', 'GHOGRAPAR', 'SILPOTABORI_LATIMA', 'BARAJOL', 'DIHJARI',
-            'BARPETA_MB', 'PATBAUSHI', 'SUNDARIDIA',
-            'DIBRUGARH_MC', 'RAJABHETA', 'NIZ_MANKOTTA', 'HILOIDHARI', 'MANKOTTA_KHANIKAR',
-            'ROMAI', 'TIMONA', 'MOHANBARI', 'BOKUL', 'MAIJAN', 'NIZ_KANAI', 'MODERKHAT',
-            'LAHOWAL', 'KOTOHA', 'BORPOTHAR', 'JOKAI', 'LEJAI', 'BARBARUA', 'DULIA_KAKOTI',
-            'KALAKHOWA', 'GARUDHORIA', 'BOGIBEEL',
-            'TINSUKIA_MB', 'RONGPURIA', 'BORGURI', 'BOJALTOLI', 'ITAKHULI_CHARIALI',
-            'LAIPULI', 'DIMARUGURI', 'BAPUJI', 'GOTTONG', 'PANITOLA', 'BAREKURI', 'HAPJAN',
-            'JERAI', 'TENGAPANI',
-            'SILCHAR_MC', 'MADHUR_BOND', 'BERENGA', 'BHAGADHAR_BARJURAI', 'AMBIKAPUR',
-            'GHUNGOOR', 'BHANJANTIPUR', 'MEHERPUR', 'KANAKPUR', 'RONGPUR', 'UTTAR_KRISHNAPUR',
-            'DAKSHIN_KRISHNAPUR', 'TUPKHANA', 'GHOUNGOOR', 'BHORAKHAI', 'TARUTAJABARI',
-            'CHENKOORI', 'RAJNAGAR', 'KUMARPARA_NIZJOINAGAR'
-        );
+        CREATE TYPE building_permit_authority_enum AS ENUM ('MUNICIPAL_BOARD', 'GRAM_PANCHAYAT', 'GMC', 'NGMB');
     END IF;
 END$$;
 

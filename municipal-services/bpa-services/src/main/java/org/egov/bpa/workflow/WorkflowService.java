@@ -44,103 +44,12 @@ public class WorkflowService {
 	// Map from AuthorityKey -> Business Service String
 	private static final Map<AuthorityKey, String> BUSINESS_SERVICE_MAP = new HashMap<>();
 	static {
-		// Generic mappings
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.DA, BuildingPermitAuthorityEnum.MB), "BPA_DA_MB");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.TACP, BuildingPermitAuthorityEnum.GP), "BPA_TACP_GP");
+		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.DEVELOPMENT_AUTHORITY, BuildingPermitAuthorityEnum.MUNICIPAL_BOARD), "BPA_DA_MB");
+		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.DEVELOPMENT_AUTHORITY, BuildingPermitAuthorityEnum.GRAM_PANCHAYAT), "BPA_DA_GP");
+		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.TACP, BuildingPermitAuthorityEnum.GRAM_PANCHAYAT), "BPA_TACP_GP");
 		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.GMDA, BuildingPermitAuthorityEnum.GMC), "BPA_GMDA_GMC");
 		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.GMDA, BuildingPermitAuthorityEnum.NGMB), "BPA_GMDA_NGMB");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.GMDA, BuildingPermitAuthorityEnum.GP), "BPA_GMDA_GP");
-
-		// District-specific Development Authorities
-		// ULB → BPA_DA_MB
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.NALBARI_DA, BuildingPermitAuthorityEnum.NALBARI_MB), "BPA_DA_MB");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.BARPETA_DA, BuildingPermitAuthorityEnum.BARPETA_MB), "BPA_DA_MB");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.DIBRUGARH_DA, BuildingPermitAuthorityEnum.DIBRUGARH_MC), "BPA_DA_MB");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.TINSUKIA_DA, BuildingPermitAuthorityEnum.TINSUKIA_MB), "BPA_DA_MB");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.SILCHAR_DA, BuildingPermitAuthorityEnum.SILCHAR_MC), "BPA_DA_MB");
-
-		// Gram Panchayats → BPA_DA_GP
-		// Nalbari GP
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.NALBARI_DA, BuildingPermitAuthorityEnum.PUB_BAHJANI), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.NALBARI_DA, BuildingPermitAuthorityEnum.BALITARA_BATAHGILA), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.NALBARI_DA, BuildingPermitAuthorityEnum.SARIATOLI), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.NALBARI_DA, BuildingPermitAuthorityEnum.CHANDAKUCHI), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.NALBARI_DA, BuildingPermitAuthorityEnum.UTTAR_PUB_DHARMAPUR), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.NALBARI_DA, BuildingPermitAuthorityEnum.MADHYA_BAHJANI), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.NALBARI_DA, BuildingPermitAuthorityEnum.HATI_NAMATI), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.NALBARI_DA, BuildingPermitAuthorityEnum.DAKSHIN_NALBARI), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.NALBARI_DA, BuildingPermitAuthorityEnum.UTTAR_PUB_KHATA), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.NALBARI_DA, BuildingPermitAuthorityEnum.PUB_NALBARI), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.NALBARI_DA, BuildingPermitAuthorityEnum.UPPER_BARBHAG_KHATA), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.NALBARI_DA, BuildingPermitAuthorityEnum.DIGHELI), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.NALBARI_DA, BuildingPermitAuthorityEnum.NATUN_DEHAR), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.NALBARI_DA, BuildingPermitAuthorityEnum.PANIGAON), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.NALBARI_DA, BuildingPermitAuthorityEnum.GHOGRAPAR), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.NALBARI_DA, BuildingPermitAuthorityEnum.SILPOTABORI_LATIMA), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.NALBARI_DA, BuildingPermitAuthorityEnum.BARAJOL), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.NALBARI_DA, BuildingPermitAuthorityEnum.DIHJARI), "BPA_DA_GP");
-
-		// Barpeta GP
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.BARPETA_DA, BuildingPermitAuthorityEnum.PATBAUSHI), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.BARPETA_DA, BuildingPermitAuthorityEnum.SUNDARIDIA), "BPA_DA_GP");
-
-		// Dibrugarh GP
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.DIBRUGARH_DA, BuildingPermitAuthorityEnum.RAJABHETA), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.DIBRUGARH_DA, BuildingPermitAuthorityEnum.NIZ_MANKOTTA), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.DIBRUGARH_DA, BuildingPermitAuthorityEnum.HILOIDHARI), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.DIBRUGARH_DA, BuildingPermitAuthorityEnum.MANKOTTA_KHANIKAR), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.DIBRUGARH_DA, BuildingPermitAuthorityEnum.ROMAI), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.DIBRUGARH_DA, BuildingPermitAuthorityEnum.TIMONA), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.DIBRUGARH_DA, BuildingPermitAuthorityEnum.MOHANBARI), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.DIBRUGARH_DA, BuildingPermitAuthorityEnum.BOKUL), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.DIBRUGARH_DA, BuildingPermitAuthorityEnum.MAIJAN), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.DIBRUGARH_DA, BuildingPermitAuthorityEnum.NIZ_KANAI), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.DIBRUGARH_DA, BuildingPermitAuthorityEnum.MODERKHAT), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.DIBRUGARH_DA, BuildingPermitAuthorityEnum.LAHOWAL), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.DIBRUGARH_DA, BuildingPermitAuthorityEnum.KOTOHA), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.DIBRUGARH_DA, BuildingPermitAuthorityEnum.BORPOTHAR), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.DIBRUGARH_DA, BuildingPermitAuthorityEnum.JOKAI), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.DIBRUGARH_DA, BuildingPermitAuthorityEnum.LEJAI), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.DIBRUGARH_DA, BuildingPermitAuthorityEnum.BARBARUA), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.DIBRUGARH_DA, BuildingPermitAuthorityEnum.DULIA_KAKOTI), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.DIBRUGARH_DA, BuildingPermitAuthorityEnum.KALAKHOWA), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.DIBRUGARH_DA, BuildingPermitAuthorityEnum.GARUDHORIA), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.DIBRUGARH_DA, BuildingPermitAuthorityEnum.BOGIBEEL), "BPA_DA_GP");
-
-		// Tinsukia GP
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.TINSUKIA_DA, BuildingPermitAuthorityEnum.RONGPURIA), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.TINSUKIA_DA, BuildingPermitAuthorityEnum.BORGURI), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.TINSUKIA_DA, BuildingPermitAuthorityEnum.BOJALTOLI), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.TINSUKIA_DA, BuildingPermitAuthorityEnum.ITAKHULI_CHARIALI), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.TINSUKIA_DA, BuildingPermitAuthorityEnum.LAIPULI), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.TINSUKIA_DA, BuildingPermitAuthorityEnum.DIMARUGURI), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.TINSUKIA_DA, BuildingPermitAuthorityEnum.BAPUJI), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.TINSUKIA_DA, BuildingPermitAuthorityEnum.GOTTONG), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.TINSUKIA_DA, BuildingPermitAuthorityEnum.PANITOLA), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.TINSUKIA_DA, BuildingPermitAuthorityEnum.BAREKURI), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.TINSUKIA_DA, BuildingPermitAuthorityEnum.HAPJAN), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.TINSUKIA_DA, BuildingPermitAuthorityEnum.JERAI), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.TINSUKIA_DA, BuildingPermitAuthorityEnum.TENGAPANI), "BPA_DA_GP");
-
-		// Silchar GP
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.SILCHAR_DA, BuildingPermitAuthorityEnum.MADHUR_BOND), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.SILCHAR_DA, BuildingPermitAuthorityEnum.BERENGA), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.SILCHAR_DA, BuildingPermitAuthorityEnum.BHAGADHAR_BARJURAI), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.SILCHAR_DA, BuildingPermitAuthorityEnum.AMBIKAPUR), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.SILCHAR_DA, BuildingPermitAuthorityEnum.GHUNGOOR), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.SILCHAR_DA, BuildingPermitAuthorityEnum.BHANJANTIPUR), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.SILCHAR_DA, BuildingPermitAuthorityEnum.MEHERPUR), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.SILCHAR_DA, BuildingPermitAuthorityEnum.KANAKPUR), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.SILCHAR_DA, BuildingPermitAuthorityEnum.RONGPUR), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.SILCHAR_DA, BuildingPermitAuthorityEnum.UTTAR_KRISHNAPUR), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.SILCHAR_DA, BuildingPermitAuthorityEnum.DAKSHIN_KRISHNAPUR), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.SILCHAR_DA, BuildingPermitAuthorityEnum.TUPKHANA), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.SILCHAR_DA, BuildingPermitAuthorityEnum.GHOUNGOOR), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.SILCHAR_DA, BuildingPermitAuthorityEnum.BHORAKHAI), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.SILCHAR_DA, BuildingPermitAuthorityEnum.TARUTAJABARI), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.SILCHAR_DA, BuildingPermitAuthorityEnum.CHENKOORI), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.SILCHAR_DA, BuildingPermitAuthorityEnum.RAJNAGAR), "BPA_DA_GP");
-		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.SILCHAR_DA, BuildingPermitAuthorityEnum.KUMARPARA_NIZJOINAGAR), "BPA_DA_GP");
+		BUSINESS_SERVICE_MAP.put(new AuthorityKey(PlanningPermitAuthorityEnum.GMDA, BuildingPermitAuthorityEnum.GRAM_PANCHAYAT), "BPA_GMDA_GP");
 	}
 
 	@Autowired
@@ -265,14 +174,25 @@ public class WorkflowService {
 		PlanningPermitAuthorityEnum planning = areaMappingDetail.getPlanningPermitAuthority();
 		BuildingPermitAuthorityEnum building = areaMappingDetail.getBuildingPermitAuthority();
 
-		// Check if a workflow is configured in BUSINESS_SERVICE_MAP
-		String businessService = BUSINESS_SERVICE_MAP.get(new AuthorityKey(planning, building));
-		if (businessService == null) {
-			log.info("Workflow not configured for the PlanningAuthority: {} and BuildingAuthority: {}", planning, building);
-			throw new CustomException(BPAErrorConstants.WORKFLOW_NOT_CONFIGURED,
-					"Workflow not configured for the PlanningAuthority: " + planning +
-							" and BuildingAuthority: " + building);
-		}
+		//TODO: Temporary condition added as modules is developed for GMDA and GMC condition only
+//		if (!PlanningPermitAuthorityEnum.GMDA.equals(planning) || !BuildingPermitAuthorityEnum.GMC.equals(building)) {
+//			log.info("Workflow not configured for the PlanningAuthority: {} and BuildingAuthority: {}", planning, building);
+//			throw new CustomException(BPAErrorConstants.WORKFLOW_NOT_CONFIGURED,
+//					"Workflow not configured for the PlanningAuthority: " + planning +
+//							" and BuildingAuthority: " + building);
+//		}
+//		else if(!PlanningPermitAuthorityEnum.DA.equals(planning) || !BuildingPermitAuthorityEnum.GP.equals(building)) {
+//			log.info("Workflow not configured for the PlanningAuthority: {} and BuildingAuthority: {}", planning, building);
+//			throw new CustomException(BPAErrorConstants.WORKFLOW_NOT_CONFIGURED,
+//					"Workflow not configured for the PlanningAuthority: " + planning +
+//							" and BuildingAuthority: " + building);
+//		}
+//		else if(!PlanningPermitAuthorityEnum.DA.equals(planning) || !BuildingPermitAuthorityEnum.MB.equals(building)) {
+//			log.info("Workflow not configured for the PlanningAuthority: {} and BuildingAuthority: {}", planning, building);
+//			throw new CustomException(BPAErrorConstants.WORKFLOW_NOT_CONFIGURED,
+//					"Workflow not configured for the PlanningAuthority: " + planning +
+//							" and BuildingAuthority: " + building);
+//		}
 
 		log.debug("Evaluating business service with PlanningAuthority: {} and BuildingAuthority: {}", planning, building);
 

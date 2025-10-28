@@ -137,9 +137,9 @@ export const bpaPayload = async(data) => {
         district: data?.areaMapping?.district?.code,
         mouza: data?.areaMapping?.mouza,
         planningArea: data?.areaMapping?.planningArea?.code,
-        planningPermitAuthority: data?.areaMapping?.ppAuthority?.code,
+        planningPermitAuthority: data?.areaMapping?.ppAuthority?.name,
         concernedAuthority: data?.areaMapping?.concernedAuthority?.code,
-        ...(data?.areaMapping?.concernedAuthority?.code === "ULB" && {
+        ...(data?.areaMapping?.concernedAuthority?.code === "MUNICIPAL_BOARD" && {
           revenueVillage: data?.areaMapping?.revenueVillage?.code,
           ward: data?.areaMapping?.ward?.code,
         }),
@@ -272,11 +272,11 @@ export const bpaEditPayload = async (formData) => {
       ...updated.areaMapping,
       district: formData.areaMapping.district?.code ?? updated.areaMapping.district,
       planningArea: formData.areaMapping.planningArea?.code ?? updated.areaMapping.planningArea,
-      planningPermitAuthority: formData.areaMapping.ppAuthority?.code ?? updated.areaMapping.planningPermitAuthority,
+      planningPermitAuthority: formData.areaMapping.ppAuthority?.name ?? updated.areaMapping.planningPermitAuthority,
       concernedAuthority: formData.areaMapping.concernedAuthority?.code ?? updated.areaMapping.concernedAuthority,
       buildingPermitAuthority: formData.areaMapping.bpAuthority?.code ?? updated.areaMapping.buildingPermitAuthority,
       mouza: formData.areaMapping.mouza ?? updated.areaMapping.mouza,
-      ...(formData.areaMapping.concernedAuthority?.code === "ULB" && {
+      ...(formData.areaMapping.concernedAuthority?.code === "MUNICIPAL_BOARD" && {
         ward: formData.areaMapping.ward?.code ?? updated.areaMapping.ward,
         revenueVillage: formData.areaMapping.revenueVillage?.code ?? updated.areaMapping.revenueVillage,
       }),
