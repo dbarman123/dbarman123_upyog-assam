@@ -137,6 +137,7 @@ public class LocationPlan extends FeatureProcess {
 			addScrutinyDetailtoPlan(scrutinyDetail, pl, details);
 		}
 
+		processDistanceFromWaterBodiesAndReport(pl);
 		return pl;
 	}
 	
@@ -151,15 +152,15 @@ public class LocationPlan extends FeatureProcess {
      * @return The Plan object updated with scrutiny details report
      */
 	
-	public Plan processDistanceFromWaterBodiesAndReport(Plan pl, Block block, OccupancyTypeHelper mostRestrictiveOccupancyType) {
+	public Plan processDistanceFromWaterBodiesAndReport(Plan pl) {
         LOG.info("Starting processDistanceFromWaterBodiesAndReport for Plan");
 
         ScrutinyDetail scrutinyDetail = new ScrutinyDetail();
-        scrutinyDetail.setKey("Common_Distance_WaterBodies");
+        scrutinyDetail.setKey("Common_Distance Water Bodies");
         scrutinyDetail.addColumnHeading(1, RULE_NO);
         scrutinyDetail.addColumnHeading(2, DESCRIPTION);
-        scrutinyDetail.addColumnHeading(3, PROVIDED);
-        scrutinyDetail.addColumnHeading(4, PERMISSIBLE);
+        scrutinyDetail.addColumnHeading(3, REQUIRED);
+        scrutinyDetail.addColumnHeading(4, PROVIDED);      
         scrutinyDetail.addColumnHeading(5, STATUS);
 
         // Fetch rules applicable for Distance from Water Bodies feature
@@ -231,7 +232,7 @@ public class LocationPlan extends FeatureProcess {
 			detail.setDescription(desc);
 			
 			detail.setProvided(provided.toPlainString());
-			detail.setPermissible(permissible.toPlainString());
+			detail.setRequired(permissible.toPlainString());
 			
 			String status;
 			if (provided != null && (permissible == null || provided.compareTo(permissible) >= 0)) {

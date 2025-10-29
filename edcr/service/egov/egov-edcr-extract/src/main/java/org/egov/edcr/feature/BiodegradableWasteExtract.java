@@ -15,9 +15,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-public class BiodegradableWaste extends FeatureExtract {
+public class BiodegradableWasteExtract extends FeatureExtract {
 
-    private static final Logger LOG = LogManager.getLogger(BiodegradableWaste.class);
+    private static final Logger LOG = LogManager.getLogger(BiodegradableWasteExtract.class);
     @Autowired
     private LayerNames layerNames;
 

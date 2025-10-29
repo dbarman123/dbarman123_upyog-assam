@@ -106,22 +106,45 @@ public class WaterTreatmentPlant extends FeatureProcess {
      * @return The unmodified plan
      */
     @Override
-    public Plan process(Plan pl) {/*
-                                   * validate(pl); scrutinyDetail = new ScrutinyDetail(); scrutinyDetail.addColumnHeading(1,
-                                   * RULE_NO); scrutinyDetail.addColumnHeading(2, DESCRIPTION); scrutinyDetail.addColumnHeading(3,
-                                   * REQUIRED); scrutinyDetail.addColumnHeading(4, PROVIDED); scrutinyDetail.addColumnHeading(5,
-                                   * STATUS); scrutinyDetail.setKey("Common_Water Treatment Plant"); if (pl.getVirtualBuilding()
-                                   * != null && !pl.getVirtualBuilding().getOccupancies().isEmpty()) { for (OccupancyType
-                                   * occupancyType : pl.getVirtualBuilding().getOccupancies()) { if
-                                   * (checkOccupancyTypeEqualsToNonConditionalOccupancyTypes(occupancyType)) {
-                                   * processLiquidWasteTreatment(pl); break; } else if
-                                   * (checkOccupancyTypeEqualsToConditionalOccupancyTypes(occupancyType) &&
-                                   * pl.getVirtualBuilding().getTotalBuitUpArea() != null &&
-                                   * pl.getVirtualBuilding().getTotalBuitUpArea().compareTo(TWOTHOUSANDFIVEHUNDER) > 0) {
-                                   * processLiquidWasteTreatment(pl); break; } } }
-                                   */
+    public Plan process(Plan pl) {
+
+        scrutinyDetail = new ScrutinyDetail();
+        scrutinyDetail.addColumnHeading(1, RULE_NO);
+        scrutinyDetail.addColumnHeading(2, DESCRIPTION);
+        scrutinyDetail.addColumnHeading(3, REQUIRED);
+        scrutinyDetail.addColumnHeading(4, PROVIDED);
+        scrutinyDetail.addColumnHeading(5, STATUS);
+        scrutinyDetail.setKey("Common_Water Treatment Plant");
+
+        // --- Settling Tank ---
+        if (pl.getUtility() != null && pl.getUtility().getSettlingTank() != null) {
+            String settlingTankValue = pl.getUtility().getSettlingTank().trim().toUpperCase();
+
+            if ("YES".equals(settlingTankValue)) {
+                setReportOutputDetailsWithoutOccupancy(pl, "53.5", "Settling Tank Requirement", 
+                        EMPTY_STRING, "Settling Tank Provided", Result.Accepted.getResultVal());
+            } else {
+                setReportOutputDetailsWithoutOccupancy(pl, "53.5", "Settling Tank Requirement", 
+                        EMPTY_STRING, "Settling Tank Not Provided", Result.Not_Accepted.getResultVal());
+            }
+        }
+
+        // --- Overhead Tank ---
+        if (pl.getUtility() != null && pl.getUtility().getOverheadTank() != null) {
+            String overheadTankValue = pl.getUtility().getOverheadTank().trim().toUpperCase();
+
+            if ("YES".equals(overheadTankValue)) {
+                setReportOutputDetailsWithoutOccupancy(pl, "53.5", "Overhead Tank Requirement", 
+                        EMPTY_STRING, "Overhead Tank Provided", Result.Accepted.getResultVal());
+            } else {
+                setReportOutputDetailsWithoutOccupancy(pl, "53.5", "Overhead Tank Requirement", 
+                        EMPTY_STRING, "Overhead Tank Not Provided", Result.Not_Accepted.getResultVal());
+            }
+        }
+
         return pl;
     }
+
 
     /**
      * Processes liquid waste treatment plant requirements and generates scrutiny details.

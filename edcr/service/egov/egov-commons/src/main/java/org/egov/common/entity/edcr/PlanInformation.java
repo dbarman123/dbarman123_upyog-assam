@@ -168,7 +168,27 @@ public class PlanInformation implements Serializable {
     private transient Boolean isLowerIncomeGroup = false;
     private String materialType;
 
-    public String getMaterialType() {
+    private BigDecimal proposedRoadWidth = BigDecimal.ZERO;
+    
+    private String proposedRoadWidthRequired;
+    
+    public String getProposedRoadWidthRequired() {
+		return proposedRoadWidthRequired;
+	}
+
+	public void setProposedRoadWidthRequired(String proposedRoadWidthRequired) {
+		this.proposedRoadWidthRequired = proposedRoadWidthRequired;
+	}
+
+	public BigDecimal getProposedRoadWidth() {
+		return proposedRoadWidth;
+	}
+
+	public void setProposedRoadWidth(BigDecimal proposedRoadWidth) {
+		this.proposedRoadWidth = proposedRoadWidth;
+	}
+
+	public String getMaterialType() {
 		return materialType;
 	}
 
@@ -420,6 +440,8 @@ public class PlanInformation implements Serializable {
 
     private String dagNo;
     
+    private String pattaNo;
+    
     private String riskType;
     
     public String getRiskType() {
@@ -451,6 +473,14 @@ public class PlanInformation implements Serializable {
 
 	public void setDagNo(String dagNo) {
 		this.dagNo = dagNo;
+	}
+
+	public String getPattaNo() {
+		return pattaNo;
+	}
+
+	public void setPattaNo(String pattaNo) {
+		this.pattaNo = pattaNo;
 	}
 
 	public String getWardNo() {

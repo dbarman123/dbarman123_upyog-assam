@@ -25,6 +25,12 @@ public class ReportScrutinyDetail {
 
     @ReportScrutinyField("Status")
     private String status;
+    
+    @ReportScrutinyField("Base Far")
+    private String baseFar;
+    
+    @ReportScrutinyField("TDR")
+    private String tdr;
 
     @ReportScrutinyField("Permissible")
     private String permissible;
@@ -265,4 +271,16 @@ public class ReportScrutinyDetail {
     public void setSideNumber(String sideNumber) {
         this.sideNumber = sideNumber;
     }
+	public String getBaseFar() {
+		return baseFar;
+	}
+	public void setBaseFar(String baseFar) {
+		this.baseFar = baseFar;
+	}
+	public String getTdr() {
+		return tdr;
+	}
+	public void setTdr(String tdr) {
+		this.tdr = tdr;
+	}
 }

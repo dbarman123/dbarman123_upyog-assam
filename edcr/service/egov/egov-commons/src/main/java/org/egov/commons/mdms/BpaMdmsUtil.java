@@ -123,7 +123,8 @@ public class BpaMdmsUtil {
         addMasterDetail(bpaMasterDtls, MdmsFeatureConstants.RISK_TYPE_COMPUTATION);
         addMasterDetail(bpaMasterDtls, MdmsFeatureConstants.ADDITIONAL_FEATURE);
         addMasterDetail(bpaMasterDtls, MdmsFeatureConstants.ROOF_SLOPE);
-        addMasterDetail(bpaMasterDtls, MdmsFeatureConstants.ROOF_SLOPE);
+        addMasterDetail(bpaMasterDtls, MdmsFeatureConstants.WINDOWS);
+        addMasterDetail(bpaMasterDtls, MdmsFeatureConstants.DISTANCE_FROM_WATERBODIES);
 
         ModuleDetail bpaModuleDtls = new ModuleDetail();
         bpaModuleDtls.setMasterDetails(bpaMasterDtls);

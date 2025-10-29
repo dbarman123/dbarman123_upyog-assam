@@ -57,6 +57,7 @@ import org.egov.edcr.feature.Balcony;
 import org.egov.edcr.feature.Basement;
 import org.egov.edcr.feature.BathRoom;
 import org.egov.edcr.feature.BathRoomWaterClosets;
+import org.egov.edcr.feature.BiodegradableWaste;
 import org.egov.edcr.feature.BiometricWasteManagement;
 import org.egov.edcr.feature.BlockDistancesService;
 import org.egov.edcr.feature.BuildingHeight;
@@ -68,6 +69,7 @@ import org.egov.edcr.feature.Coverage;
 import org.egov.edcr.feature.DepthCuttingService;
 import org.egov.edcr.feature.DistanceToRoad;
 import org.egov.edcr.feature.DrinageService;
+import org.egov.edcr.feature.DrySump;
 import org.egov.edcr.feature.DxfToPdfConverter;
 import org.egov.edcr.feature.ExitWidth;
 import org.egov.edcr.feature.Far;
@@ -386,6 +388,12 @@ public class PlanFeatureRepository {
         features.add(pf);
 
         pf = new PlanFeature(FarExemptions.class);
+        features.add(pf);
+        
+        pf = new PlanFeature(BiodegradableWaste.class);
+        features.add(pf);
+        
+        pf = new PlanFeature(DrySump.class);
         features.add(pf);
         
         pf = new PlanFeature(DxfToPdfConverter.class);

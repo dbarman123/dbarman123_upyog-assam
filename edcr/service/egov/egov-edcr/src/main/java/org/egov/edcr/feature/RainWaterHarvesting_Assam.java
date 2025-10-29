@@ -47,7 +47,19 @@
 
 package org.egov.edcr.feature;
 
+import static org.egov.edcr.constants.CommonFeatureConstants.CAPACITY_PREFIX;
+import static org.egov.edcr.constants.CommonFeatureConstants.NOT_DEFINED_IN_PLAN;
+import static org.egov.edcr.constants.CommonFeatureConstants.OVERHEAD_PREFIX;
+import static org.egov.edcr.constants.CommonFeatureConstants.PIPE_PREFIX;
+import static org.egov.edcr.constants.CommonFeatureConstants.SETTLING_PREFIX;
+import static org.egov.edcr.constants.EdcrReportConstants.RULE_51;
+import static org.egov.edcr.constants.EdcrReportConstants.RULE_51_DESCRIPTION;
+import static org.egov.edcr.constants.EdcrReportConstants.RWH_DECLARATION_ERROR;
+import static org.egov.edcr.service.FeatureUtil.addScrutinyDetailtoPlan;
+import static org.egov.edcr.service.FeatureUtil.mapReportDetails;
+
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -57,20 +69,21 @@ import java.util.Optional;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.egov.common.constants.MdmsFeatureConstants;
-import org.egov.common.entity.edcr.*;
+import org.egov.common.entity.edcr.FeatureEnum;
+import org.egov.common.entity.edcr.MdmsFeatureRule;
+import org.egov.common.entity.edcr.OccupancyTypeHelper;
+import org.egov.common.entity.edcr.PercolationPit;
+import org.egov.common.entity.edcr.Plan;
+import org.egov.common.entity.edcr.RainWaterHarvestingRequirement;
+import org.egov.common.entity.edcr.ReportScrutinyDetail;
+import org.egov.common.entity.edcr.Result;
+import org.egov.common.entity.edcr.ScrutinyDetail;
 import org.egov.edcr.constants.DxfFileConstants;
-import org.egov.edcr.constants.EdcrRulesMdmsConstants;
+import org.egov.edcr.entity.blackbox.PlanDetail;
 import org.egov.edcr.service.MDMSCacheManager;
-import org.egov.edcr.service.FetchEdcrRulesMdms;
 import org.egov.edcr.utility.DcrConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import static org.egov.edcr.constants.CommonFeatureConstants.*;
-import static org.egov.edcr.constants.EdcrReportConstants.*;
-import static org.egov.edcr.service.FeatureUtil.addScrutinyDetailtoPlan;
-import static org.egov.edcr.service.FeatureUtil.mapReportDetails;
 
 @Service
 public class RainWaterHarvesting_Assam extends FeatureProcess {
@@ -110,7 +123,8 @@ public Plan process(Plan pl) {
     // Initialize scrutiny details for the report
     scrutinyDetail = new ScrutinyDetail();
     scrutinyDetail.addColumnHeading(1, RULE_NO); // Column for rule number
-    scrutinyDetail.addColumnHeading(2, DESCRIPTION); // Column for description
+    scrutinyDetail.addColumnHeading(2, DESCRIPTION);
+    scrutinyDetail.addColumnHeading(3, REQUIRED);// Column for description
     scrutinyDetail.addColumnHeading(4, PROVIDED); // Column for provided values
     scrutinyDetail.addColumnHeading(5, STATUS); // Column for status (Accepted/Not Accepted)
     scrutinyDetail.setKey(Common_Rain_Water_Harvesting); // Key for the scrutiny detail
@@ -234,46 +248,110 @@ private void addReportOutput(Plan pl, String subRule, String subRuleDesc) {
  * @param plotArea the plot area used for calculating required number of pits
  */
 private void validatePercolationPit(Plan pl, BigDecimal plotArea) {
-    
 
     LOG.info("Starting percolation pit validation for plot area: {}", plotArea);
 
-    List<PercolationPit> pits = pl.getUtility() != null ? pl.getUtility().getPercolationPits() : null;
+    List<PercolationPit> pits = (pl.getUtility() != null) ? pl.getUtility().getPercolationPits() : null;
 
-	if (pits != null && !pits.isEmpty()) {
-        int requiredPits = plotArea.divide(new BigDecimal(100), 0, BigDecimal.ROUND_UP).intValue();
+    if (pits != null && !pits.isEmpty()) {
+
+        BigDecimal pitRate = new BigDecimal("100");
+        int requiredPits = plotArea.divide(pitRate, 0, RoundingMode.UP).intValue();
+
+        BigDecimal requiredVolumePerPit = new BigDecimal("1.2")
+                .multiply(new BigDecimal("1.2"))
+                .multiply(new BigDecimal("1.5")); // 2.16 m³
+
+        BigDecimal requiredTotalVolume = requiredVolumePerPit.multiply(new BigDecimal(requiredPits));
+
         int providedPits = pits.size();
+        BigDecimal providedTotalVolume = BigDecimal.ZERO;
+
+        // ---- Step 2: Provided calculations ----
+        for (PercolationPit pit : pits) {
+            BigDecimal totalVolume = calculatePitVolume(pit);
+            providedTotalVolume = providedTotalVolume.add(totalVolume);
+        }
+
+        providedTotalVolume = providedTotalVolume.setScale(2, RoundingMode.HALF_UP);
 
         LOG.info("Required pits: {}, Provided pits: {}", requiredPits, providedPits);
+        LOG.info("Required total volume: {} m³, Provided total volume: {} m³",
+                requiredTotalVolume, providedTotalVolume);
 
-        // Report count compliance
-        setReportOutputDetails(pl, RULE_51, PERCOLATION_PIT_REQUIREMENT,
-                String.valueOf(requiredPits),
+        String volumeCompliance = (providedTotalVolume.compareTo(requiredTotalVolume) >= 0)
+                ? Result.Accepted.getResultVal()
+                : Result.Not_Accepted.getResultVal();
+
+        // ---- Step 4: Reporting ----
+        setReportOutputDetails(pl, RULE_51, "Percolation Pit Count",
+                requiredPits + " (1 pit / 100 sq.m)",
                 String.valueOf(providedPits),
                 providedPits >= requiredPits ? Result.Accepted.getResultVal() : Result.Not_Accepted.getResultVal());
 
-        // Report size compliance for each pit
+        setReportOutputDetails(pl, RULE_51, "Percolation Pit Volume (m³)",
+                String.format("%.2f", requiredTotalVolume),
+                String.format("%.2f", providedTotalVolume),
+                volumeCompliance);
+
+        // ---- Step 5: Individual pit details ----
         for (int i = 0; i < pits.size(); i++) {
             PercolationPit pit = pits.get(i);
-            boolean correctSize = pit.getLength().compareTo(new BigDecimal("1.2")) == 0
-                    && pit.getWidth().compareTo(new BigDecimal("1.2")) == 0
-                    && pit.getHeight().compareTo(new BigDecimal("1.5")) == 0;
+            BigDecimal totalVolume = calculatePitVolume(pit);
 
-            LOG.info("Pit {} dimensions: {}m x {}m x {}m | Expected: {} | Result: {}",
-                    (i + 1), pit.getLength(), pit.getWidth(), pit.getHeight(),
-                    PERCOLATION_PIT_DIMENSION_REQUIRED,
-                    correctSize ? Result.Accepted.getResultVal() : Result.Not_Accepted.getResultVal());
+            String lengthStr = pit.getPitLength() != null && !pit.getPitLength().isEmpty()
+                    ? pit.getPitLength().get(0).setScale(2, RoundingMode.HALF_UP).toPlainString()
+                    : "-";
+            String widthStr = pit.getPitWidth() != null && !pit.getPitWidth().isEmpty()
+                    ? pit.getPitWidth().get(0).setScale(2, RoundingMode.HALF_UP).toPlainString()
+                    : "-";
+            String heightStr = pit.getPitHeight() != null
+                    ? pit.getPitHeight().setScale(2, RoundingMode.HALF_UP).toPlainString()
+                    : "-";
+
+            String dimensionStr = lengthStr + "m × " + widthStr + "m × " + heightStr + "m = "
+                    + String.format("%.2f", totalVolume) + "m³";
 
             setReportOutputDetails(pl, RULE_51,
-                    PERCOLATION_PIT_SIZE + " (Pit-" + (i + 1) + ")",
-                    PERCOLATION_PIT_DIMENSION_REQUIRED,
-                    pit.getLength() + "m x " + pit.getWidth() + "m x " + pit.getHeight() + "m",
-                    correctSize ? Result.Accepted.getResultVal() : Result.Not_Accepted.getResultVal());
+                    "Percolation Pit-" + (i + 1) + " Dimension",
+                    "1.20m × 1.20m × 1.50m = 2.16m³",
+                    dimensionStr,
+                    totalVolume.compareTo(requiredVolumePerPit) >= 0
+                            ? Result.Accepted.getResultVal()
+                            : Result.Not_Accepted.getResultVal());
         }
-    } 
+
+    } else {
+        LOG.info("No percolation pits found for validation.");
+        setReportOutputDetails(pl, RULE_51, "Percolation Pit Requirement",
+                "Required as per 1 pit per 100 sq.m plot area (1.2m × 1.2m × 1.5m each)",
+                "Not Provided",
+                Result.Not_Accepted.getResultVal());
+    }
+
     LOG.info("Completed percolation pit validation.");
 }
 
+
+
+private BigDecimal calculatePitVolume(PercolationPit pit) {
+    BigDecimal totalVolume = BigDecimal.ZERO;
+    List<BigDecimal> lengths = pit.getPitLength();
+    List<BigDecimal> widths = pit.getPitWidth();
+    BigDecimal height = pit.getPitHeight();
+
+    if (lengths != null && widths != null && height != null) {
+        int count = Math.min(lengths.size(), widths.size());
+        for (int i = 0; i < count; i++) {
+            BigDecimal length = lengths.get(i);
+            BigDecimal width = widths.get(i);
+            if (length != null && width != null) {
+                totalVolume = totalVolume.add(length.multiply(width).multiply(height));
+            }
+        }
+    }
+    return totalVolume;
+}
 
 /**
  * Sets the report output details for scrutiny.
@@ -290,6 +368,7 @@ private void setReportOutputDetails(Plan pl, String ruleNo, String ruleDesc, Str
     ReportScrutinyDetail detail = new ReportScrutinyDetail();
     detail.setRuleNo(ruleNo);
     detail.setDescription(ruleDesc);
+    detail.setRequired(expected);
     detail.setProvided(actual);
     detail.setStatus(status);
 

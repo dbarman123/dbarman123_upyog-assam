@@ -1,5 +1,7 @@
 package org.egov.edcr.feature;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -68,10 +70,34 @@ public class RainWaterHarvestingExtract extends FeatureExtract {
             for (DXFLWPolyline pline : percolationPits) {
                 Measurement measurement = new MeasurementDetail(pline, true);
                 PercolationPit pit = new PercolationPit();
-                pit.setLength(measurement.getLength());
-                pit.setWidth(measurement.getWidth());
+//                pit.setLength(measurement.getLength());
+//                pit.setWidth(measurement.getWidth());
                 pit.setHeight(measurement.getHeight());
                 pit.setArea(measurement.getArea());
+                List<BigDecimal> width = Util.getListOfDimensionByColourCode(pl, layerNames.getLayerName("LAYER_NAME_RAINWATER_HARWESTING_PERCOLATION_PIT"),
+    					DxfFileConstants.INDEX_COLOR_TWO);
+                
+                List<BigDecimal> length = Util.getListOfDimensionByColourCode(pl, layerNames.getLayerName("LAYER_NAME_RAINWATER_HARWESTING_PERCOLATION_PIT"),
+    					DxfFileConstants.INDEX_COLOR_ONE);
+                
+                String pitHeight = Util.getMtextByLayerName(pl.getDoc(), layerNames.getLayerName("LAYER_NAME_RAINWATER_HARWESTING_PERCOLATION_PIT"), "RWH_PERCOLATION_PIT");
+
+                if (!isBlank(pitHeight)) {
+                    if (pitHeight.contains("="))
+                    	pitHeight = pitHeight.split("=")[1] != null
+                                ? pitHeight.split("=")[1].replaceAll("[^\\d.]", "")
+                                : "";
+                    else
+                    	pitHeight = pitHeight.replaceAll("[^\\d.]", "");
+
+                    if (!isBlank(pitHeight)) {
+                        BigDecimal height = BigDecimal.valueOf(Double.parseDouble(pitHeight));
+                        pit.setPitHeight(height);
+                    }}
+                
+                pit.setPitLength(length);
+                pit.setPitWidth(width);
+
                 pit.setPresentInDxf(true);
 
                 pl.getUtility().addPercolationPit(pit); 
