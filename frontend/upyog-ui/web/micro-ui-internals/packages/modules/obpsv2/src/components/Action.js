@@ -16,6 +16,19 @@ const Action = ({ selectedAction, applicationNo, closeModal, setSelectedAction, 
   const [file, setFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
 
+  const WORKFLOW_ACTIONS = [
+    "APPROVE",
+    "ACCEPT",
+    "SEND",
+    "REJECT",
+    "SEND_BACK_TO_RTP",
+    "RECOMMEND_TO_CEO",
+    "SEND_BACK_TO_GMDA",
+    "RECOMMEND_TO_CHAIRMAN_DA",
+    "SEND_BACK_TO_DA",
+    "FORWARD"
+  ];
+
   const [assignResponse, setAssignResponse] = useState(null);
   const tenantId = Digit.ULBService.getCitizenCurrentTenant(true) || Digit.ULBService.getCurrentTenantId();
   const { data: mdmsData, isLoading } = Digit.Hooks.useEnabledMDMS("as", "BPA", [{ name: "PermissibleZone" }], {
@@ -384,18 +397,7 @@ const Action = ({ selectedAction, applicationNo, closeModal, setSelectedAction, 
                   // if GIS validation passed, call onAssign
                   await onAssign(selectedAction, comments);
                 }
-              } else if (
-                selectedAction === "APPROVE" ||
-                selectedAction === "ACCEPT" ||
-                selectedAction === "SEND" ||
-                selectedAction === "REJECT" ||
-                selectedAction === "SEND_BACK_TO_RTP" ||
-                selectedAction === "RECOMMEND_TO_CEO" ||
-                selectedAction === "SEND_BACK_TO_GMDA" ||
-                selectedAction === "RECOMMEND_TO_CHAIRMAN_DA" ||
-                selectedAction === "SEND_BACK_TO_DA" ||
-                selectedAction === "FORWARD"
-              ) {
+              } else if (WORKFLOW_ACTIONS.includes(selectedAction)) {
                 await onAssign(selectedAction, comments);
               }
 
@@ -409,16 +411,7 @@ const Action = ({ selectedAction, applicationNo, closeModal, setSelectedAction, 
         >
           <Card>
             <React.Fragment>
-              {(selectedAction === "APPROVE" ||
-                selectedAction === "ACCEPT" ||
-                selectedAction === "SEND" ||
-                selectedAction === "REJECT" ||
-                selectedAction === "SEND_BACK_TO_RTP" ||
-                selectedAction === "RECOMMEND_TO_CEO" ||
-                selectedAction === "SEND_BACK_TO_GMDA" ||
-                selectedAction === "RECOMMEND_TO_CHAIRMAN_DA" ||
-                selectedAction === "SEND_BACK_TO_DA" ||
-                selectedAction === "FORWARD") && (
+              {WORKFLOW_ACTIONS.includes(selectedAction) && (
                 <div>
                   <CardLabel>{t("COMMENTS")}</CardLabel>
                   <TextArea name="reason" onChange={addComment} value={comments} maxLength={500} />
