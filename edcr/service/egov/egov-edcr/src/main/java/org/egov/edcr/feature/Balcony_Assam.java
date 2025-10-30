@@ -133,7 +133,35 @@ public class Balcony_Assam extends FeatureProcess {
                 RULE_NO, FLOOR, UNIT, DESCRIPTION, PERMISSIBLE, PROVIDED, STATUS);
 
         for (Floor floor : block.getBuilding().getFloors()) { // length , width , setback
-            validateBalconyProjection(plan, block, floor, scrutinyDetail, new BigDecimal(4), new BigDecimal(1.5), new BigDecimal(1.5));
+        	//  Fetch balcony rules 
+        	List<Object> balconyRules = cache.getFeatureRules(plan, FeatureEnum.BALCONY.getValue(), false);
+
+        	BigDecimal permissibleLength = BigDecimal.ZERO;
+        	BigDecimal permissibleWidth = BigDecimal.ZERO;
+        	BigDecimal permissibleSetback = BigDecimal.ZERO;
+
+        	if (balconyRules != null && !balconyRules.isEmpty()) {
+        	    Optional<BalconyRequirement> balconyRequirement = balconyRules.stream()
+        	            .filter(BalconyRequirement.class::isInstance)
+        	            .map(BalconyRequirement.class::cast)
+        	            .findFirst();
+
+        	    if (balconyRequirement.isPresent()) {
+        	        BalconyRequirement rule = balconyRequirement.get();
+        	        permissibleLength = rule.getMaxBalconyLength() != null ? rule.getMaxBalconyLength() : BigDecimal.ZERO;
+        	        permissibleWidth = rule.getMaxBalconyWidth() != null ? rule.getMaxBalconyWidth() : BigDecimal.ZERO;
+        	        permissibleSetback = rule.getMinSetbackFromPlotBoundary() != null ? rule.getMinSetbackFromPlotBoundary() : BigDecimal.ZERO;
+
+        	        LOG.info("Fetched Balcony permissible values from MDMS → Length: {}, Width: {}, Setback: {}",
+        	                permissibleLength, permissibleWidth, permissibleSetback);
+        	    } else {
+        	        LOG.warn("No Balcony rule found in MDMS, using default values (0)");
+        	    }
+        	} else {
+        	    LOG.warn("No Balcony rules found in MDMS, using default values (0)");
+        	}
+
+        	validateBalconyProjection(plan, block, floor, scrutinyDetail, permissibleLength, permissibleWidth, permissibleSetback);
 
             for(FloorUnit floorUnit : floor.getUnits()) {
                 LOG.info("Processing Floor Unit {} of Floor {} in Block {}", floorUnit.getRoomNumber(), floor.getNumber(), block.getNumber());

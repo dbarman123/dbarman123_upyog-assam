@@ -1191,6 +1191,7 @@ public class Parking_Assam extends Parking {
 		double providedTwoWheelerParkingArea = parkingAreas.getTwoWheeler().doubleValue();
 		double providedVisitorsParkingArea = parkingAreas.getVisitor().doubleValue();
 	
+		providedCarParkingArea = Math.round(providedCarParkingArea * 100.0) / 100.0;
 		
 		evParkingProcess(providedCarParkingArea, providedTwoWheelerParkingArea, providedVisitorsParkingArea, pl);
 		

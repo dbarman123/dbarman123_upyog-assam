@@ -6,6 +6,7 @@ public class DxfFileConstants {
     public static final String GOVERNMENT_AIDED = "WHETHER_GOVT_OR_AIDED_SCHOOL";
     public static String CRZ_ZONE = "CRZ";
     public static final String PLOT_AREA = "PLOT_AREA_M2";
+    public static final String PLOT_AREA_AS_PER_LAND_DOC = "PLOT_AREA_AS_PER_LAND_DOC";
     public static final Object ARCHITECT_NAME = "ARCHITECT_NAME";
     public static final String PIPE_DIA = "PIPE_DIA";
     public static final String SETTLING_TANK = "SETTLING_TANK";
@@ -14,7 +15,8 @@ public class DxfFileConstants {
     public static final String ACCESS_WIDTH = "ACCESS_WIDTH_M";
     public static final int BLDG_EXTERIOR_WALL_COLOR = 2;
     public static final int FAR_DEDUCT_COLOR = 2;
-    public static final String SECURITY_ZONE = "SECURITY_ZONE";
+    public static final String SECURITY_ZONE = "SECURITY_ZONE"; 
+    public static final String PROPOSED_ROAD_WIDTH_REQUIRED = "PROPOSED_ROAD_WIDTH_REQUIRED";  
     public static final String FLOOR_AREA = "FLOOR_AREA";
     public static final String OCCUPANCY = "OCCUPANCY";
     public static final int HABITABLE_ROOM_COLOR = 4;
@@ -150,6 +152,7 @@ public class DxfFileConstants {
 
     // *********PLAN INFO*******
     public static final String ROAD_WIDTH = "ROAD_WIDTH";
+    public static final String PROPOSED_ROAD_WIDTH = "PROPOSED_ROAD_WIDTH";
     public static final String ROAD_LENGTH = "ROAD_LENGTH";
     public static final String AREA_TYPE = "AREA_TYPE";
     public static final String AVG_PLOT_DEPTH = "AVG_PLOT_DEPTH";
@@ -178,6 +181,7 @@ public class DxfFileConstants {
     public static final String ZONE = "ZONE";
     public static final String SUB_ZONE = "SUB_ZONE";
     public static final String DAGNO = "DAG_NO";
+    public static final String PATTANO = "PATTA_NO";
     public static final String DEVELOPMENTZONE = "DEVELOPMENT_ZONE";
     public static final String WARDNO = "WARD_NO";
     public static final String MATERIAL_TYPE = "MATERIAL_TYPE";

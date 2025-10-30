@@ -18,7 +18,7 @@ public class DrySump extends FeatureProcess {
     private static final Logger LOG = LogManager.getLogger(DrySump.class);
 
     private static final String RULE_DS = "10.4"; 
-    private static final String RULE_DS_DESCRIPTION = "Dry Sump Requirement";
+    private static final String RULE_DS_DESCRIPTION = "Sump ";
     private static final BigDecimal HUNDRED = BigDecimal.valueOf(100);
 
   
@@ -58,7 +58,7 @@ public class DrySump extends FeatureProcess {
         scrutinyDetail.addColumnHeading(2, DESCRIPTION);
         scrutinyDetail.addColumnHeading(4, PROVIDED);
         scrutinyDetail.addColumnHeading(5, STATUS);
-        scrutinyDetail.setKey("Common_Dry Sump");
+        scrutinyDetail.setKey("Common_Sump");
 
         String subRule = RULE_DS;
         String subRuleDesc = RULE_DS_DESCRIPTION;
@@ -85,16 +85,36 @@ public class DrySump extends FeatureProcess {
     
     private void addReportOutput(Plan pl, String subRule, String subRuleDesc) {
         LOG.info("Preparing scrutiny report output for Dry Sump...");
-        if (pl.getUtility() != null) {
-            if (pl.getUtility().getDrySumps() != null && !pl.getUtility().getDrySumps().isEmpty()) {
-                LOG.info("Dry Sump objects found in utility. Capacity = {}",
-                         pl.getUtility().getDrySumpCapacity());
-                setReportOutputDetails(pl, subRule, subRuleDesc, null,
-                        " Capacity - " + pl.getUtility().getDrySumpCapacity(),
-                        Result.Verify.getResultVal());
-            } 
-        } 
+
+        if (pl.getUtility() != null 
+                && pl.getUtility().getDrySumps() != null 
+                && !pl.getUtility().getDrySumps().isEmpty()) {
+
+            int count = 1;
+            for (org.egov.common.entity.edcr.DrySump ds : pl.getUtility().getDrySumps()) {
+                BigDecimal area = ds.getArea();
+                LOG.info("Dry Sump {} area = {}", count, area);
+
+                String providedDetails = area != null
+                        ? "Sump " + count + " - Area: " + area + " sq.m"
+                        : "Sump " + count + " - Area not provided";
+
+                setReportOutputDetails(
+                    pl,
+                    subRule,
+                    subRuleDesc,
+                    null,
+                    providedDetails,
+                    Result.Verify.getResultVal()
+                );
+
+                count++;
+            }
+        } else {
+            LOG.info("No Dry Sump objects found in the utility section.");
+        }
     }
+
 
     private void setReportOutputDetails(Plan pl, String ruleNo, String ruleDesc, String expected, String actual,
             String status) {

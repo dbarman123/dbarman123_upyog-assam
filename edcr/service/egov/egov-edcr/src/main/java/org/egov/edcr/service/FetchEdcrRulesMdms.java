@@ -2,7 +2,6 @@ package org.egov.edcr.service;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -16,11 +15,11 @@ import org.egov.common.entity.edcr.BathroomWCRequirement;
 import org.egov.common.entity.edcr.BlockDistancesServiceRequirement;
 import org.egov.common.entity.edcr.ChimneyRequirement;
 import org.egov.common.entity.edcr.CoverageRequirement;
+import org.egov.common.entity.edcr.DistanceFromWaterBodiesRequirement;
 import org.egov.common.entity.edcr.DoorsRequirement;
 import org.egov.common.entity.edcr.ExitWidthRequirement;
 import org.egov.common.entity.edcr.FarRequirement;
 import org.egov.common.entity.edcr.FeatureEnum;
-import org.egov.common.entity.edcr.FeatureRuleKey;
 import org.egov.common.entity.edcr.FireStairRequirement;
 import org.egov.common.entity.edcr.FireTenderMovementRequirement;
 import org.egov.common.entity.edcr.FrontSetBackRequirement;
@@ -83,15 +82,12 @@ import org.egov.edcr.config.EdcrConfigProperties;
 import org.egov.edcr.constants.EdcrRulesMdmsConstants;
 //import org.egov.infra.mdms.controller.MDMSController;
 import org.egov.infra.microservice.models.RequestInfo;
-import org.jfree.util.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import net.minidev.json.JSONArray;
-import net.minidev.json.JSONObject;
 
 
 @Service
@@ -279,6 +275,8 @@ public class FetchEdcrRulesMdms {
 	            return RearSetBackRequirement.class;
 	        case REQUIRED_TREAD:
 	            return RequiredTreadRequirement.class;
+	        case DISTANCE_FROM_WATERBODIES:
+				return DistanceFromWaterBodiesRequirement.class;
 	        case REQUIRED_WIDTH:
 	            return RequiredWidthRequirement.class;
 	        case RISER_HEIGHT:
@@ -321,7 +319,7 @@ public class FetchEdcrRulesMdms {
 				return RoofSlopeRequirement.class;
 			case WINDOWS:
 				return WindowsRequirement.class;
-
+			
 	        default:
 	            return MdmsFeatureRule.class; // Fallback
 	    }

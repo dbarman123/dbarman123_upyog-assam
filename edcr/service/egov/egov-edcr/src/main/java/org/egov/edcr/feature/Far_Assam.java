@@ -656,7 +656,7 @@ public class Far_Assam extends Far {
                 ? pl.getVirtualBuilding().getMostRestrictiveFarHelper()
                 : null;
 
-        String typeOfArea = pl.getPlanInformation().getTypeOfArea();
+        String typeOfArea = pl.getPlanInformation().getLandUseZone();
         BigDecimal roadWidth = pl.getPlanInformation().getRoadWidth();
         String feature = MdmsFeatureConstants.FAR;
 
@@ -670,7 +670,7 @@ public class Far_Assam extends Far {
             return; // stop further processing if condition is applied
         }
 
-        if (mostRestrictiveOccupancyType != null && StringUtils.isNotBlank(typeOfArea) && roadWidth != null
+        if (mostRestrictiveOccupancyType != null && roadWidth != null
                 && !processFarForSpecialOccupancy(pl, mostRestrictiveOccupancyType, providedFar, typeOfArea, roadWidth,
                 errorMsgs)) {
             processFar(pl, mostRestrictiveOccupancyType, providedFar, typeOfArea, roadWidth, errorMsgs,
@@ -1522,7 +1522,7 @@ public class Far_Assam extends Far {
                 : occupancyType.getType().getName();
 
         if (StringUtils.isNotBlank(expectedResult)) {
-            buildResult(pl, occupancyName, far, typeOfArea, roadWidth, expectedResult, isAccepted, null, null);
+            buildResult(pl, occupancyName, far, typeOfArea, roadWidth, expectedResult, isAccepted, null, null, null, null);
         }
 
         return false;
@@ -1572,6 +1572,9 @@ public class Far_Assam extends Far {
         String todZone = pl.getPlanInformation().getTodZone();
         BigDecimal additionalMixedUseFar = BigDecimal.ZERO;
         BigDecimal additionalEWSLIGFar = BigDecimal.ZERO;
+        BigDecimal baseFar = BigDecimal.ZERO;
+        BigDecimal tdr = BigDecimal.ZERO;
+       
 
         LOG.info("Starting processFar with plotArea: {}, far: {}, roadWidth: {}", plotArea, far, roadWidth);
 
@@ -1587,6 +1590,8 @@ public class Far_Assam extends Far {
         if (matchedRule.isPresent()) {
             FarRequirement rule = matchedRule.get();
             permissibleFar = rule.getPermissible();
+            baseFar = rule.getBaseFar();
+            tdr = rule.getMaxTDRLoading();
             LOG.info("Permissible FAR from matched rule: {}", permissibleFar);
 
             // TOD FAR CALCULATION ---
@@ -1641,7 +1646,7 @@ public class Far_Assam extends Far {
                 isAccepted);
 
         if (errors.isEmpty() && StringUtils.isNotBlank(expectedResult)) {
-            buildResult(pl, occupancyName, far, typeOfArea, roadWidth, expectedResult, isAccepted, additionalMixedUseFar, additionalEWSLIGFar);
+            buildResult(pl, occupancyName, far, typeOfArea, roadWidth, expectedResult, isAccepted, additionalMixedUseFar, additionalEWSLIGFar, baseFar, tdr);
         }
     }
 
@@ -1755,6 +1760,8 @@ public class Far_Assam extends Far {
                                       BigDecimal roadWidth, HashMap<String, String> errors, String feature, String occupancyName) {
 
         BigDecimal permissibleFar = BigDecimal.ZERO;
+        BigDecimal baseFar = BigDecimal.ZERO;
+        BigDecimal tdr = BigDecimal.ZERO;
 
         OccupancyTypeHelper mostRestrictiveOccupancyType = pl.getVirtualBuilding() != null
                 ? pl.getVirtualBuilding().getMostRestrictiveFarHelper()
@@ -1775,12 +1782,20 @@ public class Far_Assam extends Far {
 
             if (G_SI.equalsIgnoreCase(subtypeCode)) {
                 permissibleFar = mdmsRule.getPermissibleLight();
+                baseFar = mdmsRule.getBaseFar();
+                tdr =  baseFar = mdmsRule.getMaxTDRLoading();
             } else if (G_LI.equalsIgnoreCase(subtypeCode)) {
                 permissibleFar = mdmsRule.getPermissibleMedium();
+                baseFar = mdmsRule.getBaseFar();
+                tdr =  baseFar = mdmsRule.getMaxTDRLoading();
             } else if (G_PHI.equalsIgnoreCase(subtypeCode)) {
                 permissibleFar = mdmsRule.getPermissibleFlattered();
+                baseFar = mdmsRule.getBaseFar();
+                tdr =  baseFar = mdmsRule.getMaxTDRLoading();
             } else {
-                permissibleFar = mdmsRule.getPermissible(); // fallback
+                permissibleFar = mdmsRule.getPermissible();
+                baseFar = mdmsRule.getBaseFar();
+                tdr =  baseFar = mdmsRule.getMaxTDRLoading();
             }
             LOG.info("Permissible FAR for industrial subtype '{}': {}", subtypeCode, permissibleFar);
         } else {
@@ -1795,7 +1810,7 @@ public class Far_Assam extends Far {
                 far, isAccepted);
 
         if (errors.isEmpty() && StringUtils.isNotBlank(expectedResult)) {
-            buildResult(pl, occupancyName, far, typeOfArea, roadWidth, expectedResult, isAccepted, null, null);
+            buildResult(pl, occupancyName, far, typeOfArea, roadWidth, expectedResult, isAccepted, null, null, baseFar, tdr);
         }
     }
 
@@ -1883,15 +1898,17 @@ public class Far_Assam extends Far {
     }
 
     private void buildResult(Plan pl, String occupancyName, BigDecimal far, String typeOfArea, BigDecimal roadWidth,
-                             String expectedResult, boolean isAccepted, BigDecimal mixedUseFAR, BigDecimal additionalEWSLIGFar) {
+                             String expectedResult, boolean isAccepted, BigDecimal mixedUseFAR, BigDecimal additionalEWSLIGFar, BigDecimal baseFar, BigDecimal tdr) {
         ScrutinyDetail scrutinyDetail = new ScrutinyDetail();
         scrutinyDetail.addColumnHeading(1, RULE_NO);
         scrutinyDetail.addColumnHeading(2, OCCUPANCY);
         scrutinyDetail.addColumnHeading(3, AREA_TYPE);
         scrutinyDetail.addColumnHeading(4, ROAD_WIDTH);
-        scrutinyDetail.addColumnHeading(5, PERMISSIBLE);
-        scrutinyDetail.addColumnHeading(6, PROVIDED);
-        scrutinyDetail.addColumnHeading(7, STATUS);
+        scrutinyDetail.addColumnHeading(5, BASE_FAR);
+        scrutinyDetail.addColumnHeading(6, TDR);
+        scrutinyDetail.addColumnHeading(7, PERMISSIBLE);
+        scrutinyDetail.addColumnHeading(8, PROVIDED);
+        scrutinyDetail.addColumnHeading(9, STATUS);
         scrutinyDetail.setKey(COMMON_FAR);
 
         String actualResult = far.toString();
@@ -1901,6 +1918,8 @@ public class Far_Assam extends Far {
         detail.setOccupancy(occupancyName);
         detail.setAreaType(typeOfArea);
         detail.setRoadWidth(roadWidth.toString());
+        detail.setBaseFar(baseFar.toString());
+        detail.setTdr(tdr.toString());
         detail.setPermissible(expectedResult
                 + (mixedUseFAR != null && mixedUseFAR.compareTo(BigDecimal.ZERO) > 0 ? (" (Other uses FAR: " + mixedUseFAR) : "")
                 + (additionalEWSLIGFar != null && additionalEWSLIGFar.compareTo(BigDecimal.ZERO) > 0 ? (" (EWS/LIG FAR: " + additionalEWSLIGFar) : "")

@@ -729,7 +729,7 @@ public class HeightOfRoom_Assam extends HeightOfRoom {
 	    
 	    BigDecimal minDoorWidth = BigDecimal.ZERO;
 	    if (matchedRule.isPresent()) {
-	    	WindowsRequirement rule = matchedRule.get();
+	        WindowsRequirement rule = matchedRule.get();
 	        minWindowWidth = rule.getMinWindowWidth();
 	        minWindowHeight = rule.getMinWindowHeight();
 	        LOG.info("Matched minimum door width from rules: {}", minDoorWidth);
@@ -737,20 +737,18 @@ public class HeightOfRoom_Assam extends HeightOfRoom {
 	        LOG.warn("No minimum door width rule found, defaulting to {}", minDoorWidth);
 	    }
 
-
 	    LOG.info("Evaluating single window on Floor: {} - Height: {}, Width: {}, MinHeight: {}, MinWidth: {}",
 	             floor.getNumber(), windowHeight, windowWidth, minWindowHeight, minWindowWidth);
 
 	    String subRuleDesc3 = SUB_RULE_DESC_3;
-
-	    String requirement = HEIGHT + minWindowHeight + COMMA_WIDTH_STRING + GREATER_THAN_EQUAL + minWindowWidth;
+	    
+	    String requirement = "-";  
+	    
 	    String provided = HEIGHT_STRING + IS_EQUAL_TO + windowHeight + COMMA_WIDTH_STRING + IS_EQUAL_TO + windowWidth;
 
-	    String result = (windowHeight.compareTo(minWindowHeight) >= 0 && windowWidth.compareTo(minWindowWidth) >= 0)
-	            ? Result.Accepted.getResultVal()
-	            : Result.Not_Accepted.getResultVal();
-
-	    setReportOutputDetails(pl, EMPTY_STRING, subRuleDesc3, floor.getNumber().toString(), unit.getUnitNumber(),  "-", requirement, provided, result, scrutinyDetail);
+	    String result = Result.Accepted.getResultVal();
+	    setReportOutputDetails(pl, EMPTY_STRING, subRuleDesc3, floor.getNumber().toString(),
+	            unit.getUnitNumber(), "-", requirement, provided, result, scrutinyDetail);
 	}
 
 

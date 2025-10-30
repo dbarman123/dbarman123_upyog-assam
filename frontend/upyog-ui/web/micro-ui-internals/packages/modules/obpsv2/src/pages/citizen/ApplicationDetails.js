@@ -849,7 +849,7 @@ import {
             {expanded.form22 && (
               <React.Fragment>
                 <StatusTable>
-                {getDetailsRow(value?.form||form22)}
+                {getDetailsRow(form22)}
 
                 <div style={{ marginTop: "1rem" }}>
                   <LinkButton
@@ -897,7 +897,7 @@ import {
 
             {expanded.form23A && (
               <React.Fragment>
-                {getDetailsRow(value?.form23A||form23A)}
+                {getDetailsRow(form23A)}
 
                 <div style={{ marginTop: "1rem" }}>
                   <LinkButton
@@ -943,7 +943,7 @@ import {
 
             {expanded.form23B && (
               <React.Fragment>
-                {getDetailsRow(value?.form23B||form23B)}
+                {getDetailsRow(form23B)}
 
                 <div style={{ marginTop: "1rem" }}>
                   <LinkButton

@@ -66,11 +66,11 @@ import static org.egov.edcr.constants.DxfFileConstants.A_AF;
 import static org.egov.edcr.constants.DxfFileConstants.A_PO;
 import static org.egov.edcr.constants.DxfFileConstants.A_R;
 import static org.egov.edcr.constants.DxfFileConstants.B;
-import static org.egov.edcr.constants.DxfFileConstants.D;
-import static org.egov.edcr.constants.DxfFileConstants.D_M;
-import static org.egov.edcr.constants.DxfFileConstants.D_AW;
-import static org.egov.edcr.constants.DxfFileConstants.E;
 import static org.egov.edcr.constants.DxfFileConstants.C;
+import static org.egov.edcr.constants.DxfFileConstants.D;
+import static org.egov.edcr.constants.DxfFileConstants.D_AW;
+import static org.egov.edcr.constants.DxfFileConstants.D_M;
+import static org.egov.edcr.constants.DxfFileConstants.E;
 import static org.egov.edcr.constants.DxfFileConstants.F;
 import static org.egov.edcr.constants.DxfFileConstants.G;
 import static org.egov.edcr.constants.DxfFileConstants.G_LI;
@@ -78,6 +78,7 @@ import static org.egov.edcr.constants.DxfFileConstants.G_PHI;
 import static org.egov.edcr.constants.DxfFileConstants.G_SI;
 import static org.egov.edcr.constants.DxfFileConstants.I;
 import static org.egov.edcr.constants.EdcrReportConstants.BSMT_FRONT_YARD_DESC;
+import static org.egov.edcr.constants.EdcrReportConstants.ERR_NARROW_ROAD_RULE;
 import static org.egov.edcr.constants.EdcrReportConstants.FRONTYARDMINIMUM_DISTANCE_10;
 import static org.egov.edcr.constants.EdcrReportConstants.FRONTYARDMINIMUM_DISTANCE_11;
 import static org.egov.edcr.constants.EdcrReportConstants.FRONTYARDMINIMUM_DISTANCE_12;
@@ -99,7 +100,6 @@ import static org.egov.edcr.constants.EdcrReportConstants.FRONTYARDMINIMUM_DISTA
 import static org.egov.edcr.constants.EdcrReportConstants.FRONTYARDMINIMUM_DISTANCE_7_5;
 import static org.egov.edcr.constants.EdcrReportConstants.FRONTYARDMINIMUM_DISTANCE_8;
 import static org.egov.edcr.constants.EdcrReportConstants.FRONTYARDMINIMUM_DISTANCE_9;
-import static org.egov.edcr.constants.EdcrReportConstants.ERR_NARROW_ROAD_RULE; 
 import static org.egov.edcr.constants.EdcrReportConstants.MINIMUMLABEL;
 import static org.egov.edcr.constants.EdcrReportConstants.MIN_PLOT_AREA;
 import static org.egov.edcr.constants.EdcrReportConstants.MIN_VAL_100_SQM;
@@ -129,6 +129,7 @@ import static org.egov.edcr.utility.DcrConstants.FRONT_YARD_DESC;
 import static org.egov.edcr.utility.DcrConstants.OBJECTNOTDEFINED;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -499,14 +500,17 @@ public class FrontYardService_Assam extends FrontYardService {
 	        HashMap<String, String> errors, Plan pl, String occupancyName, BigDecimal buildingHeight) {
 
 	    LOG.info("Processing Front Yard Service for Block: {}, Level: {}, Occupancy: {}, Building Height: {}, RoadWidth: {}, DepthOfPlot: {}",
-	            blockName, level, occupancyName, buildingHeight, 
+	            blockName, level, occupancyName, buildingHeight,
 	            pl.getPlanInformation().getRoadWidth(), depthOfPlot);
 
 	    BigDecimal plotArea = pl.getPlot().getArea();
-	    BigDecimal roadWidth = pl.getPlanInformation().getRoadWidth();
+	    BigDecimal existingRoadWidth = pl.getPlanInformation().getRoadWidth();
+	    BigDecimal proposedRoadWidth = pl.getPlanInformation().getProposedRoadWidth();
+	    String proposedRoadWidthRequired = pl.getPlanInformation().getProposedRoadWidthRequired(); // "YES" or "NO"
+
 	    subRule = "83(b)(i)";
 
-	    if (roadWidth == null || depthOfPlot == null) {
+	    if (existingRoadWidth == null || depthOfPlot == null) {
 	        errors.put(FRONT_YARD_DESC, "Missing road width or plot depth.");
 	        LOG.warn("Front Yard Service failed: Missing road width or plot depth for Block: {}", blockName);
 	        return false;
@@ -518,11 +522,11 @@ public class FrontYardService_Assam extends FrontYardService {
 	    Optional<FrontSetBackRequirement> matchedRule = rules.stream()
 	            .filter(FrontSetBackRequirement.class::isInstance)
 	            .map(FrontSetBackRequirement.class::cast)
-	            .filter(ruleObj -> 
+	            .filter(ruleObj ->
 	                ruleObj.getFromRoadWidth() != null && ruleObj.getToRoadWidth() != null
 	                && ruleObj.getFromBuildingHeight() != null && ruleObj.getToBuildingHeight() != null
-	                && roadWidth.compareTo(ruleObj.getFromRoadWidth()) >= 0
-	                && roadWidth.compareTo(ruleObj.getToRoadWidth()) < 0
+	                && existingRoadWidth.compareTo(ruleObj.getFromRoadWidth()) >= 0
+	                && existingRoadWidth.compareTo(ruleObj.getToRoadWidth()) < 0
 	                && buildingHeight.compareTo(ruleObj.getFromBuildingHeight()) >= 0
 	                && buildingHeight.compareTo(ruleObj.getToBuildingHeight()) < 0
 	                && Boolean.TRUE.equals(ruleObj.getActive()))
@@ -537,8 +541,18 @@ public class FrontYardService_Assam extends FrontYardService {
 	        errors.put(FRONT_YARD_DESC, "No applicable front setback rule found for given road width and plot depth.");
 	        meanVal = BigDecimal.ZERO;
 	        minVal = BigDecimal.ZERO;
-	        LOG.warn("No applicable Front Setback Rule found for Block: {} (RoadWidth: {}, Height: {})", blockName, roadWidth, buildingHeight);
+	        LOG.warn("No applicable Front Setback Rule found for Block: {} (RoadWidth: {}, Height: {})", blockName, existingRoadWidth, buildingHeight);
 	    }
+
+	   // Proposed Road Width Adjustment
+	    meanVal = applyProposedRoadWidthAdjustment(
+	            proposedRoadWidthRequired,
+	            proposedRoadWidth,
+	            existingRoadWidth,
+	            meanVal,
+	            blockName
+	    );
+        minVal = meanVal;
 
 	    valid = validateMinimumAndMeanValue(min, mean, minVal, meanVal);
 	    LOG.info("Validation result for Block {} - Min: {}, Mean: {}, Required MinVal: {}, MeanVal: {}, Valid: {}",
@@ -549,7 +563,47 @@ public class FrontYardService_Assam extends FrontYardService {
 
 	    return valid;
 	}
-	
+
+	/**
+	 * Adjusts the front setback based on proposed road widening details.
+	 * 
+	 * @param proposedRoadWidthRequired "YES" or "NO"
+	 * @param proposedRoadWidth         proposed road width (may be null)
+	 * @param existingRoadWidth         existing road width (may be null)
+	 * @param meanVal                   current mean setback value
+	 * @param blockName                 name of the block (for logging)
+	 * @return updated meanVal after applying road width adjustment
+	 */
+	private BigDecimal applyProposedRoadWidthAdjustment(String proposedRoadWidthRequired, BigDecimal proposedRoadWidth,
+	                                                    BigDecimal existingRoadWidth, BigDecimal meanVal, String blockName) {
+	    if ("YES".equalsIgnoreCase(proposedRoadWidthRequired)) {
+	        if (proposedRoadWidth == null) {
+	            LOG.warn("Block {}: Proposed road width required but not provided.", blockName);
+	            return meanVal;
+	        }
+
+	        if (existingRoadWidth == null) {
+	            LOG.warn("Block {}: Existing road width missing, cannot apply proposed road width adjustment.", blockName);
+	            return meanVal;
+	        }
+
+	        BigDecimal diff = proposedRoadWidth.subtract(existingRoadWidth);
+	        if (diff.compareTo(BigDecimal.ZERO) > 0) {
+	            BigDecimal halfDiff = diff.divide(BigDecimal.valueOf(2), 2, RoundingMode.HALF_UP);
+	            meanVal = meanVal.add(halfDiff);
+	            LOG.info("Block {}: Proposed Road Width Adjustment → Proposed: {} m, Existing: {} m, Added: {} m, New MeanVal: {} m",
+	                    blockName, proposedRoadWidth, existingRoadWidth, halfDiff, meanVal);
+	        } else {
+	            LOG.info("Block {}: No positive difference between proposed ({}) and existing ({}). Skipping setback adjustment.",
+	                    blockName, proposedRoadWidth, existingRoadWidth);
+	        }
+	    } else {
+	        LOG.debug("Block {}: Proposed road width not required. Skipping adjustment.", blockName);
+	    }
+
+	    return meanVal;
+	}
+
 	
 	private Boolean processFrontYardServiceIndustrial(String blockName, Integer level, BigDecimal min, BigDecimal mean,
 	        OccupancyTypeHelper mostRestrictiveOccupancy, FrontYardResult frontYardResult, Boolean valid,

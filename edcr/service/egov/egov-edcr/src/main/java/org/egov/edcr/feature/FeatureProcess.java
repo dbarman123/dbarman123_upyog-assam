@@ -83,6 +83,8 @@ public abstract class FeatureProcess {
 	public static final String PLOT_AREA = "Plot Area";
 	public static final String MAX_PERMISSIBLE = "Max Permissible";
 	public static final String ROAD_WIDTH = "Road Width";
+	public static final String BASE_FAR = "Base Far";
+	public static final String TDR = "TDR";
 	public static final String MIN_REQUIRED = "Min Required";
 	public static final String REQUIRED_ECS = "Required ECS";
 	public static final String REQUIRED_AREA = "Required Area";
@@ -90,7 +92,7 @@ public abstract class FeatureProcess {
 	public static final String COMMON_Guard_Room = "COMMON_Guard Room";
 	public static final String Common_Location_Plan = "Common_Location Plan";
 	public static final String Common_OverHead_Electric_Line = "Common_OverHead Electric Line";
-	public static final String Common_Plantation = "Common Plantation";
+	public static final String Common_Plantation = "Common_Plantation";
 	public static final String Common_Plot_Area = "Common_Plot Area";
 	public static final String Common_Rain_Water_Harvesting = "Common_Rain Water Harvesting";
 	public static final String Common_River_Distance = "Common_River Distance";

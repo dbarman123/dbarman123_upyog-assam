@@ -88,7 +88,7 @@ const ActionModal = ({ t, action, tenantId, state, id, closeModal, submitAction,
   const getSubmitReport = (data) => {
     let formdata = [], inspectionOb = [];
 
-    if(data.status == "PENDING_GMDA_ENGINEER") {
+    if(data.status == "PENDING_DA_ENGINEER" || data.status == "PENDING_DD_AD_DEVELOPMENT_AUTHORITY") {
       formdata = JSON.parse(sessionStorage.getItem("SUBMIT_REPORT_DATA"));
       formdata?.length > 0 && formdata.map((ob,ind) => {
         inspectionOb.push(ob)

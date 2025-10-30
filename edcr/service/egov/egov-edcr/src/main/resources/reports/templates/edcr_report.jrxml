@@ -96,7 +96,7 @@
 				</reportElement>
 				<imageExpression><![CDATA[$P{cityLogo}]]></imageExpression>
 			</image>
-			<staticText>
+		<!--	<staticText>
 				<reportElement x="16" y="352" width="186" height="18" uuid="3f3325d3-7390-4b18-a07b-d723a2d91099"/>
 				<box>
 					<pen lineWidth="0.5"/>
@@ -109,7 +109,7 @@
 					<font size="12" isBold="true" isUnderline="false"/>
 				</textElement>
 				<text><![CDATA[Declaration in drawings]]></text>
-			</staticText>
+			</staticText> -->
 			<staticText>
 				<reportElement x="12" y="105" width="536" height="18" uuid="c90071fa-f965-4d78-8e92-98e7658a97b9"/>
 				<box>
@@ -387,7 +387,7 @@
 					<font size="8"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{planInformation}.getTypeOfArea()]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{planInformation}.getLandUseZone()]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="false">
 				<reportElement x="28" y="330" width="114" height="21" uuid="10f0b035-0fa1-470b-9b21-2a84161cdc18"/>
@@ -402,8 +402,59 @@
 					<font size="8"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
-				<textFieldExpression><![CDATA["AREA TYPE"]]></textFieldExpression>
+				<textFieldExpression><![CDATA["LAND USE ZONE"]]></textFieldExpression>
 			</textField>
+			
+			<!-- ====== PLOT AREA AS PER LAND DOC (Moved Down) ====== -->
+<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+    <reportElement x="418" y="351" width="130" height="21" uuid="28774628-3a1d-47ef-aed7-bbd00e19487e"/>
+    <box>
+        <pen lineWidth="0.5"/>
+        <topPen lineWidth="0.5"/>
+        <leftPen lineWidth="0.5"/>
+        <bottomPen lineWidth="0.5"/>
+        <rightPen lineWidth="0.5"/>
+    </box>
+    <textElement textAlignment="Left" verticalAlignment="Bottom">
+        <font size="8"/>
+        <paragraph leftIndent="5"/>
+    </textElement>
+    <textFieldExpression><![CDATA[$F{planInformation}.getPlotAreaAsPerLandDocument()]]></textFieldExpression>
+</textField>
+
+<textField isStretchWithOverflow="true" isBlankWhenNull="false">
+    <reportElement x="288" y="351" width="16" height="21" uuid="9102bb24-54f2-451c-9595-f75d0d4f4c60"/>
+    <box>
+        <pen lineWidth="0.5"/>
+        <topPen lineWidth="0.5"/>
+        <leftPen lineWidth="0.5"/>
+        <bottomPen lineWidth="0.5"/>
+        <rightPen lineWidth="0.5"/>
+    </box>
+    <textElement textAlignment="Center" verticalAlignment="Bottom">
+        <font size="8"/>
+        <paragraph leftIndent="3"/>
+    </textElement>
+    <textFieldExpression><![CDATA["14"]]></textFieldExpression>
+</textField>
+
+<textField isStretchWithOverflow="true" isBlankWhenNull="false">
+    <reportElement x="304" y="351" width="114" height="21" uuid="518c08c8-cf93-42fb-be8d-427604e3c93a"/>
+    <box>
+        <pen lineWidth="0.5"/>
+        <topPen lineWidth="0.5"/>
+        <leftPen lineWidth="0.5"/>
+        <bottomPen lineWidth="0.5"/>
+        <rightPen lineWidth="0.5"/>
+    </box>
+    <textElement textAlignment="Left" verticalAlignment="Bottom">
+        <font size="8"/>
+        <paragraph leftIndent="3"/>
+    </textElement>
+    <textFieldExpression><![CDATA["PLOT AREA AS PER LAND DOC"]]></textFieldExpression>
+    
+</textField>
+			
 			<textField isStretchWithOverflow="true" isBlankWhenNull="false">
 				<reportElement x="12" y="330" width="16" height="21" uuid="6aa97529-5f46-4fcf-bfd5-27cc1edbd803"/>
 				<box>
@@ -419,6 +470,53 @@
 				</textElement>
 				<textFieldExpression><![CDATA["11"]]></textFieldExpression>
 			</textField>
+			<!-- Row 13: PROPOSED ROAD WIDTH (moved down to avoid overlap) -->
+<textField isStretchWithOverflow="true" isBlankWhenNull="false">
+    <reportElement x="12" y="351" width="16" height="21" uuid="6aa97529-5f46-4fcf-bfd5-27cc1edbd803"/>
+    <box>
+        <pen lineWidth="0.5"/>
+        <topPen lineWidth="0.5"/>
+        <leftPen lineWidth="0.5"/>
+        <bottomPen lineWidth="0.5"/>
+        <rightPen lineWidth="0.5"/>
+    </box>
+    <textElement textAlignment="Center" verticalAlignment="Bottom">
+        <font size="8"/>
+    </textElement>
+    <textFieldExpression><![CDATA["13"]]></textFieldExpression>
+</textField>
+
+<textField isStretchWithOverflow="true" isBlankWhenNull="false">
+    <reportElement x="28" y="351" width="114" height="21" uuid="10f0b035-0fa1-470b-9b21-2a84161cdc19"/>
+    <box>
+        <pen lineWidth="0.5"/>
+        <topPen lineWidth="0.5"/>
+        <leftPen lineWidth="0.5"/>
+        <bottomPen lineWidth="0.5"/>
+        <rightPen lineWidth="0.5"/>
+    </box>
+    <textElement textAlignment="Left" verticalAlignment="Bottom">
+        <font size="8"/>
+        <paragraph leftIndent="3"/>
+    </textElement>
+    <textFieldExpression><![CDATA["PROPOSED ROAD WIDTH"]]></textFieldExpression>
+</textField>
+<!-- Value: Proposed Road Width -->
+<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+    <reportElement x="142" y="351" width="146" height="21" uuid="10f0b035-0fa1-470b-9b21-2a84161cdc19"/>
+    <box>
+        <pen lineWidth="0.5"/>
+        <topPen lineWidth="0.5"/>
+        <leftPen lineWidth="0.5"/>
+        <bottomPen lineWidth="0.5"/>
+        <rightPen lineWidth="0.5"/>
+    </box>
+    <textElement textAlignment="Left" verticalAlignment="Bottom">
+        <font size="8"/>
+        <paragraph leftIndent="3"/>
+    </textElement>
+       <textFieldExpression><![CDATA[$F{planInformation}.getProposedRoadWidth()]]></textFieldExpression>
+</textField>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="false">
 				<reportElement x="288" y="309" width="16" height="21" uuid="1b6a2c8a-52ed-45ef-a759-b507ef675e52"/>
 				<box>
@@ -447,7 +545,7 @@
 					<font size="8"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
-				<textFieldExpression><![CDATA["DEVELOPMENT ZONE"]]></textFieldExpression>
+				<textFieldExpression><![CDATA["SECOND ROAD WIDTH"]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
 				<reportElement x="418" y="309" width="130" height="21" uuid="a732c1c1-fd0a-4f6b-aa1c-b42c329c4479"/>
@@ -462,7 +560,7 @@
 					<font size="8"/>
 					<paragraph leftIndent="5"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{planInformation}.getDevelopementZone()]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{planInformation}.getSecondRoadWidth()]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
 				<reportElement x="142" y="123" width="406" height="21" uuid="0c9dd40a-5542-435b-b664-4f5295233d85"/>
@@ -582,7 +680,7 @@
 					<font size="8"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
-				<textFieldExpression><![CDATA["APPLICATION NUMBER"]]></textFieldExpression>
+				<textFieldExpression><![CDATA["FILE NUMBER"]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="false">
 				<reportElement x="12" y="144" width="16" height="21" uuid="5fbc4d05-4b4c-44bb-bd20-1771929a9ead"/>
@@ -720,23 +818,42 @@
 					<font size="8"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
-				<textFieldExpression><![CDATA["DAG NO"]]></textFieldExpression>
+				<textFieldExpression><![CDATA["DAG NO / PATTA NO"]]></textFieldExpression>
 			</textField>
-			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-				<reportElement x="142" y="246" width="146" height="21" uuid="83458a69-6cf0-44af-b9f1-d27925ba674b"/>
-				<box>
-					<pen lineWidth="0.5"/>
-					<topPen lineWidth="0.5"/>
-					<leftPen lineWidth="0.5"/>
-					<bottomPen lineWidth="0.5"/>
-					<rightPen lineWidth="0.5"/>
-				</box>
-				<textElement textAlignment="Left" verticalAlignment="Bottom">
-					<font size="8"/>
-					<paragraph leftIndent="5"/>
-				</textElement>
-				<textFieldExpression><![CDATA[$F{planInformation}.getDagNo()]]></textFieldExpression>
-			</textField>
+		<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+    <reportElement x="142" y="246" width="146" height="21" uuid="83458a69-6cf0-44af-b9f1-d27925ba674b"/>
+    <box>
+        <pen lineWidth="0.5"/>
+        <topPen lineWidth="0.5"/>
+        <leftPen lineWidth="0.5"/>
+        <bottomPen lineWidth="0.5"/>
+        <rightPen lineWidth="0.5"/>
+    </box>
+    <textElement textAlignment="Left" verticalAlignment="Middle">
+        <font size="8"/>
+        <paragraph leftIndent="5"/>
+    </textElement>
+    <textFieldExpression><![CDATA[
+        (
+            $F{planInformation}.getDagNo() != null && !$F{planInformation}.getDagNo().isEmpty()
+            ? $F{planInformation}.getDagNo()
+            : ""
+        )
+        +
+        (
+            $F{planInformation}.getPattaNo() != null && !$F{planInformation}.getPattaNo().isEmpty()
+            ? 
+                (
+                    ($F{planInformation}.getDagNo() != null && !$F{planInformation}.getDagNo().isEmpty() 
+                        ? " / Patta No - " 
+                        : "Patta No - "
+                    ) 
+                    + $F{planInformation}.getPattaNo()
+                )
+            : ""
+        )
+    ]]></textFieldExpression>
+</textField>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
 				<reportElement x="142" y="165" width="406" height="21" uuid="eb3c9a40-3143-4f3c-b8a7-1bc769be2c4d"/>
 				<box>
@@ -765,7 +882,7 @@
 					<font size="8"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
-				<textFieldExpression><![CDATA["OCCUPANCY TYPE"]]></textFieldExpression>
+				<textFieldExpression><![CDATA["PLOT USE"]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="false">
 				<reportElement x="12" y="165" width="16" height="21" uuid="99933eb8-9eb0-46a9-ac0c-5131dc5845d1"/>
@@ -900,7 +1017,7 @@
 					<font size="8"/>
 					<paragraph leftIndent="3"/>
 				</textElement>
-				<textFieldExpression><![CDATA["DISTRICT"]]></textFieldExpression>
+				<textFieldExpression><![CDATA["REVENUE VILLAGE"]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
 				<reportElement x="142" y="267" width="146" height="21" uuid="2280df2e-7f1e-480c-a703-d2fb9a872d0b"/>
@@ -917,7 +1034,7 @@
 				</textElement>
 				<textFieldExpression><![CDATA[$F{planInformation}.getDistrict()]]></textFieldExpression>
 			</textField>
-			<textField isStretchWithOverflow="true" isBlankWhenNull="false">
+		<!--	<textField isStretchWithOverflow="true" isBlankWhenNull="false">
 				<reportElement x="12" y="370" width="16" height="25" uuid="0b650422-ec24-4c2f-8bad-e98a7a96f8dd"/>
 				<box>
 					<pen lineWidth="0.5"/>
@@ -1366,7 +1483,7 @@
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<textFieldExpression><![CDATA["10"]]></textFieldExpression>
-			</textField>
+			</textField> -->
 			<textField isStretchWithOverflow="true" isBlankWhenNull="false">
 				<reportElement x="304" y="144" width="114" height="21" uuid="9970f7fd-bfb1-42a3-88d4-6eaf28aad7ea"/>
 				<box>
@@ -1457,51 +1574,51 @@
 				</textElement>
 				<textFieldExpression><![CDATA[$P{dcrNo} != null  && $P{dcrNo} !=  ""  ?  $P{dcrNo} : "NA"]]></textFieldExpression>
 			</textField>
-			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-				<reportElement x="418" y="330" width="130" height="21" uuid="28774628-3a1d-47ef-aed7-bbd00e19487e"/>
-				<box>
-					<pen lineWidth="0.5"/>
-					<topPen lineWidth="0.5"/>
-					<leftPen lineWidth="0.5"/>
-					<bottomPen lineWidth="0.5"/>
-					<rightPen lineWidth="0.5"/>
-				</box>
-				<textElement textAlignment="Left" verticalAlignment="Bottom">
-					<font size="8"/>
-					<paragraph leftIndent="5"/>
-				</textElement>
-				<textFieldExpression><![CDATA[$F{planInformation}.getWardNo()]]></textFieldExpression>
-			</textField>
-			<textField isStretchWithOverflow="true" isBlankWhenNull="false">
-				<reportElement x="288" y="330" width="16" height="21" uuid="9102bb24-54f2-451c-9595-f75d0d4f4c60"/>
-				<box>
-					<pen lineWidth="0.5"/>
-					<topPen lineWidth="0.5"/>
-					<leftPen lineWidth="0.5"/>
-					<bottomPen lineWidth="0.5"/>
-					<rightPen lineWidth="0.5"/>
-				</box>
-				<textElement textAlignment="Center" verticalAlignment="Bottom">
-					<font size="8"/>
-					<paragraph leftIndent="3"/>
-				</textElement>
-				<textFieldExpression><![CDATA["12"]]></textFieldExpression>
-			</textField>
-			<textField isStretchWithOverflow="true" isBlankWhenNull="false">
-				<reportElement x="304" y="330" width="114" height="21" uuid="518c08c8-cf93-42fb-be8d-427604e3c93a"/>
-				<box>
-					<pen lineWidth="0.5"/>
-					<topPen lineWidth="0.5"/>
-					<leftPen lineWidth="0.5"/>
-					<bottomPen lineWidth="0.5"/>
-					<rightPen lineWidth="0.5"/>
-				</box>
-				<textElement textAlignment="Left" verticalAlignment="Bottom">
-					<font size="8"/>
-					<paragraph leftIndent="3"/>
-				</textElement>
-				<textFieldExpression><![CDATA["WARD NO"]]></textFieldExpression>
-			</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement x="418" y="330" width="130" height="21" uuid="28774628-3a1d-47ef-aed7-bbd00e19487e"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Left" verticalAlignment="Bottom">
+						<font size="8"/>
+						<paragraph leftIndent="5"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{planInformation}.getWardNo()]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="false">
+					<reportElement x="288" y="330" width="16" height="21" uuid="9102bb24-54f2-451c-9595-f75d0d4f4c60"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Bottom">
+						<font size="8"/>
+						<paragraph leftIndent="3"/>
+					</textElement>
+					<textFieldExpression><![CDATA["12"]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="false">
+					<reportElement x="304" y="330" width="114" height="21" uuid="518c08c8-cf93-42fb-be8d-427604e3c93a"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Left" verticalAlignment="Bottom">
+						<font size="8"/>
+						<paragraph leftIndent="3"/>
+					</textElement>
+					<textFieldExpression><![CDATA["WARD NO"]]></textFieldExpression>
+				</textField>
 			<!-- DAG NO row -->
 
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">

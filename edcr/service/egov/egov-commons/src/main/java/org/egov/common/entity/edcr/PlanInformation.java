@@ -68,6 +68,9 @@ public class PlanInformation implements Serializable {
     private Long id;
     // Plot area defined in PLAN_INFO layer. Using the same to measure coverage and small plot condition.This is the declared plot area in the plan.
     private BigDecimal plotArea = BigDecimal.ZERO;
+    
+    private BigDecimal plotAreaAsPerLandDocument;
+    
     // Temporary field used to capture Owner Name
     private String ownerName;
     //Temporary field used to auto populate occupancy detail.
@@ -168,7 +171,27 @@ public class PlanInformation implements Serializable {
     private transient Boolean isLowerIncomeGroup = false;
     private String materialType;
 
-    public String getMaterialType() {
+    private BigDecimal proposedRoadWidth = BigDecimal.ZERO;
+    
+    private String proposedRoadWidthRequired;
+    
+    public String getProposedRoadWidthRequired() {
+		return proposedRoadWidthRequired;
+	}
+
+	public void setProposedRoadWidthRequired(String proposedRoadWidthRequired) {
+		this.proposedRoadWidthRequired = proposedRoadWidthRequired;
+	}
+
+	public BigDecimal getProposedRoadWidth() {
+		return proposedRoadWidth;
+	}
+
+	public void setProposedRoadWidth(BigDecimal proposedRoadWidth) {
+		this.proposedRoadWidth = proposedRoadWidth;
+	}
+
+	public String getMaterialType() {
 		return materialType;
 	}
 
@@ -253,6 +276,14 @@ public class PlanInformation implements Serializable {
 
 	public void setTwoWheelerSlowCharger(BigDecimal twoWheelerSlowCharger) {
 		this.twoWheelerSlowCharger = twoWheelerSlowCharger;
+	}
+
+	public BigDecimal getPlotAreaAsPerLandDocument() {
+		return plotAreaAsPerLandDocument;
+	}
+
+	public void setPlotAreaAsPerLandDocument(BigDecimal plotAreaAsPerLandDocument) {
+		this.plotAreaAsPerLandDocument = plotAreaAsPerLandDocument;
 	}
 
 	public BigDecimal getTwoWheelerFastCharger() {
@@ -420,6 +451,8 @@ public class PlanInformation implements Serializable {
 
     private String dagNo;
     
+    private String pattaNo;
+    
     private String riskType;
     
     public String getRiskType() {
@@ -451,6 +484,14 @@ public class PlanInformation implements Serializable {
 
 	public void setDagNo(String dagNo) {
 		this.dagNo = dagNo;
+	}
+
+	public String getPattaNo() {
+		return pattaNo;
+	}
+
+	public void setPattaNo(String pattaNo) {
+		this.pattaNo = pattaNo;
 	}
 
 	public String getWardNo() {

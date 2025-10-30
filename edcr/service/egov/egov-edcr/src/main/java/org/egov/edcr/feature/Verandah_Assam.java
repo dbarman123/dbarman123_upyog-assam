@@ -47,27 +47,42 @@
 
 package org.egov.edcr.feature;
 
+import static org.egov.edcr.constants.CommonFeatureConstants.DEPTH_AREA;
+import static org.egov.edcr.constants.CommonFeatureConstants.EMPTY_STRING;
+import static org.egov.edcr.constants.CommonFeatureConstants.WIDTH_AREA;
+import static org.egov.edcr.constants.EdcrReportConstants.AT_FLOOR;
+import static org.egov.edcr.constants.EdcrReportConstants.RULE_43;
+import static org.egov.edcr.constants.EdcrReportConstants.RULE_43A;
+import static org.egov.edcr.constants.EdcrReportConstants.VERANDAH_DESCRIPTION;
+import static org.egov.edcr.service.FeatureUtil.addScrutinyDetailtoPlan;
+import static org.egov.edcr.service.FeatureUtil.mapReportDetails;
+
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.egov.common.entity.edcr.*;
+import org.egov.common.entity.edcr.Block;
+import org.egov.common.entity.edcr.FeatureEnum;
+import org.egov.common.entity.edcr.Floor;
+import org.egov.common.entity.edcr.FloorUnit;
+import org.egov.common.entity.edcr.Plan;
+import org.egov.common.entity.edcr.ReportScrutinyDetail;
+import org.egov.common.entity.edcr.Result;
+import org.egov.common.entity.edcr.ScrutinyDetail;
+import org.egov.common.entity.edcr.VerandahRequirement;
 import org.egov.edcr.service.MDMSCacheManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import static org.egov.edcr.constants.CommonFeatureConstants.*;
-import static org.egov.edcr.constants.EdcrReportConstants.*;
-import static org.egov.edcr.constants.EdcrReportConstants.AT_FLOOR;
-import static org.egov.edcr.service.FeatureUtil.addScrutinyDetailtoPlan;
-import static org.egov.edcr.service.FeatureUtil.mapReportDetails;
 
 @Service
 public class Verandah_Assam extends FeatureProcess {
@@ -173,7 +188,12 @@ public class Verandah_Assam extends FeatureProcess {
 	 * @param permissibleWidth The minimum required verandah width
 	 */
 	private void evaluateVerandahWidth(Plan pl, ScrutinyDetail scrutinyDetail, Floor floor, FloorUnit unit, BigDecimal permissibleWidth) {
-	    List<BigDecimal> verandahWidths = unit.getVerandah().getVerandahWidth();
+		List<BigDecimal> verandahWidths = Optional.ofNullable(unit.getVerandah().getVerandahWidth())
+		        .orElse(Collections.emptyList())
+		        .stream()
+		        .filter(Objects::nonNull)
+		        .map(width -> width.setScale(2, RoundingMode.HALF_UP))
+		        .collect(Collectors.toList());
 
 	    if (verandahWidths != null && !verandahWidths.isEmpty()) {
 	        // Take minimum width from extracted verandah widths

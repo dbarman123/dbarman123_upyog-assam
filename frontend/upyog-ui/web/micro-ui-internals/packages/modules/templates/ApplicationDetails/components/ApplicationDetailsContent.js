@@ -64,6 +64,8 @@ function ApplicationDetailsContent({
   function OpenImage(imageSource, index, thumbnailsToShow) {
     window.open(thumbnailsToShow?.fullImage?.[0], "_blank");
   }
+  const { data: storeData } = Digit.Hooks.useStore.getInitData();
+  const { tenants } = storeData || {};
   const [expanded, setExpanded] = useState({
     form22: false,
     form23A: false,
@@ -343,29 +345,29 @@ function ApplicationDetailsContent({
       </div>
     );
   };
-  const handleDownloadPdf = async (formType) => {
+  const handleDownloadPdf = async (formType, value) => {
     try {
       let formData = null;
       let tenantId = Digit.ULBService.getCitizenCurrentTenant(true) || Digit.ULBService.getCurrentTenantId();
       const tenantInfo  = tenants.find((tenant) => tenant.code === tenantId);
       switch (formType) {
         case "FORM_22":
-          formData = form22;
+          formData = value;
           break;
         case "FORM_23A":
-          formData =form23A;
+          formData = value;
           break;
         case "FORM_23B":
-          formData = form23B;
+          formData = value;
           break;
         default:
           formData = null;
       }
   
-      if (!formData) {
-        console.error("No data found for", formType);
-        return;
-      }
+      // if (!formData) {
+      //   console.error("No data found for", formType);
+      //   return;
+      // }
   
       const acknowledgementData = await FormAcknowledgement(
         { formType, formData },
@@ -695,7 +697,7 @@ function ApplicationDetailsContent({
                       <span className="download-button">{t("CS_COMMON_DOWNLOAD")}</span>
                     </div>
                   }
-                  onClick={() => handleDownloadPdf("FORM_22")}
+                  onClick={() => handleDownloadPdf("FORM_22", detail?.additionalDetails?.form22Details?.[0]?.value)}
                   className="w-full"
                 />
 
@@ -704,7 +706,7 @@ function ApplicationDetailsContent({
               {expanded.form22 && (
                 <React.Fragment>
                   <StatusTable>
-                  {getDetailsRow(form22)}
+                  {getDetailsRow(detail?.additionalDetails?.form22Details?.[0]?.value)}
 
                   <div style={{ marginTop: "1rem" }}>
                     <LinkButton
@@ -744,7 +746,7 @@ function ApplicationDetailsContent({
                       <span className="download-button">{t("CS_COMMON_DOWNLOAD")}</span>
                     </div>
                   }
-                  onClick={() => handleDownloadPdf("FORM_23A")}
+                  onClick={() => handleDownloadPdf("FORM_23A",  detail?.additionalDetails?.form23ADetails?.[0]?.value)}
                   className="w-full"
                 />
 
@@ -752,7 +754,7 @@ function ApplicationDetailsContent({
 
               {expanded.form23A && (
                 <React.Fragment>
-                  {getDetailsRow(form23A)}
+                  {getDetailsRow( detail?.additionalDetails?.form23ADetails?.[0]?.value)}
 
                   <div style={{ marginTop: "1rem" }}>
                     <LinkButton
@@ -790,7 +792,7 @@ function ApplicationDetailsContent({
                       <span className="download-button">{t("CS_COMMON_DOWNLOAD")}</span>
                     </div>
                   }
-                  onClick={() => handleDownloadPdf("FORM_23B")}
+                  onClick={() => handleDownloadPdf("FORM_23B",  detail?.additionalDetails?.form23BDetails?.[0]?.value)}
                   className="w-full"
                 />
 
@@ -798,7 +800,7 @@ function ApplicationDetailsContent({
 
               {expanded.form23B && (
                 <React.Fragment>
-                  {getDetailsRow(form23B)}
+                  {getDetailsRow( detail?.additionalDetails?.form23BDetails?.[0]?.value)}
 
                   <div style={{ marginTop: "1rem" }}>
                     <LinkButton

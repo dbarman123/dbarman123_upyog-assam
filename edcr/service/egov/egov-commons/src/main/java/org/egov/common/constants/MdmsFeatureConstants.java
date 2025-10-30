@@ -84,6 +84,7 @@ public class MdmsFeatureConstants {
     public static final String ADDITIONAL_FEATURE = "AdditionalFeature";
     public static final String ROOF_SLOPE = "RoofSlope";
     public static final String WINDOWS = "Windows";
+    public static final String DISTANCE_FROM_WATERBODIES = "DistanceFromWaterBodies";
     public static final String BPA = "BPA";
 
     // Private constructor to prevent instantiation

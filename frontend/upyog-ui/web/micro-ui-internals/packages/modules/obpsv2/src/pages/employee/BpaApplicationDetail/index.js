@@ -90,7 +90,7 @@ const BPAEmployeeDetails = () => {
           
       <LinkButton label={t("VIEW_TIMELINE")} style={{ color:"#A52A2A"}} onClick={handleViewTimeline}></LinkButton>
         </div>
-        {data?.applicationData?.status === "PENDING_GMDA_ENGINEER" && (userInfo?.info?.roles.filter(role => role.code === "BPA_ENGINEER")).length>0 && <FormComposer
+        {(data?.applicationData?.status === "PENDING_DA_ENGINEER" || data?.applicationData?.status ==="PENDING_DD_AD_DEVELOPMENT_AUTHORITY") && (userInfo?.info?.roles.filter(role => role.code === "BPA_ENGINEER")).length>0 && <FormComposer
         heading={t("")}
         isDisabled={!canSubmit}
         config={configs.map((config) => {

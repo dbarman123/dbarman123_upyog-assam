@@ -233,6 +233,22 @@ public class PlanInfoFeatureExtract extends FeatureExtract {
 			plot.setPresentInDxf(true);
 			pl.setPlot(plot);
 		}
+		
+		String plotAreaAsPerLandDoc = planInfoProperties.get(DxfFileConstants.PLOT_AREA_AS_PER_LAND_DOC);
+		if (plotAreaAsPerLandDoc != null) {
+		PlotDetail plotDetail = new PlotDetail();
+	
+		plotAreaAsPerLandDoc = plotAreaAsPerLandDoc.replaceAll(digitsRegex, "");
+			BigDecimal numericValue = getNumericValue(plotAreaAsPerLandDoc, pl, DxfFileConstants.PLOT_AREA_AS_PER_LAND_DOC);
+			if (numericValue != null) {
+				pi.setPlotAreaAsPerLandDocument(numericValue);
+				
+				if (numericValue.compareTo(ONEHUDREDTWENTYFIVE) <= 0)
+					plotDetail.setSmallPlot(true);
+			}
+			plotDetail.setPresentInDxf(true);
+			pl.setPlot(plotDetail);
+		}
 
 		String noOfSeats = planInfoProperties.get(DxfFileConstants.SEATS_SP_RESI);
 		if (StringUtils.isNotBlank(noOfSeats)) {
@@ -486,7 +502,45 @@ public class PlanInfoFeatureExtract extends FeatureExtract {
 		} else
 			pl.addError(DxfFileConstants.ROAD_WIDTH,
 					getLocaleMessage(OBJECTNOTDEFINED, DxfFileConstants.ROAD_WIDTH + " of PLAN_INFO layer"));
+		
+		String proposedRoadWidthRequired = planInfoProperties.get(DxfFileConstants.PROPOSED_ROAD_WIDTH_REQUIRED);
 
+		//  proposedRoadWidthRequired is mandatory
+		if (StringUtils.isNotBlank(proposedRoadWidthRequired)) {
+		    if (proposedRoadWidthRequired.equalsIgnoreCase(DcrConstants.YES)) {
+		        pi.setProposedRoadWidthRequired(DcrConstants.YES);
+		    } else if (proposedRoadWidthRequired.equalsIgnoreCase(DcrConstants.NO)) {
+		        pi.setProposedRoadWidthRequired(DcrConstants.NO);
+		    } else {
+		        pl.addError(DxfFileConstants.PROPOSED_ROAD_WIDTH_REQUIRED,
+		                DxfFileConstants.PROPOSED_ROAD_WIDTH_REQUIRED + " must be either YES or NO.");
+		    }
+		} else {
+		    pl.addError(DxfFileConstants.PROPOSED_ROAD_WIDTH_REQUIRED,
+		            DxfFileConstants.PROPOSED_ROAD_WIDTH_REQUIRED + " is mandatory in PLAN_INFO layer.");
+		}
+
+		// Read proposedRoadWidth
+		String proposedRoadWidth = planInfoProperties.get(DxfFileConstants.PROPOSED_ROAD_WIDTH);
+		if (StringUtils.isNotBlank(proposedRoadWidth)) {
+		    proposedRoadWidth = proposedRoadWidth.replaceAll(digitsRegex, "");
+		    BigDecimal proposedRoadWidthValue = getNumericValue(proposedRoadWidth, pl, DxfFileConstants.PROPOSED_ROAD_WIDTH);
+		    pi.setProposedRoadWidth(proposedRoadWidthValue);
+		} else {
+		    // If required == YES but proposedRoadWidth missing → throw error
+		    if (DcrConstants.YES.equalsIgnoreCase(pi.getProposedRoadWidthRequired())) {
+		        pl.addError(DxfFileConstants.PROPOSED_ROAD_WIDTH,
+		                getLocaleMessage(OBJECTNOTDEFINED, DxfFileConstants.PROPOSED_ROAD_WIDTH + " is mandatory when "
+		                        + DxfFileConstants.PROPOSED_ROAD_WIDTH_REQUIRED + " is YES in PLAN_INFO layer"));
+		    } else {
+		       
+		        LOG.info("Proposed Road Width not provided since ProposedRoadWidthRequired = NO");
+		    }
+		}
+
+
+		
+		
 		String roadLength = planInfoProperties.get(DxfFileConstants.ROAD_LENGTH);
 		if (StringUtils.isNotBlank(roadLength)) {
 			roadLength = roadLength.replaceAll(digitsRegex, "");
@@ -749,8 +803,12 @@ public class PlanInfoFeatureExtract extends FeatureExtract {
 			pi.setDagNo(dagNo);
 		
 		String wardNo = planInfoProperties.get(DxfFileConstants.WARDNO);
-		if (StringUtils.isNotBlank(dagNo))
+		if (StringUtils.isNotBlank(wardNo))
 			pi.setWardNo(wardNo);
+		
+		String pattaNo = planInfoProperties.get(DxfFileConstants.PATTANO);
+		if (StringUtils.isNotBlank(pattaNo))
+			pi.setPattaNo(pattaNo);
 		
 		String materialType = planInfoProperties.get(DxfFileConstants.MATERIAL_TYPE);
 			if (StringUtils.isNotBlank(materialType))

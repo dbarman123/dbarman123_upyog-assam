@@ -316,6 +316,7 @@ export const OBPSV2Services = {
     if (edcrNumber) {
       ({ form22, form23A, form23B, loading } = await ScrutinyFormService.getDetails(edcrNumber, "assam"));
     }
+    console.log("form222",form22)
     if (!appDocumentFileStoreIds) appDocumentFileStoreIds = [];
     response?.bpa?.[0]?.additionalDetails?.fieldinspection_pending?.map(
       (fiData) => {

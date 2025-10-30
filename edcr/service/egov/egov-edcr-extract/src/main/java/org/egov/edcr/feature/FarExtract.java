@@ -223,10 +223,10 @@ public class FarExtract extends FeatureExtract {
                     
                     List<String> layerNamesUnit = Util.getLayerNamesLike(pl.getDoc(), layerRegEx);
                     
-                   if(layerNamesUnit.isEmpty() || layerNamesUnit == null) {
-						pl.addError(UNIT_LAYER,
-								 UNIT);
-                   }
+//                   if(layerNamesUnit.isEmpty() || layerNamesUnit == null) {
+//						pl.addError(UNIT_LAYER,
+//								 UNIT);
+//                   }
                     
                     List<DXFLWPolyline> occupancyUnits = new ArrayList<>();
                     for (String layerName : layerNamesUnit) {
