@@ -119,7 +119,10 @@ const Action = ({ selectedAction, applicationNo, closeModal, setSelectedAction, 
           redirectToPage(redirectingUrl);
           break;
         case "PAY":
-          let redirectURL = `${window.location.origin}/upyog-ui/citizen/payment/my-bills/BPA.PLANNING_PERMIT_FEE/${applicationNo}`;
+          const isEmployeeRoute = window.location.href.includes("/employee/");
+          let redirectURL = isEmployeeRoute 
+            ? `${window.location.origin}/upyog-ui/employee/payment/collect/BPA.PLANNING_PERMIT_FEE/${applicationNo}`
+            : `${window.location.origin}/upyog-ui/citizen/payment/my-bills/BPA.PLANNING_PERMIT_FEE/${applicationNo}`;
           redirectToPage(redirectURL);
           break;
         case "APPLY_FOR_SCRUTINY":
