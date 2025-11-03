@@ -129,7 +129,7 @@ public class LocationPlanExtract extends FeatureExtract {
                 LOGGER.debug("Processing Other Large Ponds Waterbodies property: {}", otherLargePondsWaterbodies);
                 otherLargePondsWaterbodies = otherLargePondsWaterbodies.replaceAll(digitsRegex, "");
                 BigDecimal value = getNumericValue(otherLargePondsWaterbodies, pl, DxfFileConstants.OTHER_LARGE_PONDS_WATERBODIES);
-                pl.setOtherNotifiedWaterBodies(value);
+                pl.setOtherLargePondsOrWaterBody(value);
                 LOGGER.info("Set Other Large Ponds Waterbodies value to {}", value);
             }
 
