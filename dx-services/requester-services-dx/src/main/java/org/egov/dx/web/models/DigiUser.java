@@ -39,6 +39,8 @@ public class DigiUser {
     private Long id;
     private String uuid;
     private String digilockerid;
+    private String ssoId; // Generic SSO provider ID
+    private String ssoType; // SSO provider type (EPRAMAAN, DIGILOCKER, etc.)
     private String access_token;
 
     @Pattern(regexp = UserServiceConstants.PATTERN_TENANT)
