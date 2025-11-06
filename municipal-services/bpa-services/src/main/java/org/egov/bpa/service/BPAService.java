@@ -202,7 +202,7 @@ public class BPAService {
      * @param applicationType
      * @param bpaRequest
      */
-	private void addCalculation(BPARequest bpaRequest) {
+	private void addCalculation(BPARequest bpaRequest, String feeType) {
 
 		BPA bpa = bpaRequest.getBPA();
 		bpa.setTenantId(bpa.getTenantId());
@@ -212,7 +212,7 @@ public class BPAService {
 		floors.add(new Floor(1, bpa.getLandInfo().getTotalPlotArea(), BigDecimal.ZERO));
 		bpa.setFloors(floors);
 		bpa.setWallType("");
-		bpa.setFeeType("PLANNING_PERMIT_FEE");
+		bpa.setFeeType(feeType);
 		bpa.setTotalBuiltUpArea(bpa.getLandInfo().getTotalPlotArea());
 		bpaRequest.setBPA(bpa);
 
@@ -506,7 +506,7 @@ public class BPAService {
 			wfIntegrator.callWorkFlow(bpaRequest);
 			repository.update(bpaRequest, BPAConstants.UPDATE_ALL_BUILDING_PLAN);
 			bpaRequest.getBPA().setFloors(floors);
-			addCalculation(bpaRequest);
+			addCalculation(bpaRequest, "PLANNING_PERMIT_FEE");
 			landService.updateLandInfo(bpaRequest);
 			break;
 
@@ -515,6 +515,10 @@ public class BPAService {
 			wfIntegrator.callWorkFlow(bpaRequest);
 			repository.update(bpaRequest, BPAConstants.UPDATE);
 			break;
+		}
+
+		if("PENDING_CHAIRMAN_PRESIDENT_MB".equalsIgnoreCase(bpaRequest.getBPA().getStatus())) {
+			addCalculation(bpaRequest, "BUILDING_PERMIT_FEE");			
 		}
 
 		return bpaRequest.getBPA();
