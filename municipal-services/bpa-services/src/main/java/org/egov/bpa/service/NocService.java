@@ -68,7 +68,7 @@ public class NocService {
 
 		if (!CollectionUtils.isEmpty(nocTypeConditionsMap)) {
 			List<String> nocTypes = nocEval.getApplicableNOCList(nocTypeConditionsMap, edcrResponse);
-			log.debug("Applicable NOCs are, "+nocTypes);
+			log.info("Applicable NOCs are, "+nocTypes);
 			for (String nocType : nocTypes) {
 				NocRequest nocRequest = NocRequest.builder()
 						.noc(Noc.builder().tenantId(bpa.getTenantId())

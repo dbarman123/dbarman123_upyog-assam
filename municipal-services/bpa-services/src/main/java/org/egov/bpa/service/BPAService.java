@@ -152,9 +152,6 @@ public class BPAService {
 
         wfIntegrator.callWorkFlow(bpaRequest);
 
-        mdmsData = util.mDMSCall(requestInfo, tenantId);
-        nocService.createNocRequest(bpaRequest, mdmsData);
-
      //   this.addCalculation(applicationType, bpaRequest);
 
         log.info("bpaRequest before create : " + String.valueOf(bpaRequest.getBPA().getApplicationNo()) + "---"
@@ -462,8 +459,8 @@ public class BPAService {
      //   String applicationType = edcrResponse.get(BPAConstants.APPLICATIONTYPE);
      //   log.debug("applicationType is " + applicationType);
 
-        BusinessService businessService = workflowService.getBusinessService(bpa, bpaRequest.getRequestInfo(),
-                bpa.getApplicationNo());
+//        BusinessService businessService = workflowService.getBusinessService(bpa, bpaRequest.getRequestInfo(),
+//                bpa.getApplicationNo());
 		List<Floor> floors = new ArrayList<>();
 //				edcrService.getFloorsFromEDCRDetails(bpaRequest.getRequestInfo(), bpaRequest.getBPA());
 
@@ -511,8 +508,13 @@ public class BPAService {
 			landService.updateLandInfo(bpaRequest);
 			break;
 
+		case "SUBMIT_REPORT":
+			Object mdmsData = util.mDMSCall(requestInfo, tenantId);
+	        nocService.createNocRequest(bpaRequest, mdmsData);
+			break;
+
 		default:
-			enrichmentService.enrichBPAUpdateRequest(bpaRequest, businessService);
+//			enrichmentService.enrichBPAUpdateRequest(bpaRequest, businessService);
 			wfIntegrator.callWorkFlow(bpaRequest);
 			repository.update(bpaRequest, BPAConstants.UPDATE);
 			break;

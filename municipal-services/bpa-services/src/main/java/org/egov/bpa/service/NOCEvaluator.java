@@ -40,7 +40,7 @@ public class NOCEvaluator {
 		}
 	}
 
-	public static boolean allTrue(Map<String, String> edcrResponse, List<String> conditions) {
+	public static boolean isAllConditionsTrue(Map<String, String> edcrResponse, List<String> conditions) {
 		return conditions.stream().allMatch(cond -> conditionChecks.getOrDefault(cond, e -> false).apply(edcrResponse));
 	}
 
@@ -52,12 +52,12 @@ public class NOCEvaluator {
 		for (Map.Entry<String, List<String>> entry : nocTypeConditionsMap.entrySet()) {
 			String type = entry.getKey();
 			List<String> conditions = entry.getValue();
-			if (allTrue(edcrResponse, conditions)) {
+			if (isAllConditionsTrue(edcrResponse, conditions)) {
 				applicable.add(type);
 			}
 		}
 
-		log.debug("Applicable NOCs: " + applicable);
+		log.info("Applicable NOCs: " + applicable);
 		return applicable;
 	}
 
