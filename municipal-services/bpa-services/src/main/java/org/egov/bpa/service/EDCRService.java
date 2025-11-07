@@ -268,6 +268,62 @@ public class EDCRService {
 			edcrDetails.put(BPAConstants.PERMIT_NO, approvalNo.get(0).toString());
 		}
 
+		// OCCUPANCY
+		List<String> occupancy = context.read("edcrDetail.*.planDetail.planInformation.occupancy");
+		if (CollectionUtils.isEmpty(occupancy)) {
+			edcrDetails.put("OCCUPANCY", "");
+		} else {
+			edcrDetails.put("OCCUPANCY", occupancy.get(0).toString());
+		}
+
+		// BUILDING_HEIGHT
+		List<Double> buildingHeights = context.read("edcrDetail.*.planDetail.blocks[0].building.buildingHeight");
+		if (CollectionUtils.isEmpty(buildingHeights)) {
+			edcrDetails.put("BUILDING_HEIGHT", "");
+		} else {
+			edcrDetails.put("BUILDING_HEIGHT", buildingHeights.get(0).toString());
+		}
+
+		// TOTAL_BUILTUP_AREA
+		List<Double> totalBuiltUpAreas = context.read("edcrDetail.*.planDetail.blocks[0].building.totalBuitUpArea");
+		if (CollectionUtils.isEmpty(totalBuiltUpAreas)) {
+			edcrDetails.put("TOTAL_BUILTUP_AREA", "");
+		} else {
+			edcrDetails.put("TOTAL_BUILTUP_AREA", totalBuiltUpAreas.get(0).toString());
+		}
+
+		// NUMBER_OF_LIFTS
+		List<String> numberOfLifts = context.read("edcrDetail.*.planDetail.blocks[0].*.numberOfLifts");
+		if (CollectionUtils.isEmpty(numberOfLifts)) {
+			edcrDetails.put("NUMBER_OF_LIFTS", "");
+		} else {
+			edcrDetails.put("NUMBER_OF_LIFTS", numberOfLifts.get(0).toString());
+		}
+
+		// BUILDING_CATEGORY (for G_PLUS_3_BUILDINGS)
+		List<String> buildingCategory = null;
+		if (CollectionUtils.isEmpty(buildingCategory)) {
+			edcrDetails.put("BUILDING_CATEGORY", "");
+		} else {
+			edcrDetails.put("BUILDING_CATEGORY", buildingCategory.get(0).toString());
+		}
+
+		// BUILDING_TYPE (for SPECIAL_STRUCTURES)
+		List<String> buildingType = null;
+		if (CollectionUtils.isEmpty(buildingType)) {
+			edcrDetails.put("BUILDING_TYPE", "");
+		} else {
+			edcrDetails.put("BUILDING_TYPE", buildingType.get(0).toString());
+		}
+
+		// INDUSTRY_TYPE (for HAZARDOUS_INDUSTRIES)
+		List<String> industryType = null;
+		if (CollectionUtils.isEmpty(industryType)) {
+			edcrDetails.put("INDUSTRY_TYPE", "");
+		} else {
+			edcrDetails.put("INDUSTRY_TYPE", industryType.get(0).toString());
+		}
+
 		return edcrDetails;
 	}
 	

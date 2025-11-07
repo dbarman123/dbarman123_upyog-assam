@@ -152,8 +152,6 @@ public class BPAService {
 
         wfIntegrator.callWorkFlow(bpaRequest);
 
-        //nocService.createNocRequest(bpaRequest, mdmsData);
-
      //   this.addCalculation(applicationType, bpaRequest);
 
         log.info("bpaRequest before create : " + String.valueOf(bpaRequest.getBPA().getApplicationNo()) + "---"
@@ -508,6 +506,11 @@ public class BPAService {
 			bpaRequest.getBPA().setFloors(floors);
 			addCalculation(bpaRequest, "PLANNING_PERMIT_FEE");
 			landService.updateLandInfo(bpaRequest);
+			break;
+
+		case "SUBMIT_REPORT":
+			Object mdmsData = util.mDMSCall(requestInfo, tenantId);
+	        nocService.createNocRequest(bpaRequest, mdmsData);
 			break;
 
 		default:

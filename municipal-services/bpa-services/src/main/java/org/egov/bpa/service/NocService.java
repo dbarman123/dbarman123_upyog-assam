@@ -1,10 +1,14 @@
 package org.egov.bpa.service;
 
+import static org.egov.bpa.util.BPAConstants.INPROGRESS_STATUS;
+
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.egov.bpa.config.BPAConfiguration;
 import org.egov.bpa.repository.ServiceRequestRepository;
@@ -29,14 +33,15 @@ import com.jayway.jsonpath.JsonPath;
 import lombok.extern.slf4j.Slf4j;
 import net.logstash.logback.encoder.org.apache.commons.lang.StringUtils;
 
-import static org.egov.bpa.util.BPAConstants.INPROGRESS_STATUS;
-
 @Service
 @Slf4j
 public class NocService {
 
 	@Autowired
 	private EDCRService edcrService;
+
+	@Autowired
+	private NOCEvaluator nocEval;
 
 	@Autowired
 	private BPAConfiguration config;
@@ -49,27 +54,21 @@ public class NocService {
 
 	@SuppressWarnings("unchecked")
 	
-		public void createNocRequest(BPARequest bpaRequest, Object mdmsData) {
+	public void createNocRequest(BPARequest bpaRequest, Object mdmsData) {
+
 		BPA bpa = bpaRequest.getBPA();
 		Map<String, String> edcrResponse = edcrService.getEDCRDetails(bpaRequest.getRequestInfo(), bpaRequest.getBPA());
-		log.debug("applicationType in NOC is " + edcrResponse.get(BPAConstants.APPLICATIONTYPE));
-		log.debug("serviceType in NOC is " + edcrResponse.get(BPAConstants.SERVICETYPE));
-		
-		String riskType = "ALL";
-		if (StringUtils.isEmpty(bpa.getRiskType()) || bpa.getRiskType().equalsIgnoreCase("LOW")) {
-			riskType = bpa.getRiskType();
-		}
-		log.debug("Fetching NocTypeMapping record of riskType : " + riskType);
 
-		String nocPath = BPAConstants.NOCTYPE_REQUIRED_MAP
-				.replace("{1}", edcrResponse.get(BPAConstants.APPLICATIONTYPE))
-				.replace("{2}", edcrResponse.get(BPAConstants.SERVICETYPE)).replace("{3}", riskType);
-		
-		Map<String,String> nocSourceCnofig = config.getNocSourceConfig();
-
+		Map<String, String> nocSourceCnofig = config.getNocSourceConfig();
+		String nocPath = BPAConstants.NOC_TYPE_MAPPING_PATH.replace("{1}", "Planning Permit");
 		List<Object> nocMappingResponse = (List<Object>) JsonPath.read(mdmsData, nocPath);
-		List<String> nocTypes = JsonPath.read(nocMappingResponse, "$..type");
-		if (!CollectionUtils.isEmpty(nocTypes)) {
+		Map<String, List<String>> nocTypeConditionsMap = nocMappingResponse.stream()
+				.map(obj -> (Map<String, Object>) obj)
+				.collect(Collectors.toMap(m -> (String) m.get("type"), m -> (List<String>) m.get("conditions")));
+
+		if (!CollectionUtils.isEmpty(nocTypeConditionsMap)) {
+			List<String> nocTypes = nocEval.getApplicableNOCList(nocTypeConditionsMap, edcrResponse);
+			log.info("Applicable NOCs are, "+nocTypes);
 			for (String nocType : nocTypes) {
 				NocRequest nocRequest = NocRequest.builder()
 						.noc(Noc.builder().tenantId(bpa.getTenantId())
@@ -84,7 +83,7 @@ public class NocService {
 		}
 
 	}
-	
+
 	public void createPreApproveNocRequest(BPARequest bpaRequest, Object mdmsData, List<String> edcrSuggestedNocs,
 			String applicationType, String serviceType) {
 		BPA bpa = bpaRequest.getBPA();

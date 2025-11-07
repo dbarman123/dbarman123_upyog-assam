@@ -219,9 +219,6 @@ public class MDMSService {
 		String wallType = calulationCriteria.getWallType();
 		String floorLevel = calulationCriteria.getFloorLevel();
 
-		System.out.println("feeType=" + feeType + ", applicationType=" + applicationType + ", wallType=" + wallType
-				+ ", floorLevel=" + floorLevel);
-
 		try {
 			// Fetch whole calculationType JSON from MDMS
 			List jsonOutput = JsonPath.read(mdmsData, BPACalculatorConstants.MDMS_CALCULATIONTYPE_PATH);
