@@ -179,4 +179,7 @@ public class Configurations {
 	@Value("${epramaan.iss}")
 	private String epIss;
 
+	@Value("${epramaan.certificate.value}")
+	private String epCertificateValue;
+
 }

@@ -31,6 +31,7 @@ const Urls = {
 
   UserSearch: "/user/_search",
   UserLogout: "/user/_logout",
+  EPramaanLogoutData: "http://localhost:8280/requester-services-dx/epramaan/getlogoutdata",
   UserCreate:"/user/users/_createnovalidate",
   UserUpdateAddressV2:"/user/_updateAddress",
   UserSearchNewV2: "/user/users/v2/_search", 
@@ -278,7 +279,8 @@ ePramaan: {
   authorization:"/requester-services-dx/epramaan/authorization/url",
   register :"http://localhost:8280/requester-services-dx/epramaan/authorization/url",
   token:"http://localhost:8280/requester-services-dx/epramaan/token/citizen",
-  oauth:"/user/epramaan/oauth/token"
+  oauth:"/user/epramaan/oauth/token",
+  logoutUrl:"https://epstg.meripehchaan.gov.in/openid/jwt/processOIDCSLORequest.do"
 },
 eSign:{
   pdfUrl:"/requester-services-dx/eSign/process",

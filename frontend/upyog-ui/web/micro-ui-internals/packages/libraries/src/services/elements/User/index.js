@@ -18,18 +18,72 @@ export const UserService = {
       },
     });
   },
-  logoutUser: () => {
+  logoutUser: async () => {
     let user = UserService.getUser();
-    if (!user || !user.info || !user.access_token) return false;
+    if (!user || !user.info || !user.access_token) return { ePramaanInitiated: false };
     const { type } = user.info;
-    return ServiceRequest({
+    const tenantId = type === "CITIZEN" ? Digit.ULBService.getStateId() : Digit.ULBService.getCurrentTenantId();
+    
+    // Check if ePramaan session exists
+    const sessionId = Digit.SessionStorage.get("epramaan_sessionId");
+    const sub = Digit.SessionStorage.get("epramaan_sub");
+    let ePramaanInitiated = false;
+
+    // ePramaan logout flow - if session exists, get form data and submit
+    if (sessionId && sub) {
+      try {
+        // Step 1: Get ePramaan logout form data from backend
+        const formDataResponse = await ServiceRequest({
+          serviceName: "getEPramaanLogoutData",
+          url: Urls.EPramaanLogoutData,
+          data: { sessionId, sub, tenantId },
+          auth: true,
+        });
+
+        if (formDataResponse) {
+          // Step 2: Call UPYOG logout first
+          await ServiceRequest({
+            serviceName: "logoutUser",
+            url: Urls.UserLogout,
+            data: { access_token: user?.access_token },
+            auth: true,
+            params: { tenantId },
+          });
+
+          // Step 3: Create and submit form to ePramaan logout URL
+          const form = document.createElement("form");
+          form.method = "POST";
+          form.action = Urls.ePramaan.logoutUrl;
+          form.style.display = "none";
+
+          const dataInput = document.createElement("input");
+          dataInput.type = "hidden";
+          dataInput.name = "data";
+          dataInput.value = JSON.stringify(formDataResponse);
+          form.appendChild(dataInput);
+
+          document.body.appendChild(form);
+          ePramaanInitiated = true;
+          setTimeout(() => form.submit(), 100); // Form submission redirects to ePramaan
+          return { ePramaanInitiated };
+        }
+      } catch (error) {
+        console.error("ePramaan logout error:", error);
+      }
+    }
+
+    // Normal UPYOG logout (no ePramaan session)
+    await ServiceRequest({
       serviceName: "logoutUser",
       url: Urls.UserLogout,
       data: { access_token: user?.access_token },
       auth: true,
       params: { tenantId: type === "CITIZEN" ? Digit.ULBService.getStateId() : Digit.ULBService.getCurrentTenantId() },
     });
+
+    return { ePramaanInitiated };
   },
+
   getType: () => {
     return Storage.get("userType") || "citizen";
   },
@@ -42,11 +96,16 @@ export const UserService = {
   },
   logout: async () => {
     const userType = UserService.getType();
+    let ePramaanInitiated = false;
     try {
-      await UserService.logoutUser();
+      const result = await UserService.logoutUser();
+      ePramaanInitiated = result?.ePramaanInitiated;
     } catch (e) {
     }
-    finally{
+    
+    // Only clear storage and redirect if ePramaan form submission did not happen
+    // (ePramaan form submission causes redirect to ePramaan, then back to redirectUrl)
+    if (!ePramaanInitiated) {
       window.localStorage.clear();
       window.sessionStorage.clear();
       if (userType === "citizen") {
@@ -56,6 +115,7 @@ export const UserService = {
       }
     }
   },
+
   sendOtp: (details, stateCode) =>
     ServiceRequest({
       serviceName: "sendOtp",

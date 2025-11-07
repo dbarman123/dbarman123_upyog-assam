@@ -100,6 +100,11 @@ const setCitizenDetail = (userObject, token, tenantId) => {
 
       };
       const { ResponseInfo, UserRequest: info, ...tokens } = await Digit.EPramaanService.token({ TokenReq });
+      
+      // Store ePramaan session data for logout
+      if (tokens?.sessionId) Digit.SessionStorage.set('epramaan_sessionId', tokens.sessionId);
+      if (tokens?.sub) Digit.SessionStorage.set('epramaan_sub', tokens.sub);
+      
       setUser({ info, ...tokens });
       setCitizenDetail(info, tokens?.access_token, info?.tenantId);
     }

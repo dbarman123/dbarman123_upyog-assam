@@ -22,7 +22,6 @@ import org.egov.common.contract.request.RequestInfo;
 import org.egov.dx.repository.EPramaanMapper;
 import org.egov.dx.util.Configurations;
 import org.egov.dx.web.models.*;
-import org.joda.time.DateTime;
 import org.joda.time.DateTimeUtils;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +38,7 @@ import javax.crypto.spec.SecretKeySpec;
 import javax.validation.Valid;
 import java.io.*;
 import java.net.URI;
+import java.util.Base64;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
@@ -363,10 +363,31 @@ public class EPramaanRequestService {
         return secretKeySpec;
     }
 
+    /**
+     * Get public key from certificate for JWT signature verification
+     * Certificate value is read from application.properties
+     * 
+     * @return PublicKey for JWT verification
+     * @throws Exception if certificate parsing fails
+     */
+    public PublicKey getPublicKey() throws Exception {
+        String certificateValue = configurations.getEpCertificateValue();
+        if (certificateValue == null || certificateValue.isEmpty()) {
+            throw new IllegalArgumentException("epramaan.certificate.value is not configured");
+        }
+
+        String normalizedCertificate = certificateValue.replace("\\n", "\n");
+        CertificateFactory certFac = CertificateFactory.getInstance("X.509");
+        try (ByteArrayInputStream certStream = new ByteArrayInputStream(normalizedCertificate.getBytes(StandardCharsets.UTF_8))) {
+            X509Certificate cer = (X509Certificate) certFac.generateCertificate(certStream);
+            return cer.getPublicKey();
+        }
+    }
+    
+    /* Old method - reads certificate from file path
     public PublicKey getPublicKey() throws Exception {
         CertificateFactory certFac = CertificateFactory.getInstance("X.509");
         PublicKey publicKey = null;
-        // Load certificate from resources folder
         try (InputStream certStream = Thread.currentThread()
                 .getContextClassLoader()
                 .getResourceAsStream(configurations.getEpCertificatePath())) {
@@ -378,11 +399,9 @@ public class EPramaanRequestService {
             X509Certificate cer = (X509Certificate) certFac.generateCertificate(certStream);
             publicKey = cer.getPublicKey();
         }
-
-        // FileInputStream fis = new FileInputStream(CERTIFICATE_PATH);
-
         return publicKey;
     }
+    */
 
 
     public UserRes getUser(TokenReq tokenReq)
@@ -463,6 +482,7 @@ public class EPramaanRequestService {
         
         // Use autowired restTemplate for user service call (typically HTTP, not HTTPS)
         Object userOauth = this.restTemplate.postForEntity(url, createUserRequest, Object.class).getBody();
+        log.info("Received user object from user service: {}", userOauth.toString());
         return userOauth;
     }
 
@@ -518,7 +538,40 @@ public class EPramaanRequestService {
         
         return user;
     }
-    
+
+    /**
+     * Generate ePramaan logout form data for frontend to submit
+     * As per ePramaan SLO specification, frontend submits form with "data" key containing JSON
+     * 
+     * @param sessionId - ePramaan session ID from JWT token
+     * @param sub - Subject from JWT token (ePramaan user identifier)
+     * @param tenantId - Tenant ID
+     * @return EPramaanLogoutFormData containing all fields for form submission
+     */
+    public EPramaanLogoutFormData generateEPramaanLogoutFormData(String sessionId, String sub, String tenantId) throws Exception {
+        String logoutRequestId = UUID.randomUUID().toString();
+        String clientId = configurations.getEpClientId();
+        String aesKey = configurations.getEpAesKey();
+        String iss = configurations.getEpIss();
+        String redirectUrl = configurations.getEpServiceLogoutUri();
+        String customParameter = "UPYOG-Logout";
+        
+        // Generate HMAC: input = clientId + sessionId + iss + aesKey + sub + redirectUrl, key = logoutRequestId
+        String inputValue = clientId + sessionId + iss + aesKey + sub + redirectUrl;
+        String hmac = hashHMACHex(inputValue, logoutRequestId);
+        
+        return EPramaanLogoutFormData.builder()
+            .sub(sub)
+            .clientId(clientId)
+            .redirectUrl(redirectUrl)
+            .logoutRequestId(logoutRequestId)
+            .hmac(hmac)
+            .iss(iss)
+            .customParameter(customParameter)
+            .sessionId(sessionId)
+            .build();
+    }
+
     /**
      * Creates a default RequestInfo for SSO callback scenarios
      * where no user session exists yet
@@ -534,6 +587,42 @@ public class EPramaanRequestService {
         requestInfo.setMsgId(UUID.randomUUID().toString());
         log.debug("Created default RequestInfo for callback with msgId: {}", requestInfo.getMsgId());
         return requestInfo;
+    }
+
+    /**
+     * Add ePramaan session info (sessionId and sub) to the OAuth response
+     * This allows frontend to store these values for later use in logout
+     * 
+     * @param userOauthResponse - OAuth response from user service
+     * @param tokenRes - ePramaan token response containing sessionId and sub
+     * @return Modified OAuth response with sessionId and sub added
+     */
+    @SuppressWarnings("unchecked")
+    public Object addEPramaanUserSessionInfo(Object userOauthResponse, EPramaanTokenRes tokenRes) {
+        try {
+            log.info("Adding ePramaan session info (sessionId and sub) to OAuth response");
+            
+            if (userOauthResponse instanceof Map) {
+                Map<String, Object> responseMap = (Map<String, Object>) userOauthResponse;
+                
+                responseMap.put("sessionId", tokenRes.getSessionId());
+                responseMap.put("sub", tokenRes.getSub());
+                
+                log.info("Successfully added - sessionId: {}, sub: {}", 
+                    tokenRes.getSessionId(), tokenRes.getSub());
+                
+                return responseMap;
+            } else {
+                log.warn("OAuth response is not a Map (Type: {}), cannot add ePramaan session info", 
+                    userOauthResponse.getClass().getName());
+                return userOauthResponse;
+            }
+            
+        } catch (Exception e) {
+            log.error("Error adding ePramaan session info to user object: {}", e.getMessage(), e);
+            log.warn("Returning original OAuth response. Frontend won't have sessionId/sub for logout.");
+            return userOauthResponse;
+        }
     }
 
 

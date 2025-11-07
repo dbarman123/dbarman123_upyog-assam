@@ -76,11 +76,13 @@ public class EPramaanRequestController {
         EPramaanTokenRes tokenRes= null;
         tokenRes = ePramaanRequestService.getToken(tokenRequest.getTokenReq());
         Object user = ePramaanRequestService.getOauthToken(tokenRequest.getRequestInfo() , tokenRes);
+        
+        // Add ePramaan sessionId and sub to the OAuth response for frontend to use in logout
+        Object enhancedResponse = ePramaanRequestService.addEPramaanUserSessionInfo(user, tokenRes);
 
-//	ResponseInfo responseInfo=ResponseInfoFactory.createResponseInfoFromRequestInfo(tokenRequest.getRequestInfo(), null);
-//	TokenResponse tokenResponse=TokenResponse.builder().responseInfo(responseInfo).tokenRes(tokenRes).build();
+        log.info("Enhanced OAuth response with ePramaan session info: {}", enhancedResponse.toString());
 
-        return new ResponseEntity<>(user,HttpStatus.OK);
+        return new ResponseEntity<>(enhancedResponse, HttpStatus.OK);
     }
 
 
@@ -99,6 +101,31 @@ public class EPramaanRequestController {
 
         Object user = ePramaanRequestService.getToken(eparmaanRequest);
         return new ResponseEntity<>(user, HttpStatus.OK);
+    }
+
+    /**
+     * Generate ePramaan logout form data
+     * Returns JSON object that frontend will submit as form to ePramaan logout URL
+     * 
+     * @param logoutRequest - Contains sessionId, sub, and tenantId
+     * @return EPramaanLogoutFormData with HMAC and all required fields
+     */
+    @RequestMapping(value = "/getlogoutdata", method = RequestMethod.POST)
+    public ResponseEntity<EPramaanLogoutFormData> getLogoutData(@Valid @RequestBody LogoutRequest logoutRequest) throws Exception {
+        if (logoutRequest.getSessionId() == null || logoutRequest.getSessionId().isEmpty()) {
+            throw new IllegalArgumentException("sessionId is required");
+        }
+        if (logoutRequest.getSub() == null || logoutRequest.getSub().isEmpty()) {
+            throw new IllegalArgumentException("sub is required");
+        }
+        
+        EPramaanLogoutFormData formData = ePramaanRequestService.generateEPramaanLogoutFormData(
+            logoutRequest.getSessionId(),
+            logoutRequest.getSub(),
+            logoutRequest.getTenantId()
+        );
+        
+        return new ResponseEntity<>(formData, HttpStatus.OK);
     }
 
 }
