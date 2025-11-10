@@ -64,6 +64,12 @@ import {
     const { roles } = Digit.UserService.getUser().info;
     const [workflowDetails, setWorkflowDetails] = useState(null);
 
+    const { data: mdmsData } = Digit.Hooks.useEnabledMDMS("as", "BPA", [{ name: "PermissibleZone" }], {
+    select: (data) => {
+      return data?.BPA?.PermissibleZone || {};
+    },
+  });
+
     useEffect(() => {
       const fetchWorkflow = async () => {
         const details = await Digit.WorkflowService.getByBusinessId(tenantId, acknowledgementIds);
@@ -143,7 +149,7 @@ import {
     useEffect(() => {
       (async () => {
         setActionError(null);
-        if (file) {
+        if (file && selectedAction !== "VALIDATE_GIS") {
           if (file.size >= 5242880) {
             setActionError(t("CS_MAXIMUM_UPLOAD_SIZE_EXCEEDED"));
           } else {
@@ -184,7 +190,7 @@ import {
               {
                 documentType: file.type,
                 fileName: file?.name,
-                fileStoreId: uploadedFile,
+                fileStoreId: selectedAction === "VALIDATE_GIS" ? "" : uploadedFile,
               },
             ] : null
         },
@@ -208,6 +214,99 @@ import {
     setToast(true);
   }
 }
+    
+   async function onValidateGIS() {
+       const occupancyType = data?.bpa?.[0]?.landInfo?.units?.[0]?.occupancyType;
+      
+   
+       if (!file) {
+         setActionError(t("CS_FILE_REQUIRED"));
+         return;
+       }
+   
+       try {
+         setIsUploading(true);
+         // Create multipart form data
+         const formData = new FormData();
+         formData.append("file", file);
+   
+         // Construct GIS request wrapper
+         const gisRequestWrapper = {
+           RequestInfo: {
+             apiId: "gis-api",
+             userInfo: {
+               uuid: Digit.UserService.getUser()?.info?.uuid,
+             },
+           },
+           gisRequest: {
+             tenantId: "Tinsukia",
+             applicationNo: data?.bpa?.[0]?.applicationNo,
+             rtpiId: data?.bpa?.[0]?.rtpDetails?.rtpUUID,
+           },
+         };
+   
+         // explicitly mark JSON part as application/json because the controller expects application/json
+         const blob = new Blob([JSON.stringify(gisRequestWrapper)], { type: "application/json" });
+         formData.append("gisRequestWrapper", blob);
+   
+         const response = await Digit.OBPSV2Services.gisService({ data: formData });
+         const landuse = response?.data?.wfsResponse?.landuse;
+   
+         // Filter MDMS Data using both occupancyType and landuse
+         const permissibleZones = mdmsData || [];
+         const filteredZones = permissibleZones.filter(
+           (zone) => zone?.code === occupancyType && zone?.typeOfLand?.toLowerCase() === landuse?.toLowerCase()
+         );
+   
+         // store the filtered data in a new variable (or state if needed)
+         const matchedZone = filteredZones?.[0] || null;
+   
+         // Check if permissible is "No"
+         if (matchedZone && matchedZone?.permissible === "No") {
+           setPopup(false);
+           setTimeout(() => {
+             if (setToast) {
+               setToast(t("NOT_PERMISSIBLE_FOR_CONSTRUCTION"));
+             }
+            //  if (typeof parentSetShowToast === "function") {
+            //    parentSetShowToast({ error: true }); // This shows error toast in parent
+            //  }
+             // Clear selectedAction AFTER setting parent toast
+             if (setSelectedAction) {
+               setSelectedAction(null);
+             }
+           }, 100);
+   
+           return false;
+         }
+   
+         // If permissible is "Yes"
+         if (matchedZone && matchedZone?.permissible === "Yes") {
+           setPopup(false);
+           setTimeout(() => {
+             if (setToast) {
+               setToast(t("PERMISSIBLE_FOR_CONSTRUCTION"));
+             }
+            //  if (typeof parentSetShowToast === "function") {
+            //    parentSetShowToast({ error: false });
+            //  }
+           }, 100);
+           return true;
+         }
+   
+         // Fallback if no matching zone found
+         setPopup(false);
+         setToast(true);
+         setToastMessage(t("NO_MATCHING_PERMISSIBLE_ZONE_FOUND"));
+         return false;
+       } catch (err) {
+         console.error("GIS Validation Error:", err);
+         setActionError(err?.response?.data?.Errors?.[0]?.message || t("CS_GIS_VALIDATION_FAILED"));
+       } finally {
+         setIsUploading(false);
+       }
+     }
+
 
      
   //  const refreshData = async () => {
@@ -298,7 +397,11 @@ import {
     setActionError(null);
     setComments(e.target.value);
   }
+
   function selectfile(e) {
+    if (selectedAction === "VALIDATE_GIS") {
+      setUploadedFile(e.target.files[0]);
+    }
     setFile(e.target.files[0]);
   }
   function redirectToPage(redirectingUrl){
@@ -1025,17 +1128,37 @@ import {
       actionSaveLabel={
         t("CS_COMMON_SUBMIT")
       }
-      actionSaveOnSubmit={() => {
-        if(selectedAction==="APPROVE"||selectedAction==="ACCEPT"||selectedAction==="REJECT"||selectedAction==="SEND"||selectedAction==="VALIDATE_GIS" ||selectedAction==="SEND_BACK_TO_RTP" || selectedAction==="SUBMIT_REPORT" || selectedAction==="RECOMMEND_TO_CEO" || selectedAction==="SEND_BACK_TO_GMDA")
-          onAssign(selectedAction, comments, "Edit");
-      if(selectedAction==="NEWRTP" &&!oldRTPName)
-        setActionError(t("CS_OLD_RTP_NAME_MANDATORY"))
-      if(selectedAction==="NEWRTP" && !newRTPName)
-        setActionError(t("CS_NEW_RTP_NAME_MANDATORY"))
+      // actionSaveOnSubmit={() => {
+      //   if(selectedAction==="APPROVE"||selectedAction==="ACCEPT"||selectedAction==="REJECT"||selectedAction==="SEND" ||selectedAction==="SEND_BACK_TO_RTP" || selectedAction==="SUBMIT_REPORT" || selectedAction==="RECOMMEND_TO_CEO" || selectedAction==="SEND_BACK_TO_GMDA")
+      //     onAssign(selectedAction, comments, "Edit");
+      // if(selectedAction==="NEWRTP" &&!oldRTPName)
+      //   setActionError(t("CS_OLD_RTP_NAME_MANDATORY"))
+      // if(selectedAction==="NEWRTP" && !newRTPName)
+      //   setActionError(t("CS_NEW_RTP_NAME_MANDATORY"))
 
         
        
-      }}
+      // }}
+
+      actionSaveOnSubmit={async (e) => {
+            try {
+              if (selectedAction === "VALIDATE_GIS") {
+                // first call validate GIS
+                const gisSuccess = await onValidateGIS(); // make onValidateGIS return true/false
+                if (gisSuccess) {
+                  // if GIS validation passed, call onAssign
+                  await onAssign(selectedAction, comments);
+                }
+              } else if (selectedAction==="APPROVE"||selectedAction==="ACCEPT"||selectedAction==="REJECT"||selectedAction==="SEND" ||selectedAction==="SEND_BACK_TO_RTP" || selectedAction==="SUBMIT_REPORT" || selectedAction==="RECOMMEND_TO_CEO" || selectedAction==="SEND_BACK_TO_GMDA") {
+                await onAssign(selectedAction, comments);
+              }
+
+              if (selectedAction === "NEWRTP" && !oldRTPName) setActionError(t("CS_OLD_RTP_NAME_MANDATORY"));
+              if (selectedAction === "NEWRTP" && !newRTPName) setActionError(t("CS_NEW_RTP_NAME_MANDATORY"));
+            } catch (err) {
+              console.error(err);
+            }
+          }}
       error={actioneError}
       setError={setActionError}
     >
@@ -1078,7 +1201,7 @@ import {
          <CardLabel>{t("CS_ACTION_UPLOAD_LOCATION_FILE")}</CardLabel>
           <UploadFile
             id="pgr-doc"
-            accept=".jpg"
+            accept=".kml"
             onUpload={selectfile}
             onDelete={() => setUploadedFile(null)}
             message={
