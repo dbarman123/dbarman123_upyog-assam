@@ -48,10 +48,24 @@
 
 package org.egov.edcr.feature;
 
+import static org.egov.edcr.constants.CommonFeatureConstants.COMMERCIAL;
+import static org.egov.edcr.constants.CommonFeatureConstants.COMMON_COVERAGE;
+import static org.egov.edcr.constants.CommonFeatureConstants.COVERAGE_AREA;
+import static org.egov.edcr.constants.CommonFeatureConstants.COVERAGE_AREA_BLOCK;
+import static org.egov.edcr.constants.CommonFeatureConstants.COVERAGE_HEADING;
+import static org.egov.edcr.constants.CommonFeatureConstants.NOT_PROVIDED;
+import static org.egov.edcr.constants.CommonFeatureConstants.RESIDENTIAL;
+import static org.egov.edcr.constants.DxfFileConstants.A;
+import static org.egov.edcr.constants.EdcrReportConstants.COVERAGE_RULE_ACTUAL_KEY;
+import static org.egov.edcr.constants.EdcrReportConstants.COVERAGE_RULE_EXPECTED_KEY;
+import static org.egov.edcr.constants.EdcrReportConstants.RULE_DESCRIPTION_KEY;
+import static org.egov.edcr.constants.EdcrReportConstants.MOST_RESTRICTIVE_OCCUPANCY_ERROR;
+import static org.egov.edcr.constants.EdcrReportConstants.OCCUPANCY_ERROR;
+import static org.egov.edcr.service.FeatureUtil.mapReportDetails;
+
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -62,17 +76,24 @@ import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.egov.common.constants.MdmsFeatureConstants;
-import org.egov.common.entity.edcr.*;
-import org.egov.edcr.service.MDMSCacheManager;
+import org.egov.common.entity.edcr.Block;
+import org.egov.common.entity.edcr.CoverageRequirement;
+import org.egov.common.entity.edcr.FeatureEnum;
+import org.egov.common.entity.edcr.Floor;
+import org.egov.common.entity.edcr.Measurement;
+import org.egov.common.entity.edcr.Occupancy;
+import org.egov.common.entity.edcr.OccupancyType;
+import org.egov.common.entity.edcr.OccupancyTypeHelper;
+import org.egov.common.entity.edcr.Plan;
+import org.egov.common.entity.edcr.ReportScrutinyDetail;
+import org.egov.common.entity.edcr.Result;
+import org.egov.common.entity.edcr.ScrutinyDetail;
 import org.egov.edcr.service.FetchEdcrRulesMdms;
+import org.egov.edcr.service.MDMSCacheManager;
+import org.egov.edcr.service.FeatureUtil;
 import org.egov.edcr.utility.DcrConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import static org.egov.edcr.constants.DxfFileConstants.A;
-
-import static org.egov.edcr.constants.CommonFeatureConstants.*;
-import static org.egov.edcr.constants.EdcrReportConstants.*;
-import static org.egov.edcr.service.FeatureUtil.mapReportDetails;
 
 @Service
 public class Coverage_Assam extends FeatureProcess {
@@ -123,28 +144,40 @@ public class Coverage_Assam extends FeatureProcess {
 	@Override
 	public Plan process(Plan pl) {
 	    LOG.info("Inside Coverage process()");
-	    
+
 	    validate(pl);
 
 	    BigDecimal plotArea = pl.getPlot().getArea();
 	    LOG.info("Plot area: {}", plotArea);
 
-	    int noOfFloors = 0; // unused but kept as per original
-	    LOG.info("Initial noOfFloors set to {}", noOfFloors);
-
 	    Set<OccupancyTypeHelper> occupancyList = extractOccupancyList(pl);
 	    LOG.info("Extracted {} occupancy types from plan", occupancyList.size());
 
-	    OccupancyTypeHelper mostRestrictiveOccupancy = pl.getVirtualBuilding().getMostRestrictiveFarHelper();
-	    LOG.info("Most restrictive occupancy: {}", 
-	        mostRestrictiveOccupancy != null ? mostRestrictiveOccupancy.getType().getName() : "None");
-	    String occupancy = mostRestrictiveOccupancy.getType().getCode();
+	    OccupancyTypeHelper mostRestrictiveOccupancy = null;
+
+	    try {
+	        if (pl.getVirtualBuilding() != null) {
+	            mostRestrictiveOccupancy = pl.getVirtualBuilding().getMostRestrictiveFarHelper();
+	        }
+	    } catch (Exception e) {
+	        LOG.error("Error fetching most restrictive occupancy", e);
+	        return FeatureUtil.handleError(pl, OCCUPANCY_ERROR,
+	        		MOST_RESTRICTIVE_OCCUPANCY_ERROR);
+	    }
+
+	    if (mostRestrictiveOccupancy == null || mostRestrictiveOccupancy.getType() == null) {
+	        return FeatureUtil.handleError(pl, OCCUPANCY_ERROR,
+	        		MOST_RESTRICTIVE_OCCUPANCY_ERROR);
+	    }
 
 	    BigDecimal totalCoverageArea = calculateCoverageAreas(pl, plotArea);
 	    LOG.info("Total coverage area calculated: {}", totalCoverageArea);
 
 	    BigDecimal totalCoverage = calculateTotalCoverage(plotArea, totalCoverageArea);
 	    LOG.info("Total coverage (%): {}", totalCoverage);
+
+	    String occupancy = mostRestrictiveOccupancy.getType().getCode();
+	    LOG.info("Most restrictive occupancy: {}", mostRestrictiveOccupancy.getType().getName());
 
 	    //  Skip processing if occupancy is residential
 	    if (occupancy != null && occupancy.equalsIgnoreCase(A)) {

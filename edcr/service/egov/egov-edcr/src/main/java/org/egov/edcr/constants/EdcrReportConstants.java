@@ -688,7 +688,7 @@ public class EdcrReportConstants {
     public static final String SANITY_RULE_DESC = "Sanity facility for Occupancy ";
     public static final String NEWLINE = "\n";
     public static final String SANITATION = "Sanitation";
-    public static final String BLOCK_U_S = "Block_";
+    public static final String BLOCK_U_S = "Block_ " ;
     public static final String WITH = " with ";
     public static final String BLDG_PART_WATER_CLOSET = "Water Closet";
     public static final String BLDG_PART_SPECIAL_WATER_CLOSET = "Special Water Closet";
@@ -803,5 +803,16 @@ public class EdcrReportConstants {
     // Solar constants
     public static final String SOLAR_VALUE_ONE = "solarValueOne";
     public static final String SOLAR_VALUE_TWO = "solarValueTwo";
+    public static final String OCCUPANCY_ERROR = "Occupancy Error";
+    public static final String MOST_RESTRICTIVE_OCCUPANCY_ERROR =
+            "Unable to determine occupancy type. Please check the drawing or check the BLT_UP_AREA layer and UNIT_LAYER present or not with the correct color code as per your use.";
+ 
+    public static final String STAIRCASE_ERROR = "Staircase Error";
+    public static final String TOTAL_STEPS_ZERO_MSG = "Total steps found as zero for block ";
+    public static final String VERIFY_STAIR_DETAILS_MSG = ". Please ensure the stair flight, landing, riser height, no of risers details are defined correctly in the drawing.";
+    public static final String ARITHMETIC_ERROR_MSG = "Error while calculating stair details ";
+    public static final String VERIFY_HEIGHT_STEPS_MSG = ". Please verify total height and number of steps.";
+    public static final String NA = "N/A";
+
 
 }

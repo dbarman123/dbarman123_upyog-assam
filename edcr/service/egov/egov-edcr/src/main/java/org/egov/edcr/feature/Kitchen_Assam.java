@@ -56,8 +56,11 @@ import static org.egov.edcr.constants.CommonKeyConstants.TYPICAL_FLOOR;
 import static org.egov.edcr.constants.CommonKeyConstants.U_KITCHEN;
 import static org.egov.edcr.constants.DxfFileConstants.A;
 import static org.egov.edcr.constants.DxfFileConstants.F;
+import static org.egov.edcr.constants.EdcrReportConstants.KICTHEN_VENT_DESC;
 import static org.egov.edcr.constants.EdcrReportConstants.KITCHEN;
 import static org.egov.edcr.constants.EdcrReportConstants.KITCHEN_DINING;
+import static org.egov.edcr.constants.EdcrReportConstants.KITCHEN_DOOR_HEIGHT;
+import static org.egov.edcr.constants.EdcrReportConstants.KITCHEN_DOOR_WIDTH;
 import static org.egov.edcr.constants.EdcrReportConstants.KITCHEN_STORE;
 import static org.egov.edcr.constants.EdcrReportConstants.LAYER_ROOM_HEIGHT;
 import static org.egov.edcr.constants.EdcrReportConstants.ROOM_HEIGHT_NOTDEFINED;
@@ -65,9 +68,6 @@ import static org.egov.edcr.constants.EdcrReportConstants.SUBRULE_41_III;
 import static org.egov.edcr.constants.EdcrReportConstants.SUBRULE_41_III_AREA_DESC;
 import static org.egov.edcr.constants.EdcrReportConstants.SUBRULE_41_III_DESC;
 import static org.egov.edcr.constants.EdcrReportConstants.SUBRULE_41_III_TOTAL_WIDTH;
-import static org.egov.edcr.constants.EdcrReportConstants.KICTHEN_VENT_DESC;
-import static org.egov.edcr.constants.EdcrReportConstants.KITCHEN_DOOR_WIDTH;
-import static org.egov.edcr.constants.EdcrReportConstants.KITCHEN_DOOR_HEIGHT;
 import static org.egov.edcr.service.FeatureUtil.addScrutinyDetailtoPlan;
 import static org.egov.edcr.service.FeatureUtil.mapReportDetails;
 
@@ -79,12 +79,22 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.egov.common.entity.edcr.*;
+import org.egov.common.entity.edcr.Block;
+import org.egov.common.entity.edcr.FeatureEnum;
+import org.egov.common.entity.edcr.Floor;
+import org.egov.common.entity.edcr.FloorUnit;
+import org.egov.common.entity.edcr.KitchenRequirement;
+import org.egov.common.entity.edcr.Measurement;
+import org.egov.common.entity.edcr.OccupancyTypeHelper;
+import org.egov.common.entity.edcr.Plan;
+import org.egov.common.entity.edcr.ReportScrutinyDetail;
+import org.egov.common.entity.edcr.Result;
+import org.egov.common.entity.edcr.ScrutinyDetail;
 import org.egov.edcr.constants.DxfFileConstants;
 import org.egov.edcr.service.MDMSCacheManager;
 import org.egov.edcr.service.ProcessHelper;
@@ -401,30 +411,43 @@ public class Kitchen_Assam extends Kitchen {
      */
     
     private void evaluateKitchenVentilation(Plan pl, Floor floor, FloorUnit floorUnit, Block block, List<Measurement> rooms) {
+   
         if (floorUnit.getKitchen() == null
                 || floorUnit.getKitchen().getKitchenWindowWidth() == null
                 || floorUnit.getKitchen().getKitchenWindowWidth().isEmpty()
-                || floorUnit.getCommonHeight() == null) {
+                || floorUnit.getCommonHeight() == null
+                || floorUnit.getCommonHeight().isEmpty()) {
+            LOG.warn("Skipping kitchen ventilation for Block {}, Floor {} — Missing kitchen window width or height data",
+                    block.getNumber(), floor.getNumber());
             return;
         }
-        
+
         // Kitchen floor area = sum of all kitchen room areas
         BigDecimal kitchenArea = rooms.stream()
+                .filter(Objects::nonNull)
                 .map(Measurement::getArea)
+                .filter(Objects::nonNull)
                 .reduce(BigDecimal.ZERO, BigDecimal::add)
                 .setScale(2, RoundingMode.HALF_UP);
 
-        // Get kitchen window height
-        
-            BigDecimal windowHeight = floorUnit.getCommonHeight()
-                    .stream()
-                    .min(Comparator.naturalOrder())
-                    .get()
-                    .setScale(2, BigDecimal.ROUND_HALF_UP);
+        // Window height (take minimum)
+        Optional<BigDecimal> minHeightOpt = floorUnit.getCommonHeight()
+                .stream()
+                .filter(Objects::nonNull)
+                .min(Comparator.naturalOrder());
 
-        
+        if (!minHeightOpt.isPresent()) {
+            LOG.warn("No valid kitchen height found for Block {}, Floor {}. Skipping ventilation check.",
+                    block.getNumber(), floor.getNumber());
+            return;
+        }
+
+        BigDecimal windowHeight = minHeightOpt.get().setScale(2, RoundingMode.HALF_UP);
+
         // Provided window area = sum of (each window width × window height)
-        BigDecimal providedKitchenArea = floorUnit.getKitchen().getKitchenWindowWidth().stream()
+        BigDecimal providedKitchenArea = floorUnit.getKitchen().getKitchenWindowWidth()
+                .stream()
+                .filter(Objects::nonNull)
                 .map(width -> width.multiply(windowHeight))
                 .reduce(BigDecimal.ZERO, BigDecimal::add)
                 .setScale(2, RoundingMode.HALF_UP);
@@ -432,15 +455,16 @@ public class Kitchen_Assam extends Kitchen {
         // Required ventilation area = 1/6th of kitchen floor area
         BigDecimal requiredVentilationArea = kitchenArea.divide(BigDecimal.valueOf(6), 2, RoundingMode.HALF_UP);
 
-        LOG.info("Evaluating kitchen ventilation for Floor: {}. KitchenFloorArea: {}, RequiredVentilationArea: {}, ProvidedWindowArea: {}",
-                floor.getNumber(), kitchenArea, requiredVentilationArea, providedKitchenArea);
+        LOG.info("Evaluating kitchen ventilation for Block {}, Floor {} -> KitchenArea={}, RequiredVentArea={}, ProvidedWindowArea={}",
+                block.getNumber(), floor.getNumber(), kitchenArea, requiredVentilationArea, providedKitchenArea);
 
-        buildResult(pl, floor, floorUnit, requiredVentilationArea, SUBRULE_41_III,
-                KICTHEN_VENT_DESC,
-                providedKitchenArea,
+        buildResult(pl, floor, floorUnit,
+                requiredVentilationArea, SUBRULE_41_III,
+                KICTHEN_VENT_DESC, providedKitchenArea,
                 providedKitchenArea.compareTo(requiredVentilationArea) >= 0,
                 ProcessHelper.getTypicalFloorValues(block, floor, false));
     }
+
 
 
     /**

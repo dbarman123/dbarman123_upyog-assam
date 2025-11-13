@@ -47,10 +47,113 @@
 
 package org.egov.edcr.feature;
 
-import static org.egov.edcr.constants.CommonFeatureConstants.*;
-import static org.egov.edcr.constants.CommonKeyConstants.*;
-import static org.egov.edcr.constants.DxfFileConstants.*;
-import static org.egov.edcr.constants.EdcrReportConstants.*;
+import static org.egov.edcr.constants.CommonFeatureConstants.CANOPY_DIMENSION_ERROR;
+import static org.egov.edcr.constants.CommonFeatureConstants.CANOPY_DIMENSION_ERROR_DESC;
+import static org.egov.edcr.constants.CommonFeatureConstants.DEDUCTION_LIMIT_EXCEEDED;
+import static org.egov.edcr.constants.CommonFeatureConstants.DEDUCTION_LIMIT_EXCEEDED_DESC;
+import static org.egov.edcr.constants.CommonFeatureConstants.LENGTH;
+import static org.egov.edcr.constants.CommonFeatureConstants.LESS_THAN_EQUAL_TO;
+import static org.egov.edcr.constants.CommonFeatureConstants.LESS_THAN_EQUAL_TO_FIFTEEN;
+import static org.egov.edcr.constants.CommonFeatureConstants.LESS_THAN_EQUAL_TO_ONE;
+import static org.egov.edcr.constants.CommonFeatureConstants.LESS_THAN_EQUAL_TO_ONE_POINT_FIVE;
+import static org.egov.edcr.constants.CommonFeatureConstants.LESS_THAN_EQUAL_TO_ONE_POINT_TWO;
+import static org.egov.edcr.constants.CommonFeatureConstants.LESS_THAN_EQUAL_TO_TWO_POINT_FIVE;
+import static org.egov.edcr.constants.CommonFeatureConstants.LESS_THAN_EQUAL_TO_ZERO_POINT_FIVE;
+import static org.egov.edcr.constants.CommonFeatureConstants.LESS_THAN_EQUAL_TO_ZERO_POINT_FOUR;
+import static org.egov.edcr.constants.CommonFeatureConstants.LESS_THAN_EQUAL_TO_ZERO_POINT_SEVEN;
+import static org.egov.edcr.constants.CommonFeatureConstants.LESS_THAN_EQUAL_TO_ZERO_POINT_SIX;
+import static org.egov.edcr.constants.CommonFeatureConstants.LESS_THAN_EQUAL_TO_ZERO_POINT_TWO;
+import static org.egov.edcr.constants.CommonFeatureConstants.PROJECTION;
+import static org.egov.edcr.constants.CommonFeatureConstants.PROJECTION_LENGTH_DESC;
+import static org.egov.edcr.constants.CommonFeatureConstants.PROJECTION_LENGTH_INCREASED;
+import static org.egov.edcr.constants.CommonFeatureConstants.PROJECTION_LENGTH_WIDTH_INCREASED;
+import static org.egov.edcr.constants.CommonFeatureConstants.PROJECTION_LENGTH_WIDTH_INCREASED_DESC;
+import static org.egov.edcr.constants.CommonFeatureConstants.PROJECTION_WIDTH_DESC;
+import static org.egov.edcr.constants.CommonFeatureConstants.PROJECTION_WIDTH_INCREASED;
+import static org.egov.edcr.constants.CommonFeatureConstants.WIDTH_STRING;
+import static org.egov.edcr.constants.CommonKeyConstants.CARPET_AREA_BLOCK;
+import static org.egov.edcr.constants.CommonKeyConstants.CARPET_AREA_NOT_DEFINED_BLOCK;
+import static org.egov.edcr.constants.CommonKeyConstants.EXISTING_BUILT_UP_AREA;
+import static org.egov.edcr.constants.CommonKeyConstants.EXISTING_CARPET_AREA_BLOCK;
+import static org.egov.edcr.constants.CommonKeyConstants.EXISTING_CARPET_AREA_NOT_DEFINED;
+import static org.egov.edcr.constants.CommonKeyConstants.EXISTING_FLOOR_AREA;
+import static org.egov.edcr.constants.CommonKeyConstants.EXISTING_FLOOR_AREA_BLOCK;
+import static org.egov.edcr.constants.CommonKeyConstants.EXISTING_FLOOR_LESS_CARPET_AREA;
+import static org.egov.edcr.constants.CommonKeyConstants.FLOOR_AREA_BLOCK;
+import static org.egov.edcr.constants.CommonKeyConstants.FLOOR_AREA_LESS_THAN_CARPET_AREA;
+import static org.egov.edcr.constants.CommonKeyConstants.FLOOR_SPACED;
+import static org.egov.edcr.constants.CommonKeyConstants.TOTAL_BUILDUP_AREA;
+import static org.egov.edcr.constants.CommonKeyConstants.TOTAL_FLOOR_AREA;
+import static org.egov.edcr.constants.DxfFileConstants.A;
+import static org.egov.edcr.constants.DxfFileConstants.A2;
+import static org.egov.edcr.constants.DxfFileConstants.A_AF;
+import static org.egov.edcr.constants.DxfFileConstants.A_AF_GH;
+import static org.egov.edcr.constants.DxfFileConstants.A_FH;
+import static org.egov.edcr.constants.DxfFileConstants.A_R;
+import static org.egov.edcr.constants.DxfFileConstants.A_SA;
+import static org.egov.edcr.constants.DxfFileConstants.B;
+import static org.egov.edcr.constants.DxfFileConstants.B2;
+import static org.egov.edcr.constants.DxfFileConstants.C;
+import static org.egov.edcr.constants.DxfFileConstants.D;
+import static org.egov.edcr.constants.DxfFileConstants.D_A;
+import static org.egov.edcr.constants.DxfFileConstants.D_B;
+import static org.egov.edcr.constants.DxfFileConstants.D_C;
+import static org.egov.edcr.constants.DxfFileConstants.E_CLG;
+import static org.egov.edcr.constants.DxfFileConstants.E_EARC;
+import static org.egov.edcr.constants.DxfFileConstants.E_NS;
+import static org.egov.edcr.constants.DxfFileConstants.E_PS;
+import static org.egov.edcr.constants.DxfFileConstants.E_SACA;
+import static org.egov.edcr.constants.DxfFileConstants.E_SFDAP;
+import static org.egov.edcr.constants.DxfFileConstants.E_SFMC;
+import static org.egov.edcr.constants.DxfFileConstants.F;
+import static org.egov.edcr.constants.DxfFileConstants.F_H;
+import static org.egov.edcr.constants.DxfFileConstants.G;
+import static org.egov.edcr.constants.DxfFileConstants.G_LI;
+import static org.egov.edcr.constants.DxfFileConstants.G_PHI;
+import static org.egov.edcr.constants.DxfFileConstants.G_SI;
+import static org.egov.edcr.constants.DxfFileConstants.H;
+import static org.egov.edcr.constants.DxfFileConstants.H_PP;
+import static org.egov.edcr.constants.DxfFileConstants.J;
+import static org.egov.edcr.constants.DxfFileConstants.K;
+import static org.egov.edcr.constants.DxfFileConstants.M_DFPAB;
+import static org.egov.edcr.constants.DxfFileConstants.M_HOTHC;
+import static org.egov.edcr.constants.DxfFileConstants.M_NAPI;
+import static org.egov.edcr.constants.DxfFileConstants.M_OHF;
+import static org.egov.edcr.constants.DxfFileConstants.M_VH;
+import static org.egov.edcr.constants.DxfFileConstants.S_BH;
+import static org.egov.edcr.constants.DxfFileConstants.S_CA;
+import static org.egov.edcr.constants.DxfFileConstants.S_CRC;
+import static org.egov.edcr.constants.DxfFileConstants.S_ECFG;
+import static org.egov.edcr.constants.DxfFileConstants.S_ICC;
+import static org.egov.edcr.constants.DxfFileConstants.S_MCH;
+import static org.egov.edcr.constants.DxfFileConstants.S_SAS;
+import static org.egov.edcr.constants.DxfFileConstants.S_SC;
+import static org.egov.edcr.constants.EdcrReportConstants.EWS;
+import static org.egov.edcr.constants.EdcrReportConstants.FIFTEEN;
+import static org.egov.edcr.constants.EdcrReportConstants.INTENSE;
+import static org.egov.edcr.constants.EdcrReportConstants.MOST_RESTRICTIVE_OCCUPANCY_ERROR;
+import static org.egov.edcr.constants.EdcrReportConstants.ONE;
+import static org.egov.edcr.constants.EdcrReportConstants.ONEBIGHA;
+import static org.egov.edcr.constants.EdcrReportConstants.ONE_POINTFIVE;
+import static org.egov.edcr.constants.EdcrReportConstants.ONE_POINTTWO;
+import static org.egov.edcr.constants.EdcrReportConstants.POINTFIVE;
+import static org.egov.edcr.constants.EdcrReportConstants.POINTFOUR;
+import static org.egov.edcr.constants.EdcrReportConstants.POINTSEVEN;
+import static org.egov.edcr.constants.EdcrReportConstants.POINTSIX;
+import static org.egov.edcr.constants.EdcrReportConstants.POINTTHREE;
+import static org.egov.edcr.constants.EdcrReportConstants.POINTTWO;
+import static org.egov.edcr.constants.EdcrReportConstants.POINTTWOFIVE;
+import static org.egov.edcr.constants.EdcrReportConstants.RULE_38;
+import static org.egov.edcr.constants.EdcrReportConstants.TRANSITION;
+import static org.egov.edcr.constants.EdcrReportConstants.TWOTHOUSAND;
+import static org.egov.edcr.constants.EdcrReportConstants.TWO_POINTFIVE;
+import static org.egov.edcr.constants.EdcrReportConstants.VALIDATION_NEGATIVE_BUILTUP_AREA;
+import static org.egov.edcr.constants.EdcrReportConstants.VALIDATION_NEGATIVE_EXISTING_BUILTUP_AREA;
+import static org.egov.edcr.constants.EdcrReportConstants.VALIDATION_NEGATIVE_EXISTING_FLOOR_AREA;
+import static org.egov.edcr.constants.EdcrReportConstants.VALIDATION_NEGATIVE_FLOOR_AREA;
+import static org.egov.edcr.constants.EdcrReportConstants.OCCUPANCY_ERROR;
+import static org.egov.edcr.constants.EdcrReportConstants.AT_FLOOR;
+import static org.egov.edcr.constants.EdcrReportConstants.BLOCK_U_S;
 import static org.egov.edcr.service.FeatureUtil.addScrutinyDetailtoPlan;
 import static org.egov.edcr.service.FeatureUtil.mapReportDetails;
 import static org.egov.edcr.utility.DcrConstants.DECIMALDIGITS_MEASUREMENTS;
@@ -74,10 +177,28 @@ import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.egov.common.constants.MdmsFeatureConstants;
-import org.egov.common.entity.edcr.*;
 import org.egov.common.entity.edcr.Balcony;
+import org.egov.common.entity.edcr.Block;
+import org.egov.common.entity.edcr.Building;
+import org.egov.common.entity.edcr.Canopy;
+import org.egov.common.entity.edcr.EntranceLobby;
+import org.egov.common.entity.edcr.FarDetails;
 import org.egov.common.entity.edcr.FarExemption;
+import org.egov.common.entity.edcr.FarRequirement;
+import org.egov.common.entity.edcr.FeatureEnum;
+import org.egov.common.entity.edcr.Floor;
+import org.egov.common.entity.edcr.FloorUnit;
+import org.egov.common.entity.edcr.Measurement;
+import org.egov.common.entity.edcr.Occupancy;
+import org.egov.common.entity.edcr.OccupancyTypeHelper;
+import org.egov.common.entity.edcr.Plan;
+import org.egov.common.entity.edcr.Projections;
+import org.egov.common.entity.edcr.ReportScrutinyDetail;
+import org.egov.common.entity.edcr.Result;
+import org.egov.common.entity.edcr.Room;
+import org.egov.common.entity.edcr.ScrutinyDetail;
 import org.egov.edcr.service.MDMSCacheManager;
+import org.egov.edcr.service.FeatureUtil;
 import org.egov.edcr.service.ProcessPrintHelper;
 import org.egov.edcr.utility.DcrConstants;
 import org.egov.infra.utils.StringUtils;
@@ -200,7 +321,7 @@ public class Far_Assam extends Far {
                     blk.getNumber(), flrArea, bltUpArea, existingFlrArea, existingBltUpArea, carpetArea);
 
             // Build occupancy types for this block
-            processBlockOccupancyTypes(blk);
+            processBlockOccupancyTypes(pl, blk);
             LOG.info("Completed processing occupancy types for Block Number: {}", blk.getNumber());
         }
 
@@ -683,40 +804,61 @@ public class Far_Assam extends Far {
 	}
 
   
-    /**
-     * Computes and validates the FAR for the given plan.
-     */
-    private void processFarComputation(Plan pl, BigDecimal providedFar, BigDecimal plotArea, HashMap<String, String> errorMsgs) {
-        OccupancyTypeHelper mostRestrictiveOccupancyType = pl.getVirtualBuilding() != null
-                ? pl.getVirtualBuilding().getMostRestrictiveFarHelper()
-                : null;
+	/**
+	 * Computes and validates the FAR for the given plan.
+	 */
+	private void processFarComputation(Plan pl, BigDecimal providedFar, BigDecimal plotArea, HashMap<String, String> errorMsgs) {
+	    OccupancyTypeHelper mostRestrictiveOccupancyType = null;
+	    try {
+	        if (pl.getVirtualBuilding() != null) {
+	            mostRestrictiveOccupancyType = pl.getVirtualBuilding().getMostRestrictiveFarHelper();
+	        }
+	    } catch (Exception e) {
+	        LOG.error("Error fetching most restrictive occupancy type", e);
+	        FeatureUtil.handleError(pl, OCCUPANCY_ERROR,
+	        		MOST_RESTRICTIVE_OCCUPANCY_ERROR);
+	        return;
+	    }
 
-        String typeOfArea = pl.getPlanInformation().getLandUseZone();
-        BigDecimal roadWidth = pl.getPlanInformation().getRoadWidth();
-        String feature = MdmsFeatureConstants.FAR;
+	    if (mostRestrictiveOccupancyType == null || mostRestrictiveOccupancyType.getType() == null) {
+	        LOG.error("Most restrictive occupancy type is missing or invalid for the plan.");
+	        FeatureUtil.handleError(pl, OCCUPANCY_ERROR,
+	        		MOST_RESTRICTIVE_OCCUPANCY_ERROR);
+	        return;
+	    }
 
+	    String typeOfArea = pl.getPlanInformation() != null ? pl.getPlanInformation().getLandUseZone() : null;
+	    BigDecimal roadWidth = pl.getPlanInformation() != null ? pl.getPlanInformation().getRoadWidth() : null;
+	    String feature = MdmsFeatureConstants.FAR;
 
+	    LOG.info("Processing FAR computation with parameters - MostRestrictiveOccupancyType: {}, TypeOfArea: {}, RoadWidth: {}",
+	            mostRestrictiveOccupancyType, typeOfArea, roadWidth);
 
-        LOG.info("Processing FAR computation with parameters - MostRestrictiveOccupancyType: {}, TypeOfArea: {}, RoadWidth: {}",
-                mostRestrictiveOccupancyType, typeOfArea, roadWidth);
+	    //  Special case: Road width < 2.40m
+	    if (applySpecialFarForNarrowRoad(pl, roadWidth, providedFar, errorMsgs, mostRestrictiveOccupancyType, typeOfArea)) {
+	        return; // stop further processing if condition is applied
+	    }
 
-        // First check special condition for 2.40m road width
-        if (applySpecialFarForNarrowRoad(pl, roadWidth, providedFar, errorMsgs, mostRestrictiveOccupancyType, typeOfArea)) {
-            return; // stop further processing if condition is applied
-        }
+	    // Process based on occupancy type
+	    try {
+	        if (mostRestrictiveOccupancyType != null && roadWidth != null
+	                && !processFarForSpecialOccupancy(pl, mostRestrictiveOccupancyType, providedFar, typeOfArea, roadWidth, errorMsgs)) {
 
-        if (mostRestrictiveOccupancyType != null && roadWidth != null
-                && !processFarForSpecialOccupancy(pl, mostRestrictiveOccupancyType, providedFar, typeOfArea, roadWidth,
-                errorMsgs)) {
-            processFar(pl, mostRestrictiveOccupancyType, providedFar, typeOfArea, roadWidth, errorMsgs,
-                    feature, mostRestrictiveOccupancyType.getType().getName());
-            LOG.info("Processed FAR for normal occupancy");
-        } else {
-            processFarIndustrial(pl, mostRestrictiveOccupancyType, providedFar, typeOfArea, roadWidth, errorMsgs,
-                    feature, mostRestrictiveOccupancyType.getType().getName());
-            LOG.info("Processed FAR for industrial occupancy");
-        }
-    }
+	            processFar(pl, mostRestrictiveOccupancyType, providedFar, typeOfArea, roadWidth, errorMsgs,
+	                    feature, mostRestrictiveOccupancyType.getType().getName());
+	            LOG.info("Processed FAR for normal occupancy");
+
+	        } else {
+	            processFarIndustrial(pl, mostRestrictiveOccupancyType, providedFar, typeOfArea, roadWidth, errorMsgs,
+	                    feature, mostRestrictiveOccupancyType.getType().getName());
+	            LOG.info("Processed FAR for industrial occupancy");
+	        }
+	    } catch (Exception e) {
+	        LOG.error("Error occurred during FAR computation: {}", e.getMessage(), e);
+	        FeatureUtil.handleError(pl, OCCUPANCY_ERROR,
+	        		MOST_RESTRICTIVE_OCCUPANCY_ERROR);
+	    }
+	}
 
     /**
      * Iterates over all blocks and processes each block's occupancy details.
@@ -801,7 +943,7 @@ public class Far_Assam extends Far {
         LOG.info("Final totals for Block {} -> FloorArea: {}, BuiltUpArea: {}, ExistingFloorArea: {}, ExistingBuiltUpArea: {}, CarpetArea: {}, ExistingCarpetArea: {}",
                 blk.getNumber(), flrArea, bltUpArea, existingFlrArea, existingBltUpArea, carpetArea, existingCarpetArea);
 
-        processBlockOccupancyTypes(blk);
+        processBlockOccupancyTypes(pl, blk);
         LOG.info("Completed processBlockOccupancyTypes for Block Number: {}", blk.getNumber());
     }
 
@@ -809,51 +951,125 @@ public class Far_Assam extends Far {
     /**
      * Processes and categorizes occupancy types block-wise and computes their aggregated areas.
      */
-    private void processBlockOccupancyTypes(Block blk) {
+    private void processBlockOccupancyTypes(Plan pl, Block blk) {
         LOG.info("Inside processBlockOccupancyTypes() for Block Number: {}", blk.getNumber());
 
         Set<OccupancyTypeHelper> occupancyByBlock = new HashSet<>();
+        if (blk.getBuilding() == null || blk.getBuilding().getFloors() == null) {
+            FeatureUtil.handleError(pl, "buildingData",
+                    "Missing building or floor data for Block " + blk.getNumber() + ". Please check the drawing.");
+            return;
+        }
+
         for (Floor flr : blk.getBuilding().getFloors()) {
+            if (flr == null) {
+                LOG.warn("Null Floor object found in Block {}", blk.getNumber());
+                continue;
+            }
+
+            if (flr.getOccupancies() == null || flr.getOccupancies().isEmpty()) {
+                LOG.warn("No occupancies found for Block {}, Floor {}", blk.getNumber(), flr.getNumber());
+                continue;
+            }
+
             for (Occupancy occupancy : flr.getOccupancies()) {
-                if (occupancy.getTypeHelper() != null) {
-                    occupancyByBlock.add(occupancy.getTypeHelper());
+                if (occupancy == null) {
+                    LOG.error("Null occupancy found in Block {}, Floor {}", blk.getNumber(), flr.getNumber());
+                    FeatureUtil.handleError(pl, OCCUPANCY_ERROR,
+                    		MOST_RESTRICTIVE_OCCUPANCY_ERROR + BLOCK_U_S  +  blk.getNumber() + AT_FLOOR  + flr.getNumber());
+                    continue;
                 }
+
+                if (occupancy.getTypeHelper() == null) {
+                    LOG.error("Null TypeHelper for occupancy in Block {}, Floor {}", blk.getNumber(), flr.getNumber());
+                    FeatureUtil.handleError(pl, OCCUPANCY_ERROR,
+                            MOST_RESTRICTIVE_OCCUPANCY_ERROR + BLOCK_U_S + blk.getNumber() + AT_FLOOR + flr.getNumber());
+
+                    continue;
+                }
+
+                occupancyByBlock.add(occupancy.getTypeHelper());
             }
         }
+
         LOG.info("Unique occupancy types identified for Block {}: {}", blk.getNumber(), occupancyByBlock.size());
 
         List<Map<String, Object>> listOfMapOfAllDtls = new ArrayList<>();
         List<OccupancyTypeHelper> listOfOccupancyTypes = new ArrayList<>();
 
         for (OccupancyTypeHelper occupancyType : occupancyByBlock) {
-            LOG.info("Processing occupancyType: {}", occupancyType.getType().getCode());
+            // Safely get floor number (without defaulting to 0)
+            Integer floorNo = null;
+            if (blk != null 
+                    && blk.getBuilding() != null 
+                    && blk.getBuilding().getFloors() != null 
+                    && !blk.getBuilding().getFloors().isEmpty() 
+                    && blk.getBuilding().getFloors().get(0).getNumber() != null) {
+                floorNo = blk.getBuilding().getFloors().get(0).getNumber();
+            }
+            String floorDisplay = (floorNo != null) ? floorNo.toString() : "N/A";
 
-            Map<String, Object> allDtlsMap = new HashMap<>();
+            //  Null checks for occupancy type
+            if (occupancyType == null || occupancyType.getType() == null) {
+                LOG.error("Missing occupancyType or Type object for Block {}, Floor {}", blk.getNumber(), floorDisplay);
+                FeatureUtil.handleError(pl, OCCUPANCY_ERROR,
+                        MOST_RESTRICTIVE_OCCUPANCY_ERROR + BLOCK_U_S + blk.getNumber() + 
+                        AT_FLOOR + floorDisplay);
+                continue;
+            }
+
+
+            String occCode = occupancyType.getType().getCode();
+            if (occCode == null) {
+                LOG.error("Occupancy code missing for Block {}", blk.getNumber());
+                FeatureUtil.handleError(pl,OCCUPANCY_ERROR,
+                		MOST_RESTRICTIVE_OCCUPANCY_ERROR + BLOCK_U_S + blk.getNumber() + AT_FLOOR + floorDisplay);
+                continue;
+            }
+
+            LOG.info("Processing OccupancyType '{}' in Block {}", occCode, blk.getNumber());
+
             BigDecimal blockWiseFloorArea = BigDecimal.ZERO;
             BigDecimal blockWiseBuiltupArea = BigDecimal.ZERO;
             BigDecimal blockWiseExistingFloorArea = BigDecimal.ZERO;
             BigDecimal blockWiseExistingBuiltupArea = BigDecimal.ZERO;
 
             for (Floor flr : blk.getBuilding().getFloors()) {
-                for (Occupancy occupancy : flr.getOccupancies()) {
-                    if (occupancyType.getType() != null && occupancyType.getType().getCode() != null
-                            && occupancy.getTypeHelper() != null && occupancy.getTypeHelper().getType() != null
-                            && occupancy.getTypeHelper().getType().getCode() != null
-                            && occupancy.getTypeHelper().getType().getCode().equals(occupancyType.getType().getCode())) {
+                if (flr == null || flr.getOccupancies() == null) continue;
 
-                        blockWiseFloorArea = blockWiseFloorArea.add(occupancy.getFloorArea());
-                        blockWiseBuiltupArea = blockWiseBuiltupArea
-                                .add(occupancy.getBuiltUpArea() == null ? BigDecimal.ZERO : occupancy.getBuiltUpArea());
-                        blockWiseExistingFloorArea = blockWiseExistingFloorArea.add(occupancy.getExistingFloorArea());
-                        blockWiseExistingBuiltupArea = blockWiseExistingBuiltupArea
-                                .add(occupancy.getExistingBuiltUpArea() == null ? BigDecimal.ZERO
-                                        : occupancy.getExistingBuiltUpArea());
+                for (Occupancy occupancy : flr.getOccupancies()) {
+                    try {
+                        if (occupancy == null 
+                                || occupancy.getTypeHelper() == null 
+                                || occupancy.getTypeHelper().getType() == null 
+                                || occupancy.getTypeHelper().getType().getCode() == null) {
+                            LOG.warn("Incomplete occupancy data in Block {}, Floor {} — skipping entry", 
+                                     blk.getNumber(), flr.getNumber());
+                            continue;
+                        }
+
+                        if (occCode.equals(occupancy.getTypeHelper().getType().getCode())) {
+                            blockWiseFloorArea = blockWiseFloorArea.add(
+                                    occupancy.getFloorArea() == null ? BigDecimal.ZERO : occupancy.getFloorArea());
+                            blockWiseBuiltupArea = blockWiseBuiltupArea.add(
+                                    occupancy.getBuiltUpArea() == null ? BigDecimal.ZERO : occupancy.getBuiltUpArea());
+                            blockWiseExistingFloorArea = blockWiseExistingFloorArea.add(
+                                    occupancy.getExistingFloorArea() == null ? BigDecimal.ZERO : occupancy.getExistingFloorArea());
+                            blockWiseExistingBuiltupArea = blockWiseExistingBuiltupArea.add(
+                                    occupancy.getExistingBuiltUpArea() == null ? BigDecimal.ZERO : occupancy.getExistingBuiltUpArea());
+                        }
+                    } catch (Exception e) {
+                        LOG.error("Error processing occupancy in Block {}, Floor {}: {}", 
+                                  blk.getNumber(), flr.getNumber(), e.getMessage(), e);
+                        FeatureUtil.handleError(pl, OCCUPANCY_ERROR,
+                        		MOST_RESTRICTIVE_OCCUPANCY_ERROR + blk.getNumber() +
+                                AT_FLOOR + flr.getNumber());
                     }
                 }
             }
 
             LOG.info("Block {} -> Occupancy {}: FloorArea={}, BuiltUpArea={}, ExistingFloorArea={}, ExistingBuiltUpArea={}",
-                    blk.getNumber(), occupancyType.getType().getCode(),
+                    blk.getNumber(), occCode,
                     blockWiseFloorArea, blockWiseBuiltupArea, blockWiseExistingFloorArea, blockWiseExistingBuiltupArea);
 
             Occupancy occupancy = new Occupancy();
@@ -861,10 +1077,12 @@ public class Far_Assam extends Far {
             occupancy.setFloorArea(blockWiseFloorArea);
             occupancy.setExistingFloorArea(blockWiseExistingFloorArea);
             occupancy.setExistingBuiltUpArea(blockWiseExistingBuiltupArea);
-            occupancy.setCarpetArea(blockWiseFloorArea.multiply(BigDecimal.valueOf(.80)));
+            occupancy.setCarpetArea(blockWiseFloorArea.multiply(BigDecimal.valueOf(0.80)));
             occupancy.setTypeHelper(occupancyType);
+
             blk.getBuilding().getTotalArea().add(occupancy);
 
+            Map<String, Object> allDtlsMap = new HashMap<>();
             allDtlsMap.put(OCCUPANCY, occupancyType);
             allDtlsMap.put(TOTAL_FLOOR_AREA, blockWiseFloorArea);
             allDtlsMap.put(TOTAL_BUILDUP_AREA, blockWiseBuiltupArea);
@@ -875,11 +1093,13 @@ public class Far_Assam extends Far {
             listOfMapOfAllDtls.add(allDtlsMap);
         }
 
-        LOG.info("Completed processing occupancies for Block {}. Total Occupancy Types: {}", blk.getNumber(), listOfOccupancyTypes.size());
+        LOG.info(" Completed processing occupancies for Block {}. Total Occupancy Types: {}", 
+                 blk.getNumber(), listOfOccupancyTypes.size());
 
         buildOccupancyListForBlock(blk, listOfOccupancyTypes, listOfMapOfAllDtls);
         LOG.info("Occupancy list built and mapped for Block {}", blk.getNumber());
     }
+
 
     /**
      * Checks if the given occupancy matches the occupancy type helper.

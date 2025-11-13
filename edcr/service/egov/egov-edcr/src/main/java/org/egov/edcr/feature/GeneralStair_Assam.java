@@ -1,5 +1,62 @@
 package org.egov.edcr.feature;
 
+import static org.egov.edcr.constants.CommonFeatureConstants.EMPTY_STRING;
+import static org.egov.edcr.constants.CommonFeatureConstants.FLOOR;
+import static org.egov.edcr.constants.CommonFeatureConstants.GENERAL_STAIR;
+import static org.egov.edcr.constants.CommonFeatureConstants.GENERAL_STAIR_LANDING_NOT_DEFINED;
+import static org.egov.edcr.constants.CommonFeatureConstants.GENERAL_STAIR_LANDING_WIDTH_NOT_DEFINED;
+import static org.egov.edcr.constants.CommonFeatureConstants.GENERAL_STAIR_MANDATORY;
+import static org.egov.edcr.constants.CommonFeatureConstants.GENERAL_STAIR_MANDATORY_SUFFIX;
+import static org.egov.edcr.constants.CommonFeatureConstants.GENERAL_STAIR_NOT_DEFINED;
+import static org.egov.edcr.constants.CommonFeatureConstants.NO_OF_RISES_COUNT_ERROR;
+import static org.egov.edcr.constants.CommonFeatureConstants.RISER_HEIGHT_DESC;
+import static org.egov.edcr.constants.CommonFeatureConstants.STAIR_PREFIX;
+import static org.egov.edcr.constants.CommonKeyConstants.BLOCK;
+import static org.egov.edcr.constants.CommonKeyConstants.BLOCK_PREFIX;
+import static org.egov.edcr.constants.CommonKeyConstants.FLIGHT_POLYLINE;
+import static org.egov.edcr.constants.CommonKeyConstants.FLIGHT_POLYLINE_LENGTH;
+import static org.egov.edcr.constants.CommonKeyConstants.FLIGHT_POLYLINE_WIDTH;
+import static org.egov.edcr.constants.CommonKeyConstants.FLOOR_SPACED;
+import static org.egov.edcr.constants.CommonKeyConstants.GENERAL_STAIR_MID_LANDING;
+import static org.egov.edcr.constants.CommonKeyConstants.GENERAL_STAIR_NUMBER_OF_RISERS;
+import static org.egov.edcr.constants.CommonKeyConstants.GENERAL_STAIR_RISER_HEIGHT;
+import static org.egov.edcr.constants.CommonKeyConstants.GENERAL_STAIR_TREAD_WIDTH;
+import static org.egov.edcr.constants.CommonKeyConstants.GENERAL_STAIR_WIDTH;
+import static org.egov.edcr.constants.CommonKeyConstants.IS_TYPICAL_REP_FLOOR;
+import static org.egov.edcr.constants.CommonKeyConstants.MINIMUM_TWO_STAIRCASES_REQUIRED;
+import static org.egov.edcr.constants.CommonKeyConstants.MINIMUM_TWO_STAIRCASES_REQUIRED_MSG;
+import static org.egov.edcr.constants.CommonKeyConstants.NO_OF_RISE;
+import static org.egov.edcr.constants.CommonKeyConstants.NO_OF_RISES_COUNT;
+import static org.egov.edcr.constants.CommonKeyConstants.TYPICAL_FLOOR;
+import static org.egov.edcr.constants.DxfFileConstants.B;
+import static org.egov.edcr.constants.DxfFileConstants.C;
+import static org.egov.edcr.constants.DxfFileConstants.D;
+import static org.egov.edcr.constants.DxfFileConstants.G;
+import static org.egov.edcr.constants.DxfFileConstants.H;
+import static org.egov.edcr.constants.DxfFileConstants.I;
+import static org.egov.edcr.constants.EdcrReportConstants.FLIGHT_LENGTH_DEFINED_DESCRIPTION;
+import static org.egov.edcr.constants.EdcrReportConstants.FLIGHT_NOT_DEFINED_DESCRIPTION;
+import static org.egov.edcr.constants.EdcrReportConstants.FLIGHT_POLYLINE_NOT_DEFINED_DESCRIPTION;
+import static org.egov.edcr.constants.EdcrReportConstants.FLIGHT_WIDTH_DEFINED_DESCRIPTION;
+import static org.egov.edcr.constants.EdcrReportConstants.NO_OF_RISERS;
+import static org.egov.edcr.constants.EdcrReportConstants.NO_OF_RISER_DESCRIPTION_GENERAL_STAIR;
+import static org.egov.edcr.constants.EdcrReportConstants.RULERISER;
+import static org.egov.edcr.constants.EdcrReportConstants.RULETREAD;
+import static org.egov.edcr.constants.EdcrReportConstants.RULEWIDTH;
+import static org.egov.edcr.constants.EdcrReportConstants.RULE_4_4_4;
+import static org.egov.edcr.constants.EdcrReportConstants.TREAD_DESCRIPTION_GEN_STAIR;
+import static org.egov.edcr.constants.EdcrReportConstants.WIDTH_DESCRIPTION_GEN_STAIR;
+import static org.egov.edcr.constants.EdcrReportConstants.WIDTH_LANDING_DESCRIPTION;
+import static org.egov.edcr.constants.EdcrReportConstants.STAIRCASE_ERROR;
+import static org.egov.edcr.constants.EdcrReportConstants.TOTAL_STEPS_ZERO_MSG;
+import static org.egov.edcr.constants.EdcrReportConstants.ARITHMETIC_ERROR_MSG;
+import static org.egov.edcr.constants.EdcrReportConstants.NA;
+import static org.egov.edcr.constants.EdcrReportConstants.VERIFY_HEIGHT_STEPS_MSG;
+import static org.egov.edcr.constants.EdcrReportConstants.VERIFY_STAIR_DETAILS_MSG;
+import static org.egov.edcr.constants.EdcrReportConstants.AT_FLOOR;
+import static org.egov.edcr.service.FeatureUtil.addScrutinyDetailtoPlan;
+import static org.egov.edcr.service.FeatureUtil.mapReportDetails;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
@@ -12,27 +69,30 @@ import java.util.Optional;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.egov.common.entity.edcr.*;
+import org.egov.common.entity.edcr.Block;
+import org.egov.common.entity.edcr.FeatureEnum;
+import org.egov.common.entity.edcr.Flight;
+import org.egov.common.entity.edcr.Floor;
+import org.egov.common.entity.edcr.MdmsFeatureRule;
+import org.egov.common.entity.edcr.Measurement;
+import org.egov.common.entity.edcr.NoOfRiserRequirement;
+import org.egov.common.entity.edcr.OccupancyTypeHelper;
+import org.egov.common.entity.edcr.Plan;
+import org.egov.common.entity.edcr.ReportScrutinyDetail;
+import org.egov.common.entity.edcr.RequiredTreadRequirement;
+import org.egov.common.entity.edcr.RequiredWidthRequirement;
+import org.egov.common.entity.edcr.Result;
+import org.egov.common.entity.edcr.RiserHeightRequirement;
+import org.egov.common.entity.edcr.ScrutinyDetail;
+import org.egov.common.entity.edcr.StairLanding;
 import org.egov.edcr.constants.DxfFileConstants;
 import org.egov.edcr.service.MDMSCacheManager;
+import org.egov.edcr.service.FeatureUtil;
 import org.egov.edcr.utility.DcrConstants;
 import org.egov.edcr.utility.Util;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
-
-import static org.egov.edcr.constants.CommonFeatureConstants.*;
-import static org.egov.edcr.constants.CommonFeatureConstants.FLOOR;
-import static org.egov.edcr.constants.CommonKeyConstants.*;
-import static org.egov.edcr.constants.DxfFileConstants.B;
-import static org.egov.edcr.constants.DxfFileConstants.D;
-import static org.egov.edcr.constants.DxfFileConstants.C;
-import static org.egov.edcr.constants.DxfFileConstants.G;
-import static org.egov.edcr.constants.DxfFileConstants.H;
-import static org.egov.edcr.constants.DxfFileConstants.I;
-import static org.egov.edcr.constants.EdcrReportConstants.*;
-import static org.egov.edcr.service.FeatureUtil.addScrutinyDetailtoPlan;
-import static org.egov.edcr.service.FeatureUtil.mapReportDetails;
 
 @Service
 public class GeneralStair_Assam extends FeatureProcess {
@@ -155,7 +215,7 @@ public class GeneralStair_Assam extends FeatureProcess {
 	                        LOG.info("Error added: Landing not defined for Stair {} on Floor {} of Block {}", generalStair.getNumber(), floor.getNumber(), block.getNumber());
 	                    }
 	                }
-	                validateRiserHeight(plan, floor, flrHt, totalSteps, scrutinyDetail4);
+	                validateRiserHeight(plan, block, floor, flrHt, totalSteps, scrutinyDetail4);
 	            } else {
 	                if (floor.getNumber() != generalStairCount) {
 	                    String absentMsg = BLOCK_PREFIX + block.getNumber() + FLOOR_SPACED + floor.getNumber();
@@ -257,13 +317,43 @@ public class GeneralStair_Assam extends FeatureProcess {
 	 * @param totalSteps       The total number of steps including landings.
 	 * @param scrutinyDetail4  ScrutinyDetail object for riser height validation.
 	 */
-	private void validateRiserHeight(Plan plan, Floor floor, BigDecimal flrHt, BigDecimal totalSteps, ScrutinyDetail scrutinyDetail4) {
+	private void validateRiserHeight(Plan plan, Block block, Floor floor, BigDecimal flrHt, BigDecimal totalSteps, ScrutinyDetail scrutinyDetail4) {
 		BigDecimal value = getPermissibleRiserHeight(plan);
-		if (flrHt != null) {
-			BigDecimal riserHeight = flrHt.divide(totalSteps, 2, RoundingMode.HALF_UP);
-			String result = (riserHeight.compareTo(value) <= 0) ? Result.Accepted.getResultVal() : Result.Not_Accepted.getResultVal();
-			setReportOutputDetailsFloorStairWise(plan, RULERISER, floor.getNumber().toString(), RISER_HEIGHT_DESC, EMPTY_STRING + value, EMPTY_STRING + riserHeight, result, scrutinyDetail4);
+		try {
+		    if (totalSteps.equals(BigDecimal.ZERO)) {
+		        LOG.error("Division by zero avoided for block '{}', floor '{}'. Total steps is zero.",
+		                block != null ? block.getNumber() : "N/A",
+		                floor != null ? floor.getNumber() : "N/A");
+
+		        FeatureUtil.handleError(plan, STAIRCASE_ERROR,
+		                TOTAL_STEPS_ZERO_MSG 
+		                + (block != null ? block.getNumber() : NA) 
+		                + AT_FLOOR 
+		                + (floor != null ? floor.getNumber() : NA) 
+		                + VERIFY_STAIR_DETAILS_MSG);
+		        return;
+		    }
+
+		    if (flrHt != null) {
+				BigDecimal riserHeight = flrHt.divide(totalSteps, 2, RoundingMode.HALF_UP);
+				String result = (riserHeight.compareTo(value) <= 0) ? Result.Accepted.getResultVal() : Result.Not_Accepted.getResultVal();
+				setReportOutputDetailsFloorStairWise(plan, RULERISER, floor.getNumber().toString(), RISER_HEIGHT_DESC, EMPTY_STRING + value, EMPTY_STRING + riserHeight, result, scrutinyDetail4);
+			}
+		} catch (ArithmeticException e) {
+		    LOG.error("Arithmetic error while calculating average step height for block '{}', floor '{}': {}",
+		            block != null ? block.getNumber() : "N/A",
+		            floor != null ? floor.getNumber() : "N/A",
+		            e.getMessage());
+
+		    FeatureUtil.handleError(plan, STAIRCASE_ERROR,
+		    		ARITHMETIC_ERROR_MSG
+		            + (block != null ? block.getNumber() : NA)
+		            + ", Floor "
+		            + (floor != null ? floor.getNumber() : NA)
+		            + VERIFY_STAIR_DETAILS_MSG);
 		}
+
+		
 	}
 
 

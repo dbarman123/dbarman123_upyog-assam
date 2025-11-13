@@ -142,6 +142,8 @@ import static org.egov.edcr.constants.EdcrReportConstants.TWO_WHEELER_PARK_AREA;
 import static org.egov.edcr.constants.EdcrReportConstants.TWO_WHEEL_PARKING_AREA_HEIGHT;
 import static org.egov.edcr.constants.EdcrReportConstants.TWO_WHEEL_PARKING_AREA_WIDTH;
 import static org.egov.edcr.constants.EdcrReportConstants.T_RULE;
+import static org.egov.edcr.constants.EdcrReportConstants.OCCUPANCY_ERROR;
+import static org.egov.edcr.constants.EdcrReportConstants.MOST_RESTRICTIVE_OCCUPANCY_ERROR;
 import static org.egov.edcr.constants.RuleKeyConstants.FOUR_P_TWO_P_ONE;
 import static org.egov.edcr.utility.DcrConstants.SQMTRS;
 
@@ -220,10 +222,10 @@ public class Parking_Assam extends Parking {
 		        else if (G.equals(typeCode)) {
 		            processParking(pl, OccupancyType.OCCUPANCY_G1.getOccupancyType(), totalOpenArea);
 		        } else {
-		            pl.addError("Parking", "Unsupported occupancy type for parking: " + typeCode);
+		            pl.addError(OCCUPANCY_ERROR, MOST_RESTRICTIVE_OCCUPANCY_ERROR + " for parking " + typeCode);
 		        }
 		    } else {
-		        pl.addError("Parking", "Most restrictive occupancy could not be determined.");
+		        pl.addError(OCCUPANCY_ERROR, MOST_RESTRICTIVE_OCCUPANCY_ERROR);
 		    }
 		 // processMechanicalParking(pl);
 		    return pl;

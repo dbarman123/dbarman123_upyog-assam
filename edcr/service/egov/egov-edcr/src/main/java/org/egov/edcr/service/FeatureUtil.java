@@ -61,5 +61,23 @@ public class FeatureUtil {
         scrutinyDetail.getDetail().add(details);
         plan.getReportOutput().getScrutinyDetails().add(scrutinyDetail);
     }
+    
+    
+    /**
+     * Handles null or invalid data gracefully by logging and adding a user-facing error message
+     * into the Plan object.
+     *
+     * @param pl          the Plan object
+     * @param fieldName   the technical field or step name
+     * @param userMessage the user-friendly message to display in the UI
+     * @return the same Plan object (for chaining)
+     */
+    public static Plan handleError(Plan pl, String fieldName, String userMessage) {
+        log.error("Error in field [{}]: {}", fieldName, userMessage);
+        if (pl != null) {
+            pl.addError(fieldName, userMessage);
+        }
+        return pl;
+    }
 
 }

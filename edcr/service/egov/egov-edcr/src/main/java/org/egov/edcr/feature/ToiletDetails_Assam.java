@@ -45,30 +45,42 @@
  *  In case of any queries, you can reach eGovernments Foundation at contact@egovernments.org.
  */package org.egov.edcr.feature;
 
+import static org.egov.edcr.constants.CommonFeatureConstants.COMMA_HEIGHT_STRING;
+import static org.egov.edcr.constants.CommonFeatureConstants.COMMA_WIDTH_STRING;
+import static org.egov.edcr.constants.CommonFeatureConstants.GREATER_THAN_EQUAL;
+import static org.egov.edcr.constants.CommonFeatureConstants.IS_EQUAL_TO;
+import static org.egov.edcr.constants.CommonFeatureConstants.TOTAL_AREA_STRING;
+import static org.egov.edcr.constants.EdcrReportConstants.RULE_41_5_5;
+import static org.egov.edcr.constants.EdcrReportConstants.SUB_RULE_53_5;
+import static org.egov.edcr.constants.EdcrReportConstants.TOILET_DESCRIPTION;
+import static org.egov.edcr.service.FeatureUtil.mapReportDetails;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.egov.common.constants.MdmsFeatureConstants;
-import org.egov.common.entity.edcr.*;
-import org.egov.edcr.constants.EdcrRulesMdmsConstants;
+import org.egov.common.entity.edcr.Block;
+import org.egov.common.entity.edcr.FeatureEnum;
+import org.egov.common.entity.edcr.Floor;
+import org.egov.common.entity.edcr.FloorUnit;
+import org.egov.common.entity.edcr.Measurement;
+import org.egov.common.entity.edcr.Plan;
+import org.egov.common.entity.edcr.ReportScrutinyDetail;
+import org.egov.common.entity.edcr.Result;
+import org.egov.common.entity.edcr.ScrutinyDetail;
+import org.egov.common.entity.edcr.Toilet;
+import org.egov.common.entity.edcr.ToiletRequirement;
 import org.egov.edcr.service.MDMSCacheManager;
-import org.egov.edcr.service.FetchEdcrRulesMdms;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import static org.egov.edcr.constants.CommonFeatureConstants.*;
-import static org.egov.edcr.constants.EdcrReportConstants.*;
-import static org.egov.edcr.service.FeatureUtil.mapReportDetails;
 
 
 @Service
@@ -173,46 +185,73 @@ public class ToiletDetails_Assam extends FeatureProcess {
      * @param measurement The specific toilet measurement to validate
      * @param scrutinyDetail The scrutiny detail object to add results to
      */
-    private void evaluateToiletMeasurement(Plan pl, Floor floor, FloorUnit unit, Toilet toilet, Measurement measurement,
-                                           ScrutinyDetail scrutinyDetail) {
-        BigDecimal area = measurement.getArea().setScale(2, RoundingMode.HALF_UP);
-        BigDecimal width = measurement.getWidth().setScale(2, RoundingMode.HALF_UP);
-        BigDecimal height = unit.getCommonHeight()
-                .stream()
-                .min(Comparator.naturalOrder())
-                .get()
-                .setScale(2, BigDecimal.ROUND_HALF_UP);
-        
-        ReportScrutinyDetail detail = new ReportScrutinyDetail();
-        detail.setRuleNo(RULE_41_5_5);
-        detail.setDescription(TOILET_DESCRIPTION);
-        detail.setFloorNo(String.valueOf(floor.getNumber()));
-        detail.setUnitNumber(unit.getUnitNumber());
-        
+	private void evaluateToiletMeasurement(Plan pl, Floor floor, FloorUnit unit, Toilet toilet, Measurement measurement,
+			ScrutinyDetail scrutinyDetail) {
 
-        Optional<ToiletRequirement> toiletRule = getToiletRule(pl);
-        if (toiletRule == null) return;
-        ToiletRequirement rule = toiletRule.get();
-        BigDecimal minArea = rule.getMinToiletArea();
-        BigDecimal minWidth = rule.getMinToiletWidth();
-    	BigDecimal minHeight = rule.getMinToiletHeight();
+		// value extraction
+		BigDecimal area = measurement.getArea() != null ? measurement.getArea().setScale(2, RoundingMode.HALF_UP)
+				: BigDecimal.ZERO;
 
-      
+		BigDecimal width = measurement.getWidth() != null ? measurement.getWidth().setScale(2, RoundingMode.HALF_UP)
+				: BigDecimal.ZERO;
 
-        String required = TOTAL_AREA_STRING + GREATER_THAN_EQUAL + minArea + COMMA_WIDTH_STRING + GREATER_THAN_EQUAL + minWidth  + COMMA_HEIGHT_STRING + GREATER_THAN_EQUAL + minHeight;
-        String provided = TOTAL_AREA_STRING + IS_EQUAL_TO + area + COMMA_WIDTH_STRING + IS_EQUAL_TO + width + COMMA_HEIGHT_STRING + IS_EQUAL_TO + height;
+		// height extraction
+		BigDecimal height = BigDecimal.ZERO;
+		if (unit.getCommonHeight() != null && !unit.getCommonHeight().isEmpty()) {
+			Optional<BigDecimal> minHeightOpt = unit.getCommonHeight().stream().filter(Objects::nonNull)
+					.min(Comparator.naturalOrder());
+			if (minHeightOpt.isPresent()) {
+				height = minHeightOpt.get().setScale(2, RoundingMode.HALF_UP);
+			} else {
+				LOG.warn("No valid height found for Block {}, Floor {}, Unit {}", unit.getUnitNumber(),
+						floor.getNumber(), unit.getUnitNumber());
+			}
+		} else {
+			LOG.warn("Missing common height for Block {}, Floor {}, Unit {}", unit.getUnitNumber(), floor.getNumber(),
+					unit.getUnitNumber());
+		}
 
-        detail.setRequired(required);
-        detail.setProvided(provided);
-        if (area.compareTo(minArea) >= 0 && width.compareTo(minWidth) >= 0 ) {
-            detail.setStatus(Result.Accepted.getResultVal());
-        } else {
-            detail.setStatus(Result.Not_Accepted.getResultVal());
-        }
+		ReportScrutinyDetail detail = new ReportScrutinyDetail();
+		detail.setRuleNo(RULE_41_5_5);
+		detail.setDescription(TOILET_DESCRIPTION);
+		detail.setFloorNo(String.valueOf(floor.getNumber()));
+		detail.setUnitNumber(unit.getUnitNumber());
 
-        Map<String, String> details = mapReportDetails(detail);
-        scrutinyDetail.getDetail().add(details);
-    }
+		Optional<ToiletRequirement> toiletRuleOpt = getToiletRule(pl);
+		if (toiletRuleOpt == null || !toiletRuleOpt.isPresent()) {
+			LOG.warn("Toilet rule not found for Block {}, Floor {}, Unit {}", unit.getUnitNumber(), floor.getNumber(),
+					unit.getUnitNumber());
+			return;
+		}
+
+		ToiletRequirement rule = toiletRuleOpt.get();
+		BigDecimal minArea = rule.getMinToiletArea() != null ? rule.getMinToiletArea() : BigDecimal.ZERO;
+		BigDecimal minWidth = rule.getMinToiletWidth() != null ? rule.getMinToiletWidth() : BigDecimal.ZERO;
+		BigDecimal minHeight = rule.getMinToiletHeight() != null ? rule.getMinToiletHeight() : BigDecimal.ZERO;
+
+		String required = TOTAL_AREA_STRING + GREATER_THAN_EQUAL + minArea + COMMA_WIDTH_STRING + GREATER_THAN_EQUAL
+				+ minWidth + COMMA_HEIGHT_STRING + GREATER_THAN_EQUAL + minHeight;
+
+		String provided = TOTAL_AREA_STRING + IS_EQUAL_TO + area + COMMA_WIDTH_STRING + IS_EQUAL_TO + width
+				+ COMMA_HEIGHT_STRING + IS_EQUAL_TO + height;
+
+		detail.setRequired(required);
+		detail.setProvided(provided);
+
+		if (area.compareTo(minArea) >= 0 && width.compareTo(minWidth) >= 0 && height.compareTo(minHeight) >= 0) {
+			detail.setStatus(Result.Accepted.getResultVal());
+		} else {
+			detail.setStatus(Result.Not_Accepted.getResultVal());
+		}
+
+		Map<String, String> details = mapReportDetails(detail);
+		scrutinyDetail.getDetail().add(details);
+
+		LOG.info(
+				"Toilet measurement processed for Block {}, Floor {}, Unit {} -> Area={}, Width={}, Height={}, Status={}",
+				unit.getUnitNumber(), floor.getNumber(), unit.getUnitNumber(), area, width, height, detail.getStatus());
+	}
+
     
     /**
      * Evaluates the ventilation adequacy of a toilet based on its floor area and provided window openings.

@@ -27,6 +27,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import net.minidev.json.JSONArray;
 
 import static org.egov.edcr.constants.CommonFeatureConstants.*;
+import static org.egov.edcr.constants.EdcrReportConstants.*;
 
 @Service
 public class MDMSCacheManager {
@@ -200,14 +201,33 @@ public class MDMSCacheManager {
 	 * @return A list of applicable rules for the given feature and plan context. Returns an empty list if no rules match.
 	 */
 	
+	
+
 	public List<Object> getFeatureRules(Plan plan, String feature, boolean includeRiskType) {
 
-		LOG.info("Fetching feature rules: feature='{}', includeRiskType={}, tenantId='{}'",
-				feature, includeRiskType, plan.getTenantId());
+	    LOG.info("Fetching feature rules: feature='{}', includeRiskType={}, tenantId='{}'",
+	            feature, includeRiskType, plan.getTenantId());
 
-		String occupancyName = fetchEdcrRulesMdms.getOccupancyName(plan).toLowerCase();
-		String tenantId = plan.getTenantId();
-		String zone = plan.getPlanInformation().getZone() != null
+	    String occupancyName = null;
+	    try {
+	        occupancyName = fetchEdcrRulesMdms.getOccupancyName(plan);
+	        if (occupancyName == null || occupancyName.trim().isEmpty()) {
+	          
+	            FeatureUtil.handleError(plan, OCCUPANCY_ERROR,
+	                    MOST_RESTRICTIVE_OCCUPANCY_ERROR);
+	            return Collections.emptyList(); // stop further processing
+	        }
+	        occupancyName = occupancyName.toLowerCase();
+	    } catch (Exception e) {
+	        LOG.error("Error fetching occupancy name from MDMS", e);
+	        FeatureUtil.handleError(plan, OCCUPANCY_ERROR,
+	        		MOST_RESTRICTIVE_OCCUPANCY_ERROR);
+	        return Collections.emptyList();
+	    }
+
+	    String tenantId = plan.getTenantId();
+
+	    String zone = plan.getPlanInformation().getZone() != null
 	            ? plan.getPlanInformation().getZone().toLowerCase()
 	            : null;
 
@@ -217,12 +237,21 @@ public class MDMSCacheManager {
 
 		String riskType = includeRiskType ? fetchEdcrRulesMdms.getRiskType(plan).toLowerCase() : null;
 
-		String checkedTenantId = edcrConfigProperties.getIsStateWise() ? null : tenantId;
-		FeatureRuleKey key = new FeatureRuleKey(edcrConfigProperties.getDefaultState(), checkedTenantId, zone, subZone, occupancyName, riskType, feature);
+	    String checkedTenantId = edcrConfigProperties.getIsStateWise() ? null : tenantId;
 
-		return getRules(key);
+	    FeatureRuleKey key = new FeatureRuleKey(
+	            edcrConfigProperties.getDefaultState(),
+	            checkedTenantId,
+	            zone,
+	            subZone,
+	            occupancyName,
+	            riskType,
+	            feature
+	    );
+
+	    return getRules(key);
 	}
-	
+
 	/**
 	 * Converts a feature name string to its corresponding {@link FeatureEnum} constant.
 	 * Matching is case-insensitive.
