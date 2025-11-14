@@ -344,11 +344,7 @@ export const OBPSV2Services = {
       collectionBillArray = [],
       totalAmount = 0,
       collectionBillRes = [];
-    if (bpa?.status === "PAYMENT_PENDING") {
-      appBusinessService = ["BPA.PLANNING_PERMIT_FEE"];
-    } else if (bpa?.status === "CITIZEN_FINAL_PAYMENT") {
-      appBusinessService = ["BPA.BUILDING_PERMIT_FEE"];
-    }
+    appBusinessService = ["BPA.PLANNING_PERMIT_FEE","BPA.BUILDING_PERMIT_FEE"];
     let fetchBillRes = {};
 
     if (appBusinessService?.[1]) {
@@ -716,6 +712,9 @@ export const OBPSV2Services = {
         values: [
           { title: "BPA_FORM22_HEADER", value: " ", isHeader: true },
         ],
+         submitReportDetails: [
+          { title: "BPA_SUBMIT_REPORT_DETAILS", value: bpa?.additionalDetails?.submitReportinspection_pending?.length > 0 ? bpa.additionalDetails.submitReportinspection_pending?.[0]: "NA" },
+        ],
         form22Details: [
           { title: "BPA_FORM22_DETAILS", value: form22 || "NA" },
         ],
@@ -730,22 +729,22 @@ export const OBPSV2Services = {
     
     let reportDetails = null;
 
-if (bpa?.additionalDetails?.submitReportinspection_pending?.length) {
-  const values = bpa.additionalDetails.submitReportinspection_pending.flatMap((report) =>
-    Object.entries(report).map(([key, value]) => ({
-      title: `BPA_${key.toUpperCase()}`,
-      value: value ?? "NA", 
-    }))
-  );
+// if (bpa?.additionalDetails?.submitReportinspection_pending?.length) {
+//   const values = bpa.additionalDetails.submitReportinspection_pending.flatMap((report) =>
+//     Object.entries(report).map(([key, value]) => ({
+//       title: `BPA_${key.toUpperCase()}`,
+//       value: value ?? "NA", 
+//     }))
+//   );
 
-  reportDetails = {
-    title: "BPA_SUBMIT_REPORT_DETAILS",
-    asSectionHeader: true,
-    isInsert: true,
-    isCommon: true,
-    values: values,
-  };
-}
+//   reportDetails = {
+//     title: "BPA_SUBMIT_REPORT_DETAILS",
+//     asSectionHeader: true,
+//     isInsert: true,
+//     isCommon: true,
+//     values: values,
+//   };
+// }
 
     details = [
       ...details,
@@ -759,7 +758,7 @@ if (bpa?.additionalDetails?.submitReportinspection_pending?.length) {
       futureProvisions,
       rtpDetails,
       documentDetails,
-      reportDetails,
+      //reportDetails,
       formDetails,
     ];
     let bpaFilterDetails = details?.filter((data) => data);

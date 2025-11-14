@@ -70,6 +70,7 @@ function ApplicationDetailsContent({
     form22: false,
     form23A: false,
     form23B: false,
+    submitReport: false
   });
   const toggleExpanded = (key) => {
     setExpanded((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -358,6 +359,9 @@ function ApplicationDetailsContent({
           formData = value;
           break;
         case "FORM_23B":
+          formData = value;
+          break;
+        case "SUBMIT_REPORT":
           formData = value;
           break;
         default:
@@ -668,6 +672,60 @@ function ApplicationDetailsContent({
               bpaActionsDetails={workflowDetails}
             />
           )}
+          {detail?.additionalDetails?.submitReportDetails && window.location.href.includes("obpsv2") ? (
+            <div>
+            <StatusTable>
+            <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <CardLabel style={{ fontSize: "20px", marginTop: "24px", fontWeight: "bold" }}>{t("SUBMIT_REPORT_DETAILS")}</CardLabel>
+                {!expanded.submitReport && (
+                  <LinkButton
+                    label={t("VIEW_DETAILS")}
+                    onClick={() => toggleExpanded("submitReport")}
+                    style={{ marginRight: "1rem" }}
+                  />
+                )}
+                <LinkButton
+                  label={
+                    <div className="response-download-button">
+                      <span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#a82227">
+                          <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" />
+                        </svg>
+                      </span>
+                      <span className="download-button">{t("CS_COMMON_DOWNLOAD")}</span>
+                    </div>
+                  }
+                  onClick={() => handleDownloadPdf("SUBMIT_REPORT", detail?.additionalDetails?.submitReportDetails?.[0]?.value)}
+                  className="w-full"
+                />
+
+              </div>
+
+              {expanded.submitReport && (
+                <React.Fragment>
+                  <StatusTable>
+                  {getDetailsRow(detail?.additionalDetails?.submitReportDetails?.[0]?.value)}
+
+                  <div style={{ marginTop: "1rem" }}>
+                    <LinkButton
+                      label={t("COLLAPSE")}
+                      onClick={() => toggleExpanded("submitReport")}
+                    />
+                  </div>
+                  </StatusTable>
+                </React.Fragment>
+              )}
+           
+            </StatusTable>
+            
+            </div>
+          ):null}
           {detail?.additionalDetails?.form22Details && window.location.href.includes("obpsv2")  ? (
             <div>
             <StatusTable>
