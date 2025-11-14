@@ -1,0 +1,14 @@
+
+First mvc clean:
+mvn clean package -DskipTests  
+
+Docker build:
+docker build -t abhijdock123/requester-services-dx:uat-13-11-25-5 -f Dockerfile .  
+
+Login to Docker hub locally:
+docker login 
+
+Push the image to docker hub:
+docker push  abhijdock123/requester-services-dx:uat-13-11-25-5
+
+After push provide the image name to devops to pull and deploy the image with config on env
