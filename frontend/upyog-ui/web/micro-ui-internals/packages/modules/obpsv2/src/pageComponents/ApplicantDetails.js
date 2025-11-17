@@ -115,7 +115,7 @@ const ApplicantDetails = ({ t, config, onSelect, formData, searchResult }) => {
             placeholder="Enter Email Id"
             onChange={(e) => {
               const value = e.target.value;
-              const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+              const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-z.-]+\.(com|org|in|co)$/;
               if (value === "" || emailRegex.test(value)) {
                 setEmail(value);          
                 setError("");            
