@@ -252,6 +252,7 @@ public class DemandService {
             calculation.getTaxHeadEstimates().forEach(taxHeadEstimate -> {
                 demandDetails.add(DemandDetail.builder().taxAmount(taxHeadEstimate.getEstimateAmount())
                         .taxHeadMasterCode(taxHeadEstimate.getTaxHeadCode())
+                        .additionalDetails(taxHeadEstimate.getAdditionalDetails())
                         .collectionAmount(BigDecimal.ZERO)
                         .tenantId(tenantId)
                         .build());

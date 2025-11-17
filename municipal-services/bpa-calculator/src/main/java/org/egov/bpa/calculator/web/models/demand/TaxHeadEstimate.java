@@ -2,6 +2,8 @@ package org.egov.bpa.calculator.web.models.demand;
 
 import java.math.BigDecimal;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,4 +21,6 @@ public class TaxHeadEstimate {
     private BigDecimal estimateAmount;
 
     private Category category;
+
+    private Object additionalDetails;
 }

@@ -2,6 +2,7 @@ package org.egov.bpa.calculator.services;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -283,8 +284,9 @@ public class CalculationService {
 
 		List<Map<String, Object>> calculationTypeMap = mdmsService.getCalculationType(requestInfo, bpa, mdmsData, calulationCriteria);
 		
-		BigDecimal totalTax = BigDecimal.ZERO;
 		for (Floor floor : bpa.getFloors()) {
+
+			BigDecimal totalTax = BigDecimal.ZERO;
 
 			if (floor.getLevel() == 0) {
 				totalTax = totalTax.add(calculateEstimate(bpa, calculationTypeMap.get(0)));
@@ -292,30 +294,54 @@ public class CalculationService {
 				totalTax = totalTax.add(calculateEstimate(bpa, calculationTypeMap.get(1)));
 			}
 
+			TaxHeadEstimate estimate = new TaxHeadEstimate();
+			estimate.setEstimateAmount(totalTax);
+			estimate.setCategory(Category.FEE);
+			String taxHeadCode = utils.getTaxHeadCode(bpa.getBusinessService(), calulationCriteria.getFeeType());
+			estimate.setTaxHeadCode(taxHeadCode);
+			
+			Map<String, Object> additional = new HashMap<>();
+			String level = toOrdinalFloorName(floor.getLevel());
+			additional.put("floor", level);
+			estimate.setAdditionalDetails(additional);
+
+			if (totalTax.compareTo(BigDecimal.ZERO) < 0)
+				throw new CustomException(BPACalculatorConstants.INVALID_AMOUNT, "Tax amount is negative");
+
+			estimates.add(estimate);
+
 		}
-
-		if (totalTax.compareTo(BigDecimal.ZERO) < 0)
-			throw new CustomException(BPACalculatorConstants.INVALID_AMOUNT, "Tax amount is negative");
-
-		TaxHeadEstimate estimate = new TaxHeadEstimate();
-		estimate.setEstimateAmount(totalTax);
-		estimate.setCategory(Category.FEE);
-
-		String taxHeadCode = utils.getTaxHeadCode(bpa.getBusinessService(), calulationCriteria.getFeeType());
-		estimate.setTaxHeadCode(taxHeadCode);
-
-		estimates.add(estimate);
+		
 		estimatesAndSlabs.setEstimates(estimates);
 
 		return estimatesAndSlabs;
 	}
 
+	public static String toOrdinalFloorName(int number) {
+
+		String[] ordinals = { "Ground", "First", "Second", "Third", "Fourth", "Fifth", "Sixth", "Seventh", "Eighth", "Ninth",
+				"Tenth", "Eleventh", "Twelfth", "Thirteenth", "Fourteenth", "Fifteenth", "Sixteenth", "Seventeenth",
+				"Eighteenth", "Nineteenth" };
+
+		String[] tensWords = { "", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety" };
+
+		if (number < 20) {
+			return ordinals[number] + " Floor";
+		} else {
+			int tens = number / 10;
+			int ones = number % 10;
+
+			if (ones == 0) {
+				return tensWords[tens] + "ieth Floor";
+			} else {
+				return tensWords[tens] + " " + ordinals[ones] + " Floor";
+			}
+		}
+	}
+
 	private BigDecimal calculateEstimate(BPA bpa, Map<String, Object> calcType) {
 
 		String unitType = (String) calcType.get("unitType");
-		System.out.println("calcType"+calcType);
-		System.out.println("unitType"+unitType);
-		System.out.println(calcType.get("rate"));
 		BigDecimal rate = new BigDecimal(calcType.get("rate").toString());
 		BigDecimal additionalFee = new BigDecimal(StringUtils.isEmpty((String) calcType.get("additionalFee")) ? "0"
 				: (String) calcType.get("additionalFee"));
