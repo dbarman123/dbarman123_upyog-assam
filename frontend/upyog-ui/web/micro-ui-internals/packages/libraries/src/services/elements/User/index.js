@@ -96,27 +96,57 @@ export const UserService = {
   getUser: () => {
     return Digit.SessionStorage.get("User");
   },
-  logout: async () => {
-    const userType = UserService.getType();
-    let ePramaanInitiated = false;
-    try {
-      const result = await UserService.logoutUser();
-      ePramaanInitiated = result?.ePramaanInitiated;
-    } catch (e) {
-    }
+
+  //TODO: Remove old logout code after testing
+  // logout: async () => {
+  //   const userType = UserService.getType();
+  //   let ePramaanInitiated = false;
+  //   try {
+  //     const result = await UserService.logoutUser();
+  //     ePramaanInitiated = result?.ePramaanInitiated;
+  //   } catch (e) {
+  //   }
     
-    // Only clear storage and redirect if ePramaan form submission did not happen
-    // (ePramaan form submission causes redirect to ePramaan, then back to redirectUrl)
-    if (!ePramaanInitiated) {
-      window.localStorage.clear();
-      window.sessionStorage.clear();
-      if (userType === "citizen") {
-        window.location.replace("/upyog-ui/citizen");
-      } else {
-        window.location.replace("/upyog-ui/employee/user/language-selection");
-      }
-    }
-  },
+  //   // Only clear storage and redirect if ePramaan form submission did not happen
+  //   // (ePramaan form submission causes redirect to ePramaan, then back to redirectUrl)
+  //   if (!ePramaanInitiated) {
+  //     window.localStorage.clear();
+  //     window.sessionStorage.clear();
+  //     if (userType === "citizen") {
+  //       window.location.replace("/upyog-ui/citizen");
+  //     } else {
+  //       window.location.replace("/upyog-ui/employee/user/language-selection");
+  //     }
+  //   }
+  // },
+
+  logout: async () => {
+  console.log("[Logout] logout() invoked.");
+  const userType = UserService.getType();
+
+  let result;
+  try {
+    result = await UserService.logoutUser();
+  } catch (err) {
+    console.error("[Logout] logoutUser() threw an error:", err);
+  }
+
+  // If ePramaan SSO logout happened → EXIT IMMEDIATELY
+  if (result?.ePramaanInitiated) {
+    Digit.SessionStorage.set("SSO_REDIRECTING", true);
+    return; // critical
+  }
+
+  // Normal logout cleanup (ONLY if SSO not triggered)
+  window.localStorage.clear();
+  window.sessionStorage.clear();
+
+  if (userType === "citizen") {
+    window.location.replace("/upyog-ui/citizen");
+  } else {
+    window.location.replace("/upyog-ui/employee/user/language-selection");
+  }
+},
 
   sendOtp: (details, stateCode) =>
     ServiceRequest({
