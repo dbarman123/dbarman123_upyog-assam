@@ -2,6 +2,7 @@ package org.egov.bpa.config;
 
 import lombok.*;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -14,6 +15,7 @@ import java.util.TimeZone;
 @NoArgsConstructor
 @Builder
 @Component
+@EnableFeignClients(basePackages = "org.egov.bpa.service.property")
 public class BPAConfiguration {
 
 	@Value("${app.timezone}")
