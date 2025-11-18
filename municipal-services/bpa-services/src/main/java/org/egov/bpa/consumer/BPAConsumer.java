@@ -3,7 +3,6 @@ package org.egov.bpa.consumer;
 import java.util.HashMap;
 
 import org.egov.bpa.service.notification.BPANotificationService;
-import org.egov.bpa.util.BPAConstants;
 import org.egov.bpa.web.model.BPARequest;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;

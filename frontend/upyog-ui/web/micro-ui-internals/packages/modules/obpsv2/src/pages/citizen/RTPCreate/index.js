@@ -88,6 +88,16 @@ const RTPCreate = ({ parentRoute }) => {
       });
   }
 
+  useEffect(() => {
+    if (isShowToast) {
+      const timer = setTimeout(() => {
+        setIsShowToast(null);
+      }, 2000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [isShowToast]);
+
   const handleSkip = () => { };
   const handleMultiple = () => { };
 
