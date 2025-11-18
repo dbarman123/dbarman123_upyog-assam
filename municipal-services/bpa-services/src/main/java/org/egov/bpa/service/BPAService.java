@@ -928,4 +928,17 @@ public class BPAService {
     public Object getFeeEstimateFromBpaCalculator(Object bpaRequest) {
         return calculationService.callBpaCalculatorEstimate(bpaRequest);
     }
+    
+    /**
+     * Search for RTP (Registered Technical Person) using user search API
+     *
+     * @param userSearchRequest The user search request containing search criteria
+     * @return UserDetailResponse containing RTP details
+     */
+    public UserDetailResponse searchRTP(UserSearchRequest userSearchRequest) {
+        userSearchRequest.setTenantId(userSearchRequest.getTenantId());
+        userSearchRequest.setRoleCodes(userSearchRequest.getRoleCodes());
+        StringBuilder uri = new StringBuilder(config.getUserHost()).append(config.getUserSearchEndpoint());
+        return userService.userCall(userSearchRequest, uri);
+    }
 }

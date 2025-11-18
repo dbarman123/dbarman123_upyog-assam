@@ -17,6 +17,8 @@ import org.egov.bpa.web.model.BPARequest;
 import org.egov.bpa.web.model.BPAResponse;
 import org.egov.bpa.web.model.BPASearchCriteria;
 import org.egov.bpa.web.model.RequestInfoWrapper;
+import org.egov.bpa.web.model.user.UserDetailResponse;
+import org.egov.bpa.web.model.user.UserSearchRequest;
 import org.egov.tracer.model.CustomException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -120,5 +122,11 @@ public class BPAController {
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 	
+	@PostMapping(value = "/_rtpsearch")
+	public ResponseEntity<UserDetailResponse> rtpSearch(@Valid @RequestBody UserSearchRequest userSearchRequest) {
+		
+		UserDetailResponse response = bpaService.searchRTP(userSearchRequest);
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
 
 }

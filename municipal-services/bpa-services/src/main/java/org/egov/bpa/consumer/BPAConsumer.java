@@ -24,9 +24,12 @@ public class BPAConsumer {
 	@Autowired
 	private BPANotificationService notificationService;
 	
-	@KafkaListener(topics = { "${persister.update.buildingplan.topic}",
-//			"${persister.update.buildingplan.workflow.topic}", 
-			"${persister.save.buildingplan.topic}" })
+	@KafkaListener(topics = {
+	        "${persister.update.buildingplan.topic}",        // Updates building plan application
+	        "${persister.update.allbuildingplan.topic}",     // Updates building plan application in 'EDIT' action of workflow
+	        // "${persister.update.buildingplan.workflow.topic}", // Workflow-related updates
+	        "${persister.save.buildingplan.topic}"           // Saves new building plan application
+	})
 	public void listen(final HashMap<String, Object> record, @Header(KafkaHeaders.RECEIVED_TOPIC) String topic) {
 		ObjectMapper mapper = new ObjectMapper();
 		BPARequest bpaRequest = new BPARequest();

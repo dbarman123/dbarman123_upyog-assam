@@ -129,7 +129,7 @@ import {
     const mutation = Digit.Hooks.obpsv2.useBPACreateUpdateApi(tenantId, "update");
   
     const getBusinessService = () => {
-      if (bpa_details?.status === "APPLICATION_COMPLETED") {
+      if (bpa_details?.status === "CITIZEN_FINAL_PAYMENT") {
         return "BPA.BUILDING_PERMIT_FEE";
       }
       return "BPA.PLANNING_PERMIT_FEE";

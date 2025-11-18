@@ -20,6 +20,7 @@ import static org.egov.bpa.util.BPAConstants.USREVENTS_EVENT_DOWNLOAD_RECEIPT_CO
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -57,7 +58,6 @@ import org.egov.mdms.model.MasterDetail;
 import org.egov.mdms.model.MdmsCriteria;
 import org.egov.mdms.model.MdmsCriteriaReq;
 import org.egov.mdms.model.ModuleDetail;
-import org.egov.tracer.model.CustomException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -197,29 +197,31 @@ public class BPANotificationService {
 	public EventRequest getEventNotification(BPARequest bpaRequest, List<SMSRequest> smsRequests) {
 
 		List<Event> events = new ArrayList<>();
-//		Map<String, String> edcrResponse = edcrService.getEDCRDetails(bpaRequest.getRequestInfo(), bpaRequest.getBPA());
-//		String applicationType = edcrResponse.get(BPAConstants.APPLICATIONTYPE);
 		BPA bpaApplication = bpaRequest.getBPA();
 		Action action = null;
 		Set<String> mobileNumbers = smsRequests.stream().map(SMSRequest::getMobileNumber).collect(Collectors.toSet());
 		Map<String, String> mapOfPhnoAndUUIDs = fetchUserUUIDs(mobileNumbers, bpaRequest.getRequestInfo(),
 				bpaRequest.getBPA().getTenantId());
 
-		Map<String, String> mobileNumberToMsg = smsRequests.stream()
-				.collect(Collectors.toMap(SMSRequest::getMobileNumber, SMSRequest::getMessage));
+		Map<String, List<String>> mobileNumberToMsg = smsRequests.stream().collect(Collectors.groupingBy(
+				SMSRequest::getMobileNumber, Collectors.mapping(SMSRequest::getMessage, Collectors.toList())));
 
 		for (String mobile : mobileNumbers) {
-			if (null == mapOfPhnoAndUUIDs.get(mobile) || null == mobileNumberToMsg.get(mobile)) {
+			List<String> messages = mobileNumberToMsg.get(mobile);
+			if (messages == null || mapOfPhnoAndUUIDs.get(mobile) == null) {
 				log.error("No UUID/SMS for mobile {} skipping event", mobile);
 				continue;
 			}
-			List<String> toUsers = new ArrayList<>();
-			toUsers.add(mapOfPhnoAndUUIDs.get(mobile));
-			Recepient recepient = Recepient.builder().toUsers(toUsers).toRoles(null).build();
-			events.add(Event.builder().tenantId(bpaApplication.getTenantId()).description(mobileNumberToMsg.get(mobile))
-					.eventType(BPAConstants.USREVENTS_EVENT_TYPE).name(BPAConstants.USREVENTS_EVENT_NAME)
-					.postedBy(BPAConstants.USREVENTS_EVENT_POSTEDBY).source(Source.WEBAPP).recepient(recepient)
-					.eventDetails(null).actions(action).build());
+
+			List<String> toUsers = Collections.singletonList(mapOfPhnoAndUUIDs.get(mobile));
+
+			for (String msg : messages) {
+				Recepient recepient = Recepient.builder().toUsers(toUsers).toRoles(null).build();
+				events.add(Event.builder().tenantId(bpaApplication.getTenantId()).description(msg)
+						.eventType(BPAConstants.USREVENTS_EVENT_TYPE).name(BPAConstants.USREVENTS_EVENT_NAME)
+						.postedBy(BPAConstants.USREVENTS_EVENT_POSTEDBY).source(Source.WEBAPP).recepient(recepient)
+						.eventDetails(null).actions(action).build());
+			}
 		}
 
 		if (!CollectionUtils.isEmpty(events)) {

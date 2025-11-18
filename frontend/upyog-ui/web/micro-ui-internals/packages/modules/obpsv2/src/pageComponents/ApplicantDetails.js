@@ -17,6 +17,7 @@ const ApplicantDetails = ({ t, config, onSelect, formData, searchResult }) => {
   const [aadhaarNumber, setAadhaarNumber] = useState(formData?.applicant?.aadhaarNumber || searchResult?.landInfo?.owners?.[0]?.aadhaarNumber ||"");
   const [gender, setGender] = useState(formData?.applicant?.gender || (searchResult?.landInfo?.owners?.[0]?.gender ? { code: searchResult.landInfo.owners[0].gender, name: searchResult.landInfo.owners[0].gender, i18nKey: searchResult.landInfo.owners[0].gender } : ""));
   const [relationship, setRelationship] = useState(formData?.applicant?.relationship || (searchResult?.landInfo?.owners?.[0]?.relationship ? { code: searchResult.landInfo.owners[0].relationship, name: searchResult.landInfo.owners[0].relationship, i18nKey: searchResult.landInfo.owners[0].relationship } : ""));  
+  const [error, setError] = useState(null); 
   // Options for radio buttons
   const genderOptions = [
     { code: "MALE", i18nKey: "MALE" , name:"MALE"},
@@ -66,7 +67,8 @@ const ApplicantDetails = ({ t, config, onSelect, formData, searchResult }) => {
           !panCardNumber ||
           !aadhaarNumber ||
           !gender ||
-          !relationship
+          !relationship ||
+          error
         }
       >
         <div>
@@ -107,14 +109,30 @@ const ApplicantDetails = ({ t, config, onSelect, formData, searchResult }) => {
           <CardLabel>{`${t("BPA_EMAIL_ID")}`} <span className="check-page-link-button">*</span></CardLabel>
           <TextInput
             t={t}
-            type="email"
+            type="text"
             name="emailId"
             value={emailId}
             placeholder="Enter Email Id"
-            onChange={(e) => setEmail(e.target.value)}
-            ValidationRequired={true}
-            {...{ pattern: "[A-Za-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,4}$", title: t("BPA_EMAIL_ERROR_MESSAGE") }}
+            onChange={(e) => {
+              const value = e.target.value;
+              {/* // This regex validates email addresses with the following rules:
+              - Username: allows letters, numbers, dots, underscores, percent, plus, and hyphen
+              - Must contain a single '@'
+              - Domain name: allows only lowercase letters, dots, and hyphens
+              - TLD must be exactly one of: .com, .org, .in, .co */}
+              const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-z.-]+\.(com|org|in|co)$/;  
+              if (value === "" || emailRegex.test(value)) {
+                setEmail(value);          
+                setError("");            
+              } else {
+                setError(t("BPA_EMAIL_ERROR_MESSAGE"));  
+              }
+              setEmail(e.target.value)}
+            }
+            //ValidationRequired={true}
+            // {...{ pattern: "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$", title: t("BPA76_EMAIL_ERROR_MESSAGE") }}
           />
+          {error ? <div style={{color:"red"}} >{error}</div> : ""}
           {/* Gender */}
           <CardLabel>{`${t("BPA_GENDER")}`} <span className="check-page-link-button">*</span></CardLabel>
           <RadioButtons

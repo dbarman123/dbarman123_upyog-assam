@@ -218,6 +218,9 @@ public class MDMSService {
 		String applicationType = calulationCriteria.getApplicationType();
 		String wallType = calulationCriteria.getWallType();
 		String floorLevel = calulationCriteria.getFloorLevel();
+		
+		log.info(String.format("TenantID: %s, FeeType: %s, ApplicationType: %s, WallType: %s", bpa.getTenantId(),
+				feeType, applicationType, wallType));
 
 		try {
 			// Fetch whole calculationType JSON from MDMS

@@ -1,7 +1,8 @@
-import { BackButton, CardHeader, CardLabelError, PageBasedInput, SearchOnRadioButtons } from "@upyog/digit-ui-react-components";
+import { BackButton, CardHeader, CardLabelError,  SearchOnRadioButtons } from "@upyog/digit-ui-react-components";
 import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory, useLocation } from "react-router-dom";
+import PageBasedInput from "../../../../../../react-components/src/molecules/PageBasedInput";
 
 const LocationSelection = () => {
   const { t } = useTranslation();

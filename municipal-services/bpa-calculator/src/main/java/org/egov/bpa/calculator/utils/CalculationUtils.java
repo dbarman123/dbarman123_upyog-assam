@@ -135,4 +135,26 @@ public class CalculationUtils {
 		}
 		return billingTaxHead;
 	}
+
+	public String toOrdinalFloorName(int number) {
+
+		String[] ordinals = { "Ground", "First", "Second", "Third", "Fourth", "Fifth", "Sixth", "Seventh", "Eighth",
+				"Ninth", "Tenth", "Eleventh", "Twelfth", "Thirteenth", "Fourteenth", "Fifteenth", "Sixteenth",
+				"Seventeenth", "Eighteenth", "Nineteenth" };
+
+		String[] tensWords = { "", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety" };
+
+		if (number < 20) {
+			return ordinals[number] + " Floor";
+		} else {
+			int tens = number / 10;
+			int ones = number % 10;
+
+			if (ones == 0) {
+				return tensWords[tens] + "ieth Floor";
+			} else {
+				return tensWords[tens] + " " + ordinals[ones] + " Floor";
+			}
+		}
+	}
 }

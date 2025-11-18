@@ -408,8 +408,6 @@ public class BPAConstants {
 
 	public static final String WEBSITE_LINK_PLACEHOLDER = "{WEBSITE_LINK}";
 
-	public static final String NIUA_LINK = "http://assamuat.niua.in/";
-
 	public static final String TENANTID_MDC_STRING = "TENANTID";
 
 	public static final String REGISTRATION_LOGIN = "REGISTRATION_LOGIN";

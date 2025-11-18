@@ -1,6 +1,9 @@
+import React from "react";
+import ReactDOM from "react-dom";
 import Urls from "../../atoms/urls";
 import { Request, ServiceRequest } from "../../atoms/Utils/Request";
 import { Storage } from "../../atoms/Utils/Storage";
+import EPramaanLogoutLoader from "./EPramaanLogoutLoader";
 
 export const UserService = {
   authenticate: (details) => {
@@ -41,17 +44,31 @@ export const UserService = {
         });
 
         if (formDataResponse) {
-          // Step 2: Call UPYOG logout WITHOUT waiting or handling response
-          // Fire and forget - don't await
+      // Step 2: COMPLETE UPYOG logout first (wait for it)
+      try {
+        await Promise.race([
           ServiceRequest({
             serviceName: "logoutUser",
             url: Urls.UserLogout,
             data: { access_token: user?.access_token },
             auth: true,
             params: { tenantId },
-          }).catch(err => console.error("Logout error:", err));
-
-          // Step 3: Immediately submit form (don't wait for logout to complete)
+          }),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Logout timeout')), 3000)
+          )
+        ]);
+        } catch (logoutError) {
+          console.error("Logout error (continuing with ePramaan):", logoutError);
+        }
+          // Step 3: Clear UPYOG session storage NOW (before ePramaan redirect)
+          window.localStorage.clear();
+          window.sessionStorage.clear();
+          
+          // Step 4: Set flag for when we return from ePramaan
+          localStorage.setItem("SSO_REDIRECTING", "true");
+          await new Promise(resolve => setTimeout(resolve, 100));
+          // Step 6: NOW submit form to ePramaan
           const form = document.createElement("form");
           form.method = "POST";
           form.action = Urls.ePramaan.logoutUrl;
@@ -96,27 +113,46 @@ export const UserService = {
   getUser: () => {
     return Digit.SessionStorage.get("User");
   },
+
+
   logout: async () => {
-    const userType = UserService.getType();
-    let ePramaanInitiated = false;
-    try {
-      const result = await UserService.logoutUser();
-      ePramaanInitiated = result?.ePramaanInitiated;
-    } catch (e) {
+    // **HIDE MAIN APP**
+    const appRoot = document.getElementById("root");
+    if (appRoot) {
+      appRoot.style.display = "none";
     }
     
-    // Only clear storage and redirect if ePramaan form submission did not happen
-    // (ePramaan form submission causes redirect to ePramaan, then back to redirectUrl)
-    if (!ePramaanInitiated) {
-      window.localStorage.clear();
-      window.sessionStorage.clear();
-      if (userType === "citizen") {
-        window.location.replace("/upyog-ui/citizen");
-      } else {
-        window.location.replace("/upyog-ui/employee/user/language-selection");
-      }
-    }
-  },
+    // **SHOW LOGOUT LOADER COMPONENT**
+    const loaderContainer = document.createElement("div");
+    loaderContainer.id = "logout-loader-container";
+    document.body.appendChild(loaderContainer);
+    
+    ReactDOM.render(<EPramaanLogoutLoader />, loaderContainer);
+  const userType = UserService.getType();
+
+  let result;
+  try {
+    result = await UserService.logoutUser();
+  } catch (err) {
+    console.error("[Logout] logoutUser() threw an error:", err);
+  }
+
+  // If ePramaan SSO logout happened → storage already cleared, form submitted
+  if (result?.ePramaanInitiated) {
+    console.log("ePramaan logout initiated, waiting for redirect...");
+    return;
+  }
+
+  // Normal logout cleanup (ONLY if SSO not triggered)
+  window.localStorage.clear();
+  window.sessionStorage.clear();
+
+  if (userType === "citizen") {
+    window.location.replace("/upyog-ui/citizen");
+  } else {
+    window.location.replace("/upyog-ui/employee/user/language-selection");
+  }
+},
 
   sendOtp: (details, stateCode) =>
     ServiceRequest({

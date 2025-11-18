@@ -232,9 +232,9 @@ const [villageName, setVillageName] = useState(formData?.areaMapping?.villageNam
     const baseValidation = !district || !planningArea || !ppAuthority || !bpAuthority || !concernedAuthority;
     
     if (bpAuthority?.code === "MUNICIPAL_BOARD") {
-      return baseValidation || !ward || !revenueVillage || !mouza;
+      return baseValidation || !ward || !revenueVillage;
     } else if (bpAuthority?.code === "GRAM_PANCHAYAT") {
-      return baseValidation || !villageName || !mouza;
+      return baseValidation || !villageName;
     }
     
     return baseValidation;
@@ -380,13 +380,20 @@ const [villageName, setVillageName] = useState(formData?.areaMapping?.villageNam
           )}
 
           {/* Mouza - Always text input */}
-          <CardLabel>{`${t("MOUZA")}`} <span className="check-page-link-button">*</span></CardLabel>
+          <CardLabel>{`${t("MOUZA")}`}</CardLabel>
           <TextInput
             t={t}
             name="mouza"
             value={mouza}
-            onChange={(e) => setMouza(e.target.value)}
             placeholder={`${t("ENTER_MOUZA_NAME")}`}
+            onChange={(e) =>
+              setMouza(
+                e.target.value.replace(/[^a-zA-Z0-9\s]/g, "")
+              )
+            }
+            ValidationRequired={true}
+            pattern="^[A-Za-z0-9 ]+$"
+            title={t("BPA_NAME_ERROR_MESSAGE")}
           />
         </div>
       </FormStep>
