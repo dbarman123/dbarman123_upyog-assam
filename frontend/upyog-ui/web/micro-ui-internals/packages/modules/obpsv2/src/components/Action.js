@@ -16,6 +16,11 @@ const Action = ({ selectedAction, applicationNo, closeModal, setSelectedAction, 
   const [file, setFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
 
+  // New state for GIS response
+  const [gisResponse, setGisResponse] = useState(null);
+  const [showGisResponse, setShowGisResponse] = useState(false);
+  const [gisValidationSuccess, setGisValidationSuccess] = useState(false);
+
   const WORKFLOW_ACTIONS = [
     "APPROVE",
     "ACCEPT",
@@ -113,6 +118,9 @@ const Action = ({ selectedAction, applicationNo, closeModal, setSelectedAction, 
           break;
         case "VALIDATE_GIS":
           setPopup(true);
+          setShowGisResponse(false);
+          setGisResponse(null);
+          setGisValidationSuccess(false);
           break;
         case "EDIT":
           const redirectingUrl = `${window.location.origin}/upyog-ui/citizen/obpsv2/editApplication/${applicationNo}`;
@@ -223,27 +231,28 @@ const Action = ({ selectedAction, applicationNo, closeModal, setSelectedAction, 
         const response = await OBPSV2Services.update({ BPA: bpaDetails?.bpa[0] }, tenantId);
         setAssignResponse(response);
 
-        // Close popup first
-        setPopup(false);
 
-        // Then show toast after a small delay
-        setTimeout(() => {
-          if (setToastMessage && typeof setToastMessage === "function") {
-            setToastMessage(t(`CS_ACTION_UPDATE_${selectedAction}_TEXT`));
-          }
-          if (typeof parentSetShowToast === "function") {
-            parentSetShowToast(true);
-          }
-          // Reset selected action to hide modal
-          if (setSelectedAction && typeof setSelectedAction === "function") {
-            setSelectedAction(null);
-          }
-        }, 100);
+        // For VALIDATE_GIS, don't close popup automatically - it will be closed manually
+        if (selectedAction !== "VALIDATE_GIS") {
+          setPopup(false);
+
+          setTimeout(() => {
+            if (setToastMessage && typeof setToastMessage === "function") {
+              setToastMessage(t(`CS_ACTION_UPDATE_${selectedAction}_TEXT`));
+            }
+            if (typeof parentSetShowToast === "function") {
+              parentSetShowToast(true);
+            }
+            if (setSelectedAction && typeof setSelectedAction === "function") {
+              setSelectedAction(null);
+            }
+          }, 100);
 
         // Refresh data if refetch function is available
         if (typeof refetch === "function") {
           await refetch();
         }
+      }
 
         return response;
       } catch (error) {
@@ -297,8 +306,20 @@ const Action = ({ selectedAction, applicationNo, closeModal, setSelectedAction, 
       formData.append("gisRequestWrapper", blob);
 
       const response = await OBPSV2Services.gisService({ data: formData });
-      const landuse = response?.data?.wfsResponse?.landuse;
+      const wfsResponse = response?.data?.wfsResponse;
+      const landuse = wfsResponse?.landuse;
 
+      // Store GIS response for display
+      setGisResponse({
+        district: wfsResponse?.district || "N/A",
+        latitude: response?.data?.latitude || "N/A",
+        longitude: response?.data?.longitude || "N/A",
+        landuse: landuse || "N/A",
+        village: wfsResponse?.village || "N/A",
+        areaHectare: wfsResponse?.area_ha || "N/A",
+        wardNo: wfsResponse?.ward_no || "N/A",
+        zone: wfsResponse?.zone || "N/A"
+      });
       // Filter MDMS Data using both occupancyType and landuse
       const permissibleZones = mdmsData || [];
       const filteredZones = permissibleZones.filter(
@@ -310,41 +331,25 @@ const Action = ({ selectedAction, applicationNo, closeModal, setSelectedAction, 
 
       // Check if permissible is "No"
       if (matchedZone && matchedZone?.permissible === "No") {
-        setPopup(false);
-        setTimeout(() => {
-          if (setToastMessage) {
-            setToastMessage(t("NOT_PERMISSIBLE_FOR_CONSTRUCTION"));
-          }
-          if (typeof parentSetShowToast === "function") {
-            parentSetShowToast({ error: true }); // This shows error toast in parent
-          }
-          // Clear selectedAction AFTER setting parent toast
-          if (setSelectedAction) {
-            setSelectedAction(null);
-          }
-        }, 100);
-
+        setShowGisResponse(true);
+        setGisValidationSuccess(false);
+        setError(t("NOT_PERMISSIBLE_FOR_CONSTRUCTION"));
         return false;
       }
 
       // If permissible is "Yes"
       if (matchedZone && matchedZone?.permissible === "Yes") {
-        setPopup(false);
-        setTimeout(() => {
-          if (setToastMessage) {
-            setToastMessage(t("NOT_PERMISSIBLE_FOR_CONSTRUCTION"));
-          }
-          if (typeof parentSetShowToast === "function") {
-            parentSetShowToast({ error: false });
-          }
-        }, 100);
+        setShowGisResponse(true);
+        setGisValidationSuccess(true);
+        // Call update API here as normal
+        await onAssign(selectedAction, comments);
         return true;
       }
 
-      // Fallback if no matching zone found
-      setPopup(false);
-      setToast(true);
-      setToastMessage(t("NO_MATCHING_PERMISSIBLE_ZONE_FOUND"));
+       // Fallback if no matching zone found
+      setShowGisResponse(true);
+      setGisValidationSuccess(false);
+      setError(t("NO_MATCHING_PERMISSIBLE_ZONE_FOUND"));
       return false;
     } catch (err) {
       console.error("GIS Validation Error:", err);
@@ -369,7 +374,7 @@ const Action = ({ selectedAction, applicationNo, closeModal, setSelectedAction, 
               }}
             />
           }
-          actionCancelLabel={t("CS_COMMON_CANCEL")}
+          actionCancelLabel={selectedAction === "VALIDATE_GIS" && showGisResponse ? null : t("CS_COMMON_CANCEL")}
           actionCancelOnSubmit={() => {
             setPopup(false);
             if (setSelectedAction && typeof setSelectedAction === "function") {
@@ -377,35 +382,12 @@ const Action = ({ selectedAction, applicationNo, closeModal, setSelectedAction, 
             }
           }}
           actionSaveLabel={t("CS_COMMON_SUBMIT")}
-          popupStyles={{ zIndex: 1001 }}
-          // actionSaveOnSubmit={() => {
-          //   if (selectedAction === "VALIDATE_GIS") {
-          //     onValidateGIS();
-          //   } else if (
-          //     selectedAction === "APPROVE" ||
-          //     selectedAction === "ACCEPT" ||
-          //     selectedAction === "SEND" ||
-          //     selectedAction === "REJECT" ||
-          //     selectedAction === "SEND_BACK_TO_RTP" ||
-          //     selectedAction === "VALIDATE_GIS" ||
-          //     selectedAction === "SUBMIT_REPORT" ||
-          //     selectedAction === "RECOMMEND_TO_CEO" ||
-          //     selectedAction === "SEND_BACK_TO_GMDA"
-          //   )
-          //     onAssign(selectedAction, comments);
-          //   if (selectedAction === "NEWRTP" && !oldRTPName) setActionError(t("CS_OLD_RTP_NAME_MANDATORY"));
-          //   if (selectedAction === "NEWRTP" && !newRTPName) setActionError(t("CS_NEW_RTP_NAME_MANDATORY"));
-          // }}
-
+          popupStyles={{ zIndex: 1001, ...(selectedAction === "VALIDATE_GIS" && showGisResponse ? {width: "800px", maxWidth: "90vw"}: {}) }}
           actionSaveOnSubmit={async (e) => {
             try {
               if (selectedAction === "VALIDATE_GIS") {
-                // first call validate GIS
-                const gisSuccess = await onValidateGIS(); // make onValidateGIS return true/false
-                if (gisSuccess) {
-                  // if GIS validation passed, call onAssign
-                  await onAssign(selectedAction, comments);
-                }
+                 await onValidateGIS();
+                // Don't close modal, just show response
               } else if (WORKFLOW_ACTIONS.includes(selectedAction)) {
                 await onAssign(selectedAction, comments);
               }
@@ -417,6 +399,7 @@ const Action = ({ selectedAction, applicationNo, closeModal, setSelectedAction, 
             }
           }}
           error={error}
+          hideSubmit={selectedAction === "VALIDATE_GIS" && showGisResponse ? true : false}
         >
           <Card>
             <React.Fragment>
@@ -447,7 +430,8 @@ const Action = ({ selectedAction, applicationNo, closeModal, setSelectedAction, 
                   />
                 </div>
               )}
-              {selectedAction === "VALIDATE_GIS" && (
+
+              {selectedAction === "VALIDATE_GIS" && !showGisResponse && (
                 <div>
                   <CardLabel>{t("CS_ACTION_UPLOAD_LOCATION_FILE")}</CardLabel>
                   <UploadFile
@@ -470,6 +454,61 @@ const Action = ({ selectedAction, applicationNo, closeModal, setSelectedAction, 
                   />
                 </div>
               )}
+
+              {selectedAction === "VALIDATE_GIS" && showGisResponse && gisResponse && (
+                <div style={{padding: "16px", backgroundColor: gisValidationSuccess ? "#e8f5e9" : "#ffebee", borderRadius: "4px" }}>
+                  <h3 style={{ marginBottom: "16px", color: gisValidationSuccess ? "#2e7d32" : "#c62828" }}>
+                    {gisValidationSuccess ? t("GIS_VALIDATION_SUCCESS") : t("GIS_VALIDATION_FAILED")}
+                  </h3>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
+                    <div>
+                      <strong>{t("LATITUDE")}:</strong> {gisResponse.latitude}
+                    </div>
+                    <div>
+                      <strong>{t("LONGITUDE")}:</strong> {gisResponse.longitude}
+                    </div>
+                    <div>
+                      <strong>{t("DISTRICT")}:</strong> {gisResponse.district}
+                    </div>
+                    <div>
+                      <strong>{t("LANDUSE")}:</strong> {gisResponse.landuse}
+                    </div>
+                    <div>
+                      <strong>{t("VILLAGE")}:</strong> {gisResponse.village}
+                    </div>
+                    <div>
+                      <strong>{t("AREA_HECTARE")}:</strong> {gisResponse.areaHectare}
+                    </div>
+                    <div>
+                      <strong>{t("WARD_NO")}:</strong> {gisResponse.wardNo}
+                    </div>
+
+                   <div style={{ gridColumn: "span 2", textAlign: "center", marginTop: "20px" }}>
+                    <button
+                      onClick={() => {
+                        if (gisResponse.latitude && gisResponse.longitude) {
+                          window.open(`https://www.google.com/maps?q=${gisResponse.latitude},${gisResponse.longitude}`, "_blank");
+                        } else {
+                          setToastMessage(t("CS_GIS_MAP_COORDINATES_MISSING"));
+                        }
+                      }}
+                      style={{
+                        padding: "10px 16px",
+                        backgroundColor: "#a82227",
+                        border: "none",
+                        borderRadius: "6px",
+                        color: "white",
+                        cursor: "pointer",
+                        fontWeight: "600",
+                      }}
+                    >
+                      {t("VIEW_ON_MAP")}
+                    </button>
+                  </div>
+                  </div>
+                </div>
+              )}
+
 
               {selectedAction === "REJECT" && (
                 <div>
