@@ -50,7 +50,9 @@ package org.egov.edcr.feature;
 
 import static org.egov.edcr.constants.CommonFeatureConstants.EMPTY_STRING;
 import static org.egov.edcr.constants.CommonFeatureConstants.FOR_BLOCK;
+import static org.egov.edcr.constants.EdcrReportConstants.OCCUPANCY_ERROR;
 import static org.egov.edcr.constants.CommonFeatureConstants.MIN_AND_MEAN_VALUE;
+import static org.egov.edcr.constants.EdcrReportConstants.MOST_RESTRICTIVE_OCCUPANCY_ERROR;
 import static org.egov.edcr.constants.CommonFeatureConstants.MIN_LESS_REQ_MIN;
 import static org.egov.edcr.constants.CommonFeatureConstants.NOT_PERMITTED_DEPTH_LESS_10_HEIGHT_12;
 import static org.egov.edcr.constants.CommonFeatureConstants.NOT_PERMITTED_DEPTH_LESS_10_HEIGHT_16;
@@ -150,6 +152,7 @@ import org.egov.common.entity.edcr.Result;
 import org.egov.common.entity.edcr.ScrutinyDetail;
 import org.egov.common.entity.edcr.SetBack;
 import org.egov.edcr.constants.DxfFileConstants;
+import org.egov.edcr.service.FeatureUtil;
 import org.egov.edcr.service.FetchEdcrRulesMdms;
 import org.egov.edcr.service.MDMSCacheManager;
 import org.egov.infra.utils.StringUtils;
@@ -302,35 +305,78 @@ public class FrontYardService_Assam extends FrontYardService {
 	 */
 
 	private void processBlockFrontYard(Plan pl, Block block) {
+
 	    ScrutinyDetail scrutinyDetail = createScrutinyDetail(block.getName());
 	    FrontYardResult frontYardResult = new FrontYardResult();
 	    HashMap<String, String> errors = new HashMap<>();
 
 	    for (SetBack setback : block.getSetBacks()) {
-	        if (setback.getFrontYard() == null) continue;
+
+	        if (setback.getFrontYard() == null)
+	            continue;
 
 	        BigDecimal min = setback.getFrontYard().getMinimumDistance();
 	        BigDecimal mean = setback.getFrontYard().getMean();
 
 	        if ((min == null || min.compareTo(BigDecimal.ZERO) <= 0) &&
-	            (mean == null || mean.compareTo(BigDecimal.ZERO) <= 0)) continue;
+	            (mean == null || mean.compareTo(BigDecimal.ZERO) <= 0))
+	            continue;
 
 	        BigDecimal buildingHeight = getBuildingHeight(block, setback);
+	        if (buildingHeight == null)
+	            continue;
 
-	        if (buildingHeight == null) continue;
+	        // ----------------------------
+	        // SAFE OCCUPANCY EXTRACTION
+	        // ----------------------------
+	        Occupancy occupancy = null;
 
-	        Occupancy occupancy = block.getBuilding().getTotalArea().get(0); // Only first occupancy considered
-	        checkFrontYard(pl, block.getBuilding(), block.getName(), setback.getLevel(), pl.getPlot(),
-	                FRONT_YARD_DESC, min, mean, occupancy.getTypeHelper(), frontYardResult, buildingHeight, errors);
+	        if (block.getBuilding() != null &&
+	            block.getBuilding().getTotalArea() != null &&
+	            !block.getBuilding().getTotalArea().isEmpty()) {
 
+	            occupancy = block.getBuilding().getTotalArea().get(0);
+	        }
+
+	        if (occupancy == null || occupancy.getTypeHelper() == null) {
+	            LOG.error("Occupancy information is missing or invalid for block {}", block.getName());
+
+	            FeatureUtil.handleError(pl,
+	                    OCCUPANCY_ERROR,
+	                    MOST_RESTRICTIVE_OCCUPANCY_ERROR);
+
+	            continue;
+	        }
+
+	        // ---------------------------------------
+	        // FRONT YARD CHECK
+	        // ---------------------------------------
+	        checkFrontYard(
+	                pl,
+	                block.getBuilding(),
+	                block.getName(),
+	                setback.getLevel(),
+	                pl.getPlot(),
+	                FRONT_YARD_DESC,
+	                min,
+	                mean,
+	                occupancy.getTypeHelper(),
+	                frontYardResult,
+	                buildingHeight,
+	                errors
+	        );
+
+	      
 	        if (errors.isEmpty()) {
 	            Map<String, String> details = buildScrutinyDetailMap(frontYardResult);
 	            scrutinyDetail.getDetail().add(details);
 	            pl.getReportOutput().getScrutinyDetails().add(scrutinyDetail);
-	        }
+
+	        } 
 	    }
 	}
-	
+
+
 	/**
 	 * Creates a ScrutinyDetail object for recording front yard validation results.
 	 *

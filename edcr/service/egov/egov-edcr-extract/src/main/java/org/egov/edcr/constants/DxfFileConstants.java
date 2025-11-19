@@ -179,6 +179,7 @@ public class DxfFileConstants {
     public static final String NOC_FIRE_DEPT = "NOC_FIRE_DEPT";
     public static final String PLOT_NO = "PLOT_NO";
     public static final String ZONE = "ZONE";
+    public static final String LIFT_TYPE = "LIFT_TYPE";
     public static final String SUB_ZONE = "SUB_ZONE";
     public static final String DAGNO = "DAG_NO";
     public static final String PATTANO = "PATTA_NO";

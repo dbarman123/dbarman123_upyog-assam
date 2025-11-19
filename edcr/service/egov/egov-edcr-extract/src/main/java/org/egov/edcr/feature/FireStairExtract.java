@@ -121,23 +121,19 @@ public class FireStairExtract extends FeatureExtract {
 
 						List<DXFLWPolyline> builtUpAreaPolyLines = ((FloorDetail) floor).getBuiltUpAreaPolyLine();
 
-						if (builtUpAreaPolyLines != null && builtUpAreaPolyLines.size() > 0
-								&& fireStairPolyLines != null && fireStairPolyLines.size() > 0)
-							for (DXFLWPolyline builtUpPolyLine : builtUpAreaPolyLines) {
-								Polygon builtUpPolygon = Util.getPolygon(builtUpPolyLine);
-
-								for (DXFLWPolyline fireStairPolyLine : fireStairPolyLines) {
-									Iterator vertexIterator = fireStairPolyLine.getVertexIterator();
-									while (vertexIterator.hasNext()) {
-										DXFVertex dxfVertex = (DXFVertex) vertexIterator.next();
-										Point point = dxfVertex.getPoint();
-										if (rayCasting.contains(point, builtUpPolygon)) {
-											fireStair.setAbuttingBltUp(true);
-											break;
-										}
-									}
-								}
-							}
+						/*
+						 * if (builtUpAreaPolyLines != null && builtUpAreaPolyLines.size() > 0 &&
+						 * fireStairPolyLines != null && fireStairPolyLines.size() > 0) for
+						 * (DXFLWPolyline builtUpPolyLine : builtUpAreaPolyLines) { Polygon
+						 * builtUpPolygon = Util.getPolygon(builtUpPolyLine);
+						 * 
+						 * for (DXFLWPolyline fireStairPolyLine : fireStairPolyLines) { Iterator
+						 * vertexIterator = fireStairPolyLine.getVertexIterator(); while
+						 * (vertexIterator.hasNext()) { DXFVertex dxfVertex = (DXFVertex)
+						 * vertexIterator.next(); Point point = dxfVertex.getPoint(); if
+						 * (rayCasting.contains(point, builtUpPolygon)) {
+						 * fireStair.setAbuttingBltUp(true); break; } } } }
+						 */
 					}
 
 					String flightLayerNamePattern = String.format(

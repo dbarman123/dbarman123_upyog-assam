@@ -75,9 +75,20 @@ public class PlanInformation implements Serializable {
     private String ownerName;
     //Temporary field used to auto populate occupancy detail.
     private String occupancy;
+    
+    private String liftType;
     //Temporary field used for service type.
     private String serviceType;
-    //Temporary field used to show amenities used in application.
+    
+    public String getLiftType() {
+		return liftType;
+	}
+
+	public void setLiftType(String liftType) {
+		this.liftType = liftType;
+	}
+
+	//Temporary field used to show amenities used in application.
     private String amenities;
     //Save architect who submitted application mentioned in plan info.
     private String architectInformation;

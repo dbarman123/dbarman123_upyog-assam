@@ -794,6 +794,10 @@ public class PlanInfoFeatureExtract extends FeatureExtract {
 		if (StringUtils.isNotBlank(zone))
 			pi.setZone(zone);
 		
+		String liftType = planInfoProperties.get(DxfFileConstants.LIFT_TYPE);
+		if (StringUtils.isNotBlank(liftType))
+			pi.setLiftType(liftType);
+		
 		String subZone = planInfoProperties.get(DxfFileConstants.SUB_ZONE);
 		if (StringUtils.isNotBlank(subZone))
 			pi.setSubZone(subZone);

@@ -1331,11 +1331,12 @@ public class Parking_Assam extends Parking {
 		}
 
 	    //  Landscaping report (60% of plot area)
-	    if (pl.getPlot().getLandscapingArea().compareTo(BigDecimal.ZERO) > 0) {
-	        setReportOutputDetails1(pl, SECTION_92, "Landscaping Area (60% of Open Area)",
-	                "-", pl.getPlot().getLandscapingArea() + AREA_UNIT_SQM, Result.Accepted.getResultVal());
-	    }
-	    
+		/*
+		 * if (pl.getPlot().getLandscapingArea().compareTo(BigDecimal.ZERO) > 0) {
+		 * setReportOutputDetails1(pl, SECTION_92,
+		 * "Landscaping Area (60% of Open Area)", "-", pl.getPlot().getLandscapingArea()
+		 * + AREA_UNIT_SQM, Result.Accepted.getResultVal()); }
+		 */
 	    List<BigDecimal> dWidths = pl.getParkingDetails().getDrivewayWidth();
 	    
 	    String drivewayWidth = dWidths.stream()

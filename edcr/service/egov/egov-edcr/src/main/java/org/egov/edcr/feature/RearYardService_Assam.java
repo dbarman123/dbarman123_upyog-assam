@@ -47,36 +47,93 @@
 
 package org.egov.edcr.feature;
 
-import static org.egov.edcr.constants.CommonFeatureConstants.*;
+import static org.egov.edcr.constants.CommonFeatureConstants.COMMA;
+import static org.egov.edcr.constants.CommonFeatureConstants.FOR_BLOCK;
+import static org.egov.edcr.constants.CommonFeatureConstants.MIN_AND_MEAN_VALUE_VALIDATION;
+import static org.egov.edcr.constants.CommonFeatureConstants.MIN_VALUE_LESS_THAN_REQUIRED_MIN;
+import static org.egov.edcr.constants.CommonFeatureConstants.NO_CONST_PERMIT_DEPTH_10_BUILDING_HEIGHT_16;
+import static org.egov.edcr.constants.CommonFeatureConstants.NO_CONST_PERMIT_DEPTH_LESS_10_BUILDING_HEIGHT_12;
+import static org.egov.edcr.constants.CommonFeatureConstants.PLOT_AREA_CANNOT_BE_LESS_THAN;
+import static org.egov.edcr.constants.CommonFeatureConstants.PLOT_AREA_ERROR;
+import static org.egov.edcr.constants.CommonFeatureConstants.REAR_SETBACK_SUFFIX;
+import static org.egov.edcr.constants.CommonFeatureConstants.SIXTEEN_HEIGHT_TEN_DEPTH_REAR_YARD;
+import static org.egov.edcr.constants.CommonFeatureConstants.SLASH;
+import static org.egov.edcr.constants.CommonFeatureConstants.TWELVE_HEIGHT_TEN_DEPTH_REAR_YARD;
+import static org.egov.edcr.constants.CommonFeatureConstants.UNDERSCORE;
 import static org.egov.edcr.constants.CommonKeyConstants.BLOCK;
 import static org.egov.edcr.constants.DxfFileConstants.A;
-import static org.egov.edcr.constants.DxfFileConstants.H;
-import static org.egov.edcr.constants.DxfFileConstants.D;
-import static org.egov.edcr.constants.DxfFileConstants.C;
-import static org.egov.edcr.constants.DxfFileConstants.E;
-import static org.egov.edcr.constants.DxfFileConstants.D_M;
-import static org.egov.edcr.constants.DxfFileConstants.E_NS;
-import static org.egov.edcr.constants.DxfFileConstants.E_PS;
-import static org.egov.edcr.constants.DxfFileConstants.B2;
-import static org.egov.edcr.constants.DxfFileConstants.E_CLG;
 import static org.egov.edcr.constants.DxfFileConstants.A_AF;
 import static org.egov.edcr.constants.DxfFileConstants.A_PO;
 import static org.egov.edcr.constants.DxfFileConstants.A_R;
 import static org.egov.edcr.constants.DxfFileConstants.B;
+import static org.egov.edcr.constants.DxfFileConstants.B2;
+import static org.egov.edcr.constants.DxfFileConstants.C;
 import static org.egov.edcr.constants.DxfFileConstants.D;
 import static org.egov.edcr.constants.DxfFileConstants.D_AW;
+import static org.egov.edcr.constants.DxfFileConstants.D_M;
+import static org.egov.edcr.constants.DxfFileConstants.E;
+import static org.egov.edcr.constants.DxfFileConstants.E_CLG;
+import static org.egov.edcr.constants.DxfFileConstants.E_NS;
+import static org.egov.edcr.constants.DxfFileConstants.E_PS;
 import static org.egov.edcr.constants.DxfFileConstants.F;
 import static org.egov.edcr.constants.DxfFileConstants.G;
-import static org.egov.edcr.constants.DxfFileConstants.G_SI;
 import static org.egov.edcr.constants.DxfFileConstants.G_LI;
 import static org.egov.edcr.constants.DxfFileConstants.G_PHI;
+import static org.egov.edcr.constants.DxfFileConstants.G_SI;
+import static org.egov.edcr.constants.DxfFileConstants.H;
 import static org.egov.edcr.constants.DxfFileConstants.I;
-import static org.egov.edcr.constants.EdcrReportConstants.*;
+import static org.egov.edcr.constants.EdcrReportConstants.BSMT_REAR_YARD_DESC;
+import static org.egov.edcr.constants.EdcrReportConstants.BUILDING_HEIGHT;
+import static org.egov.edcr.constants.EdcrReportConstants.BUILDING_HEIGHT_SCHOOL;
+import static org.egov.edcr.constants.EdcrReportConstants.ERR_NARROW_ROAD_RULE;
+import static org.egov.edcr.constants.EdcrReportConstants.MINIMUMLABEL;
+import static org.egov.edcr.constants.EdcrReportConstants.MIN_PLOT_AREA;
+import static org.egov.edcr.constants.EdcrReportConstants.MIN_VAL_100_SQM;
+import static org.egov.edcr.constants.EdcrReportConstants.MIN_VAL_150_SQM;
+import static org.egov.edcr.constants.EdcrReportConstants.MIN_VAL_200_SQM;
+import static org.egov.edcr.constants.EdcrReportConstants.MIN_VAL_300_PlUS_SQM;
+import static org.egov.edcr.constants.EdcrReportConstants.MOST_RESTRICTIVE_OCCUPANCY_ERROR;
+import static org.egov.edcr.constants.EdcrReportConstants.OCCUPANCY_ERROR;
+import static org.egov.edcr.constants.EdcrReportConstants.PLOTAREA_300;
+import static org.egov.edcr.constants.EdcrReportConstants.PLOT_AREA_1000_SQM;
+import static org.egov.edcr.constants.EdcrReportConstants.PLOT_AREA_100_SQM;
+import static org.egov.edcr.constants.EdcrReportConstants.PLOT_AREA_150_SQM;
+import static org.egov.edcr.constants.EdcrReportConstants.PLOT_AREA_200_SQM;
+import static org.egov.edcr.constants.EdcrReportConstants.PLOT_AREA_300_SQM;
+import static org.egov.edcr.constants.EdcrReportConstants.PLOT_AREA_500_SQM;
+import static org.egov.edcr.constants.EdcrReportConstants.PLOT_AREA_802_SQM;
+import static org.egov.edcr.constants.EdcrReportConstants.REARYARDMINIMUM_DISTANCE_0_9;
+import static org.egov.edcr.constants.EdcrReportConstants.REARYARDMINIMUM_DISTANCE_12;
+import static org.egov.edcr.constants.EdcrReportConstants.REARYARDMINIMUM_DISTANCE_1_2;
+import static org.egov.edcr.constants.EdcrReportConstants.REARYARDMINIMUM_DISTANCE_1_5;
+import static org.egov.edcr.constants.EdcrReportConstants.REARYARDMINIMUM_DISTANCE_1_8;
+import static org.egov.edcr.constants.EdcrReportConstants.REARYARDMINIMUM_DISTANCE_2;
+import static org.egov.edcr.constants.EdcrReportConstants.REARYARDMINIMUM_DISTANCE_2_5;
+import static org.egov.edcr.constants.EdcrReportConstants.REARYARDMINIMUM_DISTANCE_3;
+import static org.egov.edcr.constants.EdcrReportConstants.REARYARDMINIMUM_DISTANCE_3_6;
+import static org.egov.edcr.constants.EdcrReportConstants.REARYARDMINIMUM_DISTANCE_4;
+import static org.egov.edcr.constants.EdcrReportConstants.REARYARDMINIMUM_DISTANCE_4_5;
+import static org.egov.edcr.constants.EdcrReportConstants.REARYARDMINIMUM_DISTANCE_5;
+import static org.egov.edcr.constants.EdcrReportConstants.REARYARDMINIMUM_DISTANCE_6;
+import static org.egov.edcr.constants.EdcrReportConstants.REARYARDMINIMUM_DISTANCE_7;
+import static org.egov.edcr.constants.EdcrReportConstants.REARYARDMINIMUM_DISTANCE_8;
+import static org.egov.edcr.constants.EdcrReportConstants.REARYARDMINIMUM_DISTANCE_9;
+import static org.egov.edcr.constants.EdcrReportConstants.ROAD_WIDTH_TWELVE_POINTTWO;
+import static org.egov.edcr.constants.EdcrReportConstants.RULE_36;
+import static org.egov.edcr.constants.EdcrReportConstants.RULE_37_TWO_A;
+import static org.egov.edcr.constants.EdcrReportConstants.RULE_37_TWO_B;
+import static org.egov.edcr.constants.EdcrReportConstants.RULE_37_TWO_C;
+import static org.egov.edcr.constants.EdcrReportConstants.RULE_37_TWO_D;
+import static org.egov.edcr.constants.EdcrReportConstants.RULE_37_TWO_G;
+import static org.egov.edcr.constants.EdcrReportConstants.RULE_37_TWO_H;
+import static org.egov.edcr.constants.EdcrReportConstants.RULE_37_TWO_I;
+import static org.egov.edcr.constants.EdcrReportConstants.RULE_47;
+import static org.egov.edcr.constants.EdcrReportConstants.RULE_4_4_4_I;
+import static org.egov.edcr.constants.EdcrReportConstants.SUB_RULE_SIDE_YARD;
 import static org.egov.edcr.utility.DcrConstants.FRONT_YARD_DESC;
 import static org.egov.edcr.utility.DcrConstants.OBJECTNOTDEFINED;
 import static org.egov.edcr.utility.DcrConstants.REAR_YARD_DESC;
 import static org.egov.edcr.utility.DcrConstants.YES;
-import static org.egov.edcr.constants.EdcrReportConstants.ERR_NARROW_ROAD_RULE; 
 
 import java.math.BigDecimal;
 import java.util.HashMap;
@@ -86,11 +143,9 @@ import java.util.Optional;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.egov.common.constants.MdmsFeatureConstants;
 import org.egov.common.entity.edcr.Block;
 import org.egov.common.entity.edcr.Building;
 import org.egov.common.entity.edcr.FeatureEnum;
-import org.egov.common.entity.edcr.MdmsFeatureRule;
 import org.egov.common.entity.edcr.Occupancy;
 import org.egov.common.entity.edcr.OccupancyTypeHelper;
 import org.egov.common.entity.edcr.Plan;
@@ -100,7 +155,7 @@ import org.egov.common.entity.edcr.Result;
 import org.egov.common.entity.edcr.ScrutinyDetail;
 import org.egov.common.entity.edcr.SetBack;
 import org.egov.edcr.constants.DxfFileConstants;
-import org.egov.edcr.constants.EdcrRulesMdmsConstants;
+import org.egov.edcr.service.FeatureUtil;
 import org.egov.edcr.service.FetchEdcrRulesMdms;
 import org.egov.edcr.service.MDMSCacheManager;
 import org.egov.infra.utils.StringUtils;
@@ -130,93 +185,84 @@ public class RearYardService_Assam extends RearYardService {
 	 @Autowired
 	 MDMSCacheManager cache;
 	 
-	public void processRearYard(final Plan pl) {
-		HashMap<String, String> errors = new HashMap<>();
-		final Plot plot = pl.getPlot();
-		if (plot == null)
-			return;
+	 public void processRearYard(final Plan pl) {
 
-		validateRearYard(pl);
-		
+		    HashMap<String, String> errors = new HashMap<>();
+		    final Plot plot = pl.getPlot();
+		    if (plot == null)
+		        return;
 
-		if (plot != null && !pl.getBlocks().isEmpty()) {
-			for (Block block : pl.getBlocks()) { // for each block
+		    validateRearYard(pl);
 
-				scrutinyDetail = new ScrutinyDetail();
-				scrutinyDetail.setKey(BLOCK + block.getName() + UNDERSCORE + REAR_SETBACK_SUFFIX);
-				scrutinyDetail.addColumnHeading(1, RULE_NO);
-				scrutinyDetail.addColumnHeading(2, LEVEL);
-				scrutinyDetail.addColumnHeading(3, OCCUPANCY);
-				scrutinyDetail.addColumnHeading(4, FIELDVERIFIED);
-				scrutinyDetail.addColumnHeading(5, PERMISSIBLE);
-				scrutinyDetail.addColumnHeading(6, PROVIDED);
-				scrutinyDetail.addColumnHeading(7, STATUS);
-				scrutinyDetail.setHeading(REAR_YARD_DESC);
-				RearYardResult rearYardResult = new RearYardResult();
+		    if (!pl.getBlocks().isEmpty()) {
 
-				for (SetBack setback : block.getSetBacks()) {
-					BigDecimal min;
-					BigDecimal mean;
-					final Occupancy occupancy = block.getBuilding().getTotalArea().get(0);
-					if (setback.getRearYard() != null
-							&& setback.getRearYard().getMean().compareTo(BigDecimal.ZERO) > 0) {
-						min = setback.getRearYard().getMinimumDistance();
-						mean = setback.getRearYard().getMean();
+		        for (Block block : pl.getBlocks()) {
 
-						// if height defined at rear yard level, then use elase use buidling height.
-						BigDecimal buildingHeight = setback.getRearYard().getHeight() != null
-								&& setback.getRearYard().getHeight().compareTo(BigDecimal.ZERO) > 0
-										? setback.getRearYard().getHeight()
-										: block.getBuilding().getBuildingHeight();
+		            scrutinyDetail = new ScrutinyDetail();
+		            scrutinyDetail.setKey(BLOCK + block.getName() + UNDERSCORE + REAR_SETBACK_SUFFIX);
+		            scrutinyDetail.addColumnHeading(1, RULE_NO);
+		            scrutinyDetail.addColumnHeading(2, LEVEL);
+		            scrutinyDetail.addColumnHeading(3, OCCUPANCY);
+		            scrutinyDetail.addColumnHeading(4, FIELDVERIFIED);
+		            scrutinyDetail.addColumnHeading(5, PERMISSIBLE);
+		            scrutinyDetail.addColumnHeading(6, PROVIDED);
+		            scrutinyDetail.addColumnHeading(7, STATUS);
+		            scrutinyDetail.setHeading(REAR_YARD_DESC);
 
-						if (buildingHeight != null && (min.doubleValue() > 0 || mean.doubleValue() > 0)) {
-							checkRearYard(pl, block.getBuilding(), block, setback.getLevel(), plot,
-									REAR_YARD_DESC, min, mean, occupancy.getTypeHelper(), rearYardResult,
-									buildingHeight, errors);
-							addRearYardResult(pl, errors, rearYardResult);
-			
-									/*
-									 * if (buildingHeight.compareTo(BigDecimal.valueOf(10)) <= 0 &&
-									 * block.getBuilding() .getFloorsAboveGround().compareTo(BigDecimal.valueOf(3))
-									 * <= 0) { checkRearYardUptoTenMts(pl, block.getBuilding(), block,
-									 * setback.getLevel(), plot, REAR_YARD_DESC, min, mean,
-									 * occupancy.getTypeHelper(), rearYardResult, buildingHeight);
-									 * 
-									 * } else if (buildingHeight.compareTo(BigDecimal.valueOf(12)) <= 0 &&
-									 * block.getBuilding().getFloorsAboveGround() .compareTo(BigDecimal.valueOf(4))
-									 * <= 0) { checkRearYardUptoToTweleveMts(setback, block.getBuilding(), pl,
-									 * block, setback.getLevel(), plot, REAR_YARD_DESC, min, mean,
-									 * occupancy.getTypeHelper(), rearYardResult, errors);
-									 * 
-									 * } else if (buildingHeight.compareTo(BigDecimal.valueOf(16)) <= 0) {
-									 * checkRearYardUptoToSixteenMts(setback, block.getBuilding(), pl, block,
-									 * setback.getLevel(), plot, REAR_YARD_DESC, min, mean,
-									 * occupancy.getTypeHelper(), rearYardResult, errors);
-									 * 
-									 * } else if (buildingHeight.compareTo(BigDecimal.valueOf(16)) > 0) {
-									 * checkRearYardAboveSixteenMts(setback, block.getBuilding(), pl, block,
-									 * setback.getLevel(), plot, REAR_YARD_DESC, min, mean,
-									 * occupancy.getTypeHelper(), rearYardResult, buildingHeight);
-									 * 
-									 * }
-									 */
-								} /*
-									 * else if (G.equalsIgnoreCase(occupancy.getTypeHelper().getType().getCode())) {
-									 * checkRearYardForIndustrial(setback, block.getBuilding(), pl, block,
-									 * setback.getLevel(), plot, REAR_YARD_DESC, min, mean,
-									 * occupancy.getTypeHelper(), rearYardResult); } else {
-									 * checkRearYardOtherOccupancies(setback, block.getBuilding(), pl, block,
-									 * setback.getLevel(), plot, REAR_YARD_DESC, min, mean,
-									 * occupancy.getTypeHelper(), rearYardResult, buildingHeight); }
-									 */
+		            RearYardResult rearYardResult = new RearYardResult();
 
-							}}
+		            for (SetBack setback : block.getSetBacks()) {
 
-				}
-			}
-		
+		                if (setback.getRearYard() == null ||
+		                     setback.getRearYard().getMean().compareTo(BigDecimal.ZERO) <= 0)
+		                    continue;
 
-	}
+		                
+
+		                if (block.getBuilding() != null &&
+		                    block.getBuilding().getTotalArea() != null &&
+		                    !block.getBuilding().getTotalArea().isEmpty()) {
+
+		                    occupancy = block.getBuilding().getTotalArea().get(0);
+		                }
+
+		               
+		                if (occupancy == null || occupancy.getTypeHelper() == null) {
+
+		                    LOG.error("Rear Yard: Occupancy missing/invalid for block {}", block.getName());
+
+		                    FeatureUtil.handleError(
+		                        pl,
+		                        OCCUPANCY_ERROR,
+		                        MOST_RESTRICTIVE_OCCUPANCY_ERROR
+		                    );
+
+		                    continue;
+		                }
+
+		                BigDecimal min = setback.getRearYard().getMinimumDistance();
+		                BigDecimal mean = setback.getRearYard().getMean();
+
+		                BigDecimal buildingHeight =
+		                        (setback.getRearYard().getHeight() != null &&
+		                         setback.getRearYard().getHeight().compareTo(BigDecimal.ZERO) > 0)
+		                        ? setback.getRearYard().getHeight()
+		                        : block.getBuilding().getBuildingHeight();
+
+		                if (buildingHeight == null)
+		                    continue;
+
+		               
+		                checkRearYard(pl, block.getBuilding(), block, setback.getLevel(), plot,
+		                        REAR_YARD_DESC, min, mean, occupancy.getTypeHelper(),
+		                        rearYardResult, buildingHeight, errors);
+
+		                addRearYardResult(pl, errors, rearYardResult);
+		            }
+		        }
+		    }
+		}
+
 	
 	private void addRearYardResult(final Plan pl, HashMap<String, String> errors, RearYardResult rearYardResult) {
 		if (rearYardResult != null) {

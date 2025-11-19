@@ -41,16 +41,14 @@ public class ChimneyExtract extends FeatureExtract {
             if (block.getChimneys() != null && !block.getChimneys().isEmpty()) {
                 minHeight = block.getChimneys().stream().reduce(BigDecimal::min).get();
 
-                if (minHeight.compareTo(new BigDecimal(1)) > 0) {
-                    increasedHeight = block.getBuilding().getBuildingHeight()
-                            .subtract(block.getBuilding().getDeclaredBuildingHeight());
-                    if (minHeight.compareTo(increasedHeight) > 0) {
-                        block.getBuilding()
-                                .setBuildingHeight(block.getBuilding().getDeclaredBuildingHeight().add(minHeight));
-                        block.getBuilding().setHeightIncreasedBy("Chimney");
-                    }
-                }
-                
+				/*
+				 * if (minHeight.compareTo(new BigDecimal(2)) > 0) { increasedHeight =
+				 * block.getBuilding().getBuildingHeight()
+				 * .subtract(block.getBuilding().getDeclaredBuildingHeight()); if
+				 * (minHeight.compareTo(increasedHeight) > 0) { block.getBuilding()
+				 * .setBuildingHeight(block.getBuilding().getDeclaredBuildingHeight().add(
+				 * minHeight)); block.getBuilding().setHeightIncreasedBy("Chimney"); } }
+				 */
                 List<DXFLWPolyline> chimneyPolyLines = Util.getPolyLinesByLayer(planDetail.getDoc(),
                         layerName);
 

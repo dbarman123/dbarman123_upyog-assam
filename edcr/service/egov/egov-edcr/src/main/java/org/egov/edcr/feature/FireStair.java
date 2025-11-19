@@ -47,6 +47,45 @@
 
 package org.egov.edcr.feature;
 
+import static org.egov.edcr.constants.CommonFeatureConstants.FLOOR;
+import static org.egov.edcr.constants.CommonFeatureConstants.UNDERSCORE;
+import static org.egov.edcr.constants.CommonKeyConstants.BLOCK;
+import static org.egov.edcr.constants.CommonKeyConstants.FIRE_STAIR;
+import static org.egov.edcr.constants.CommonKeyConstants.FIRE_STAIR_ABUTTING;
+import static org.egov.edcr.constants.CommonKeyConstants.FIRE_STAIR_ABUT_DESC;
+import static org.egov.edcr.constants.CommonKeyConstants.FIRE_STAIR_C;
+import static org.egov.edcr.constants.CommonKeyConstants.FIRE_STAIR_LANDING;
+import static org.egov.edcr.constants.CommonKeyConstants.FIRE_STAIR_LANDING_NOT_DEFINED_BLK;
+import static org.egov.edcr.constants.CommonKeyConstants.FIRE_STAIR_LANDING_WIDTH_NOT_DEFINED_BLK;
+import static org.egov.edcr.constants.CommonKeyConstants.FIRE_STAIR_NOT_DEFINED;
+import static org.egov.edcr.constants.CommonKeyConstants.FIRE_STAIR_NOT_DEFINED_BLK;
+import static org.egov.edcr.constants.CommonKeyConstants.FIRE_STAIR_NOT_DEFINED_BLOCK;
+import static org.egov.edcr.constants.CommonKeyConstants.FIRE_STAIR_RISERS;
+import static org.egov.edcr.constants.CommonKeyConstants.FIRE_STAIR_TREAD;
+import static org.egov.edcr.constants.CommonKeyConstants.FIRE_STAIR_WIDTH;
+import static org.egov.edcr.constants.CommonKeyConstants.FLIGHT_POLYLINE;
+import static org.egov.edcr.constants.CommonKeyConstants.FLIGHT_POLYLINE_LENGTH;
+import static org.egov.edcr.constants.CommonKeyConstants.FLIGHT_POLYLINE_WIDTH;
+import static org.egov.edcr.constants.CommonKeyConstants.FLOOR_SPACED;
+import static org.egov.edcr.constants.CommonKeyConstants.IS_TYPICAL_REP_FLOOR;
+import static org.egov.edcr.constants.CommonKeyConstants.MANDATORY_BUILDING_HEIGHT_15M;
+import static org.egov.edcr.constants.CommonKeyConstants.NO_OF_RISE;
+import static org.egov.edcr.constants.CommonKeyConstants.NO_OF_RISERS_GREATER_THAN_LENGTH_FLIGHT_DIMENSIONS;
+import static org.egov.edcr.constants.CommonKeyConstants.NO_OF_RISES_COUNT;
+import static org.egov.edcr.constants.CommonKeyConstants.TYPICAL_FLOOR;
+import static org.egov.edcr.constants.EdcrReportConstants.FLIGHT_LENGTH_DEFINED_DESCRIPTION;
+import static org.egov.edcr.constants.EdcrReportConstants.FLIGHT_NOT_DEFINED_DESCRIPTION;
+import static org.egov.edcr.constants.EdcrReportConstants.FLIGHT_POLYLINE_NOT_DEFINED_DESCRIPTION;
+import static org.egov.edcr.constants.EdcrReportConstants.FLIGHT_WIDTH_DEFINED_DESCRIPTION;
+import static org.egov.edcr.constants.EdcrReportConstants.NO_OF_RISERS;
+import static org.egov.edcr.constants.EdcrReportConstants.NO_OF_RISER_DESCRIPTION;
+import static org.egov.edcr.constants.EdcrReportConstants.RULE42_5_II;
+import static org.egov.edcr.constants.EdcrReportConstants.TREAD_DESCRIPTION;
+import static org.egov.edcr.constants.EdcrReportConstants.WIDTH_DESCRIPTION_FIRE_STAIR;
+import static org.egov.edcr.constants.EdcrReportConstants.WIDTH_LANDING_DESCRIPTION;
+import static org.egov.edcr.service.FeatureUtil.addScrutinyDetailtoPlan;
+import static org.egov.edcr.service.FeatureUtil.mapReportDetails;
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
@@ -54,26 +93,31 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.Objects;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.egov.common.constants.MdmsFeatureConstants;
-import org.egov.common.entity.edcr.*;
+import org.egov.common.entity.edcr.Block;
+import org.egov.common.entity.edcr.FeatureEnum;
+import org.egov.common.entity.edcr.FireStairRequirement;
+import org.egov.common.entity.edcr.Flight;
+import org.egov.common.entity.edcr.Floor;
+import org.egov.common.entity.edcr.Measurement;
+import org.egov.common.entity.edcr.OccupancyTypeHelper;
+import org.egov.common.entity.edcr.Plan;
+import org.egov.common.entity.edcr.ReportScrutinyDetail;
+import org.egov.common.entity.edcr.Result;
+import org.egov.common.entity.edcr.ScrutinyDetail;
+import org.egov.common.entity.edcr.StairLanding;
 import org.egov.edcr.constants.DxfFileConstants;
-import org.egov.edcr.service.MDMSCacheManager;
 import org.egov.edcr.service.FetchEdcrRulesMdms;
+import org.egov.edcr.service.MDMSCacheManager;
 import org.egov.edcr.utility.DcrConstants;
 import org.egov.edcr.utility.Util;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
-
-import static org.egov.edcr.constants.CommonFeatureConstants.*;
-import static org.egov.edcr.constants.CommonKeyConstants.*;
-import static org.egov.edcr.constants.EdcrReportConstants.*;
-import static org.egov.edcr.service.FeatureUtil.addScrutinyDetailtoPlan;
-import static org.egov.edcr.service.FeatureUtil.mapReportDetails;
 
 /*
  * This class is responsible for validating and processing fire stair dimensions
@@ -179,11 +223,24 @@ public class FireStair extends FeatureProcess {
 	                                  ScrutinyDetail sdLanding, ScrutinyDetail sdAbutWall,
 	                                  FireStairRequirement fireStairReq) {
 
-	        setReportOutputDetailsBltUp(plan, RULE42_5_II, floor.getNumber().toString(),
-	                FIRE_STAIR_ABUT_DESC,
-	                fireStair.isAbuttingBltUp() ? FIRE_STAIR_ABUT_PROVIDED_YES : FIRE_STAIR_ABUT_PROVIDED_NO,
-	                fireStair.isAbuttingBltUp() ? Result.Accepted.getResultVal() : Result.Not_Accepted.getResultVal(),
-	                sdAbutWall);
+	    	// Get fire stair measurements from the object
+	    	List<Measurement> fireStairMeasurements = fireStair.getStairMeasurements();
+
+	    	// Compute total fire stair area
+	    	BigDecimal fireStairArea = fireStairMeasurements.stream()
+	    	        .map(Measurement::getArea)
+	    	        .filter(Objects::nonNull)
+	    	        .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+
+	    	// Add to report WITHOUT validation
+	    	setReportOutputDetailsBltUp(plan, RULE42_5_II, floor.getNumber().toString(),
+	    	        FIRE_STAIR_ABUT_DESC,
+	    	        fireStairArea.toString(),                  
+	    	        "-",                              
+	    	        Result.Accepted.getResultVal(),      
+	    	        sdAbutWall);
+
 
 	        validateFlight(plan, (HashMap<String, String>) errors,
 	                block, sdWidth, sdTread, sdRise, null,
@@ -665,18 +722,28 @@ public class FireStair extends FeatureProcess {
 		addScrutinyDetailtoPlan(scrutinyDetail, pl, details);
 	}
 
-	private void setReportOutputDetailsBltUp(Plan pl, String ruleNo, String floor, String description, String actual,
-			String status, ScrutinyDetail scrutinyDetail) {
-		ReportScrutinyDetail detail = new ReportScrutinyDetail();
-		detail.setRuleNo(ruleNo);
-		detail.setDescription(description);
-		detail.setFloorNo(floor);
-		detail.setProvided(actual);
-		detail.setStatus(status);
+	private void setReportOutputDetailsBltUp(
+	        Plan pl,
+	        String ruleNo,
+	        String floor,
+	        String description,
+	        String actual,
+	        String expected,   
+	        String status,
+	        ScrutinyDetail scrutinyDetail) {
 
-		Map<String, String> details = mapReportDetails(detail);
-		addScrutinyDetailtoPlan(scrutinyDetail, pl, details);
+	    ReportScrutinyDetail detail = new ReportScrutinyDetail();
+	    detail.setRuleNo(ruleNo);
+	    detail.setDescription(description);
+	    detail.setFloorNo(floor);
+	    detail.setProvided(actual);
+	    detail.setPermissible(expected);  
+	    detail.setStatus(status);
+
+	    Map<String, String> details = mapReportDetails(detail);
+	    addScrutinyDetailtoPlan(scrutinyDetail, pl, details);
 	}
+
 
 	/*
 	 * private void validateDimensions(Plan plan, String blockNo, int floorNo,

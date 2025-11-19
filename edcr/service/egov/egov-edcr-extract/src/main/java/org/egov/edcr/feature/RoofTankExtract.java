@@ -24,30 +24,48 @@ public class RoofTankExtract extends FeatureExtract {
 
     @Override
     public PlanDetail extract(PlanDetail planDetail) {
-        BigDecimal minHeight, increasedHeight;
 
         for (Block block : planDetail.getBlocks()) {
+
             block.setRoofTanks(Util.getListOfDimensionValueByLayer(planDetail,
                     String.format(layerNames.getLayerName("LAYER_NAME_ROOF_TANK"), block.getNumber())));
 
             if (block.getRoofTanks() != null && !block.getRoofTanks().isEmpty()) {
-                minHeight = block.getRoofTanks().stream().reduce(BigDecimal::min).get();
-                if (minHeight.compareTo(new BigDecimal(1)) > 0) {
-                    increasedHeight = block.getBuilding().getBuildingHeight()
-                            .subtract(block.getBuilding().getDeclaredBuildingHeight());
-                    if (minHeight.compareTo(increasedHeight) > 0) {
-                        block.getBuilding()
-                                .setBuildingHeight(block.getBuilding().getDeclaredBuildingHeight().add(minHeight));
-                        block.getBuilding().setHeightIncreasedBy("Roof Tank");
+
+                BigDecimal minHeight = block.getRoofTanks().stream()
+                        .reduce(BigDecimal::min)
+                        .orElse(BigDecimal.ZERO);
+
+                BigDecimal declaredHeight = block.getBuilding().getDeclaredBuildingHeight();
+
+                //  Only subtract if roof tank height < 2m
+                if (minHeight.compareTo(new BigDecimal(2)) < 0) {
+
+                    BigDecimal newHeight = declaredHeight.subtract(minHeight);
+
+                    if (newHeight.compareTo(BigDecimal.ZERO) < 0) {
+                        newHeight = BigDecimal.ZERO;
                     }
+
+                    block.getBuilding().setBuildingHeight(newHeight);
+                    block.getBuilding().setHeightIncreasedBy("Roof Tank (<2m) Subtracted");
+                } 
+                else {
+                    // ≥ 2m → do NOT add and do NOT subtract
+                    block.getBuilding().setBuildingHeight(declaredHeight);
+                    block.getBuilding().setHeightIncreasedBy(null);
                 }
             }
 
-            if (block.getBuilding().getBuildingHeight().compareTo(new BigDecimal(15)) > 0)
+            // High rise check
+            if (block.getBuilding().getBuildingHeight().compareTo(new BigDecimal(15)) > 0) {
                 block.getBuilding().setIsHighRise(true);
+            }
         }
 
         return planDetail;
     }
+
+
 
 }
