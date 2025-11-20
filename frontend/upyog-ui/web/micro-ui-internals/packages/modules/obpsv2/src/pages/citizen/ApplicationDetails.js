@@ -1390,9 +1390,24 @@ async function onrtpChange(status, comments, type) {
           }
         />
       }
-      headerBarEnd={<CloseBtn onClick={() => setPopup(false)} />}
+      headerBarEnd={<CloseBtn
+              onClick={async () => {
+              setPopup(false);
+              if (setSelectedAction) setSelectedAction(null);
+              // Refetch on manual close
+              if (typeof refetch === "function") {
+                await refetch();
+              }
+            }}
+            />}
       actionCancelLabel={selectedAction === "VALIDATE_GIS" && showGisResponse ? null : t("CS_COMMON_CANCEL")}
-      actionCancelOnSubmit={() => setPopup(false)}
+      actionCancelOnSubmit={async () => {
+            setPopup(false);
+            // Refetch on manual close
+            if (typeof refetch === "function") {
+              await refetch();
+            }
+          }}
       actionSaveLabel={
         t("CS_COMMON_SUBMIT")
       }

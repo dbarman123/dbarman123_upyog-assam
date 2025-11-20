@@ -366,19 +366,24 @@ const Action = ({ selectedAction, applicationNo, closeModal, setSelectedAction, 
           headerBarMain={<Heading label={t(`CS_ACTION_${selectedAction}`)} />}
           headerBarEnd={
             <CloseBtn
-              onClick={() => {
-                setPopup(false);
-                if (setSelectedAction && typeof setSelectedAction === "function") {
-                  setSelectedAction(null);
-                }
-              }}
+              onClick={async () => {
+              setPopup(false);
+              if (setSelectedAction) setSelectedAction(null);
+              // Refetch on manual close
+              if (typeof refetch === "function") {
+                await refetch();
+              }
+            }}
             />
           }
           actionCancelLabel={selectedAction === "VALIDATE_GIS" && showGisResponse ? null : t("CS_COMMON_CANCEL")}
-          actionCancelOnSubmit={() => {
+          actionCancelOnSubmit={async () => {
             setPopup(false);
-            if (setSelectedAction && typeof setSelectedAction === "function") {
-              setSelectedAction(null);
+            if (setSelectedAction) setSelectedAction(null);
+
+            // Refetch on manual close
+            if (typeof refetch === "function") {
+              await refetch();
             }
           }}
           actionSaveLabel={t("CS_COMMON_SUBMIT")}
