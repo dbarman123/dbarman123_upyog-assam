@@ -149,7 +149,7 @@ public class BPAService {
         //bpaValidator.validateCreate(bpaRequest, mdmsData, values);
 
         //TODO : Need to remove after getting land info
-//        landService.addLandInfoToBPA(bpaRequest);
+        landService.addLandInfoToBPA(bpaRequest);
         enrichmentService.enrichBPACreateRequest(bpaRequest, mdmsData, null);
 
         wfIntegrator.callWorkFlow(bpaRequest);
@@ -500,7 +500,7 @@ public class BPAService {
 					bpa.getApplicationNo());
 			break;
 
-		case "EDITT":
+		case "EDIT":
 			enrichmentService.enrichBPAUpdateRequest(bpaRequest, null);
 			wfIntegrator.callWorkFlow(bpaRequest);
 			repository.update(bpaRequest, BPAConstants.UPDATE_ALL_BUILDING_PLAN);
