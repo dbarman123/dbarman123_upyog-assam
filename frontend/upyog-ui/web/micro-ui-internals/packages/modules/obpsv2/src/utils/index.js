@@ -211,6 +211,7 @@ export const bpaPayload = async(data) => {
       workflow: {
         action: "APPLY",
         comments: "",
+        assignes:[data?.land?.registeredTechnicalPerson?.uuid]
       },
     },
   };
