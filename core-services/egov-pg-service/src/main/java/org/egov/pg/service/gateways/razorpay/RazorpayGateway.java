@@ -111,6 +111,7 @@ public class RazorpayGateway implements Gateway {
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.setBasicAuth(KEY_ID, KEY_SECRET);
 
+            log.info("Key Id and Secrets coming from Env: {} {}", KEY_SECRET, KEY_ID);
             Map<String, Object> orderRequest = new HashMap<>();
             String amtAsPaise = Utils.formatAmtAsPaise(transaction.getTxnAmount());
             orderRequest.put("amount", amtAsPaise);
@@ -118,6 +119,8 @@ public class RazorpayGateway implements Gateway {
             orderRequest.put("receipt", transaction.getTxnId());
             orderRequest.put("payment_capture", 1); // Auto capture
 
+            log.info("Razorpay order creation request: {}", orderRequest);
+            log.info("Razorpay headers: {}", headers);
             HttpEntity<Map<String, Object>> request = new HttpEntity<>(orderRequest, headers);
             ResponseEntity<RazorpayOrderResponse> response = restTemplate.postForEntity(
                     ORDER_URL, request, RazorpayOrderResponse.class);
