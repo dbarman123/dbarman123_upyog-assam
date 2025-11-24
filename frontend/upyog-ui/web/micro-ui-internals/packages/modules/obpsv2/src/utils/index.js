@@ -211,6 +211,7 @@ export const bpaPayload = async(data) => {
       workflow: {
         action: "APPLY",
         comments: "",
+        assignees:[data?.land?.registeredTechnicalPerson?.uuid]
       },
     },
   };
@@ -304,7 +305,8 @@ export const bpaEditPayload = async (formData) => {
   updated.status = "EDIT_APPLICATION";
   updated.workflow = {
     action: "EDIT",
-    comments: ""
+    comments: "",
+    assignees: [updated.rtpDetails?.rtpUUID]
   };
   return {
     BPA: updated,

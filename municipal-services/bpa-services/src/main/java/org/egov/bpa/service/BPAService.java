@@ -149,7 +149,7 @@ public class BPAService {
         //bpaValidator.validateCreate(bpaRequest, mdmsData, values);
 
         //TODO : Need to remove after getting land info
-//        landService.addLandInfoToBPA(bpaRequest);
+        landService.addLandInfoToBPA(bpaRequest);
         enrichmentService.enrichBPACreateRequest(bpaRequest, mdmsData, null);
 
         wfIntegrator.callWorkFlow(bpaRequest);
