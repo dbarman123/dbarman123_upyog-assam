@@ -305,7 +305,8 @@ export const bpaEditPayload = async (formData) => {
   updated.status = "EDIT_APPLICATION";
   updated.workflow = {
     action: "EDIT",
-    comments: ""
+    comments: "",
+    assignes: [updated.rtpDetails?.rtpUUID]
   };
   return {
     BPA: updated,

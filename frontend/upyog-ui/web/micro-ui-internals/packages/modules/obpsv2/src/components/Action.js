@@ -215,7 +215,7 @@ const Action = ({ selectedAction, applicationNo, closeModal, setSelectedAction, 
       bpaDetails.bpa[0].workflow = {
         ...(bpaDetails.bpa[0].workflow || {}),
         action: selectedAction,
-        assignes: null,
+        assignes: ["ACCEPT", "VALIDATE_GIS", "EDIT"].includes(selectedAction) ? [bpaDetails?.bpa[0]?.rtpDetails?.rtpUUID] : null,
         comments: comments,
         varificationDocuments: uploadedFile
           ? [

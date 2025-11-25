@@ -376,7 +376,7 @@ const LandDetails = ({ t, config, onSelect, formData, searchResult }) => {
             name="northOwner"
             placeholder={t("BPA_ENTER_NORTH_OWNER")}
             value={northOwner}
-            onChange={(e) => setNorthOwner(e.target.value)}
+            onChange={(e) => setNorthOwner(e.target.value.replace(/[^a-zA-Z\s]/g, ""))}
             ValidationRequired={true}
           />
 
@@ -387,7 +387,7 @@ const LandDetails = ({ t, config, onSelect, formData, searchResult }) => {
             name="southOwner"
             placeholder={t("BPA_ENTER_SOUTH_OWNER")}
             value={southOwner}
-            onChange={(e) => setSouthOwner(e.target.value)}
+            onChange={(e) => setSouthOwner(e.target.value.replace(/[^a-zA-Z\s]/g, ""))}
           />
 
           <CardLabel>{`${t("BPA_EAST_OWNER")}`} <span className="check-page-link-button">*</span></CardLabel>
@@ -397,7 +397,7 @@ const LandDetails = ({ t, config, onSelect, formData, searchResult }) => {
             name="eastOwner"
             placeholder={t("BPA_ENTER_EAST_OWNER")}
             value={eastOwner}
-            onChange={(e) => setEastOwner(e.target.value)}
+            onChange={(e) => setEastOwner(e.target.value.replace(/[^a-zA-Z\s]/g, ""))}
           />
 
           <CardLabel>{`${t("BPA_WEST_OWNER")}`} <span className="check-page-link-button">*</span></CardLabel>
@@ -407,7 +407,7 @@ const LandDetails = ({ t, config, onSelect, formData, searchResult }) => {
             name="westOwner"
             placeholder={t("BPA_ENTER_WEST_OWNER")}
             value={westOwner}
-            onChange={(e) => setWestOwner(e.target.value)}
+            onChange={(e) => setWestOwner(e.target.value.replace(/[^a-zA-Z\s]/g, ""))}
           />
 
           {/* Future Provisions */}
@@ -433,7 +433,7 @@ const LandDetails = ({ t, config, onSelect, formData, searchResult }) => {
                 name="verticalExtensionArea"
                 placeholder={t("BPA_ENTER_NO_OF_FLOORS")}
                 value={verticalExtensionArea}
-                onChange={(e) => setVerticalExtensionArea(e.target.value)}
+                onChange={(e) => setVerticalExtensionArea(e.target.value.replace(/[^0-9]/g, ""))}
                 ValidationRequired={true}
                  {...{ pattern: "^[0-9]+$", title: t("BPA_NUMERIC_ERROR_MESSAGE") }}
               />
@@ -459,7 +459,7 @@ const LandDetails = ({ t, config, onSelect, formData, searchResult }) => {
                 name="horizontalExtensionArea"
                 placeholder={t("BPA_ENTER_AREA_SQ_M")}
                 value={horizontalExtensionArea}
-                onChange={(e) => setHorizontalExtensionArea(e.target.value)}
+                onChange={(e) => setHorizontalExtensionArea(e.target.value.replace(/[^0-9]/g, ""))}
                 ValidationRequired={true}
                  {...{ pattern: "^[0-9]+(\.[0-9]{1,2})?$", title: t("BPA_AREA_ERROR_MESSAGE") }}
               />

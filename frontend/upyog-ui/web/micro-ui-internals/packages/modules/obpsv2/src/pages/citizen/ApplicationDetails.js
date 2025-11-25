@@ -210,7 +210,7 @@ import {
           ...applicationDetails.workflow, 
           action: selectedAction,
           comments: comments,
-            assignes: null,
+          assignes: ["ACCEPT", "VALIDATE_GIS", "EDIT"].includes(selectedAction) ? [applicationDetails?.rtpDetails?.rtpUUID] : null,
             varificationDocuments: uploadedFile ? [
               {
                 documentType: file.type,

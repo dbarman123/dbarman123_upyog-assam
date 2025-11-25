@@ -103,7 +103,8 @@ const RTPAcknowledgement = (props) => {
             ...bpaData,
             edcrNumber: edcrData?.edcrNumber,
             workflow: {
-              action: "APPLY_FOR_SCRUTINY"
+              action: "APPLY_FOR_SCRUTINY",
+              assignes: [bpaData?.accountId]
             }
           }
         });
