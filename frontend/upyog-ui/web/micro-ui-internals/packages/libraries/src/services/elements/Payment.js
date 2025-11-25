@@ -84,13 +84,14 @@ export const PaymentService = {
       params: { tenantId, ...filters },
     }),
 
+    //Set userService and auth to true so that user object will go inside Requestinfo, will set to false once tested
   createCitizenReciept: (tenantId, details = {}) =>
     Request({
       url: Urls.payment.create_citizen_reciept,
       useCache: false,
       method: "POST",
-      auth: false,
-      userService: false,
+      auth: true,
+      userService: true,
       params: { tenantId },
       data: { ...details },
     }),

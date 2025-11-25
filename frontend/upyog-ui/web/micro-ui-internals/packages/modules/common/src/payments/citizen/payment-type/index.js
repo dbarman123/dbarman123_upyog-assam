@@ -22,6 +22,7 @@ import $ from "jquery";
 import { makePayment } from "./payGov";
 import TimerServices from "../timer-Services/timerServices";
 import { timerEnabledForBusinessService } from "../bills/routes/bill-details/utils";
+import { startHdfcPayment } from "./hdfcCollectNow";
 
 export const SelectPaymentType = (props) => {
   const { state = {} } = useLocation();
@@ -82,9 +83,7 @@ export const SelectPaymentType = (props) => {
           emailId: "sriranjan.srivastava@owc.com"
         },
         // success
-        callbackUrl: window.location.href.includes("mcollect") || wrkflow === "WNS"
-          ? `${window.location.protocol}//${window.location.host}/upyog-ui/citizen/payment/success/${businessService}/${wrkflow === "WNS"? consumerCode:consumerCode}/${tenantId}?workflow=${wrkflow === "WNS"? wrkflow : "mcollect"}`
-          : `${window.location.protocol}//${window.location.host}/upyog-ui/citizen/payment/success/${businessService}/${wrkflow === "WNS"? encodeURIComponent(consumerCode):consumerCode}/${tenantId}?propertyId=${consumerCode}`,
+        callbackUrl: `${window.location.protocol}//${window.location.host}/upyog-ui/citizen/payment/success/${businessService}/${consumerCode}/${tenantId}?propertyId=${consumerCode}`,
         additionalDetails: {
           isWhatsapp: false,
         },
@@ -108,6 +107,14 @@ export const SelectPaymentType = (props) => {
           "returnUrl": redirect[1]
         }
         let atom = new AtomPaynetz(options, 'uat');
+      }
+      else if (d?.paymentType === "RAZORPAY") {
+        try {
+          startHdfcPayment(data);
+        } catch (e) {
+          console.log("Error in HDFC Payment Redirect ", e);
+          setShowToast({ key: true, label: "CS_PAYMENT_INIT_FAILED" });
+        }
       }
       else {
         // new payment gatewayfor UPYOG pay
