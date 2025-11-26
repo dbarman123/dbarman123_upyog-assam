@@ -125,8 +125,8 @@ public class BPAService {
       //  Map<String, String> values = new HashMap<>();
         RequestInfo requestInfo = bpaRequest.getRequestInfo();
         String tenantId = centralInstanceUtil.getStateLevelTenant(bpaRequest.getBPA().getTenantId());
-        //TODO : Need to remove after adding mdms data
-        Object mdmsData = null;//util.mDMSCall(requestInfo, tenantId);
+        // Get MDMS Data for request validation
+        Object mdmsData = util.mDMSCall(requestInfo, tenantId);
         LinkedHashMap<String, Object> edcr = new LinkedHashMap<>();
         if (centralInstanceUtil.isTenantIdStateLevel(bpaRequest.getBPA().getTenantId())) {
             throw new CustomException(BPAErrorConstants.INVALID_TENANT, "Application cannot be create at StateLevel");
@@ -145,8 +145,8 @@ public class BPAService {
        // this.validateCreateOC(applicationType, values, requestInfo, bpaRequest);
 
 
-        //TODO : Need to remove after adding mdms data
-        //bpaValidator.validateCreate(bpaRequest, mdmsData, values);
+        // Validating the create request
+        bpaValidator.validateMdmsData(bpaRequest, mdmsData);
 
         landService.addLandInfoToBPA(bpaRequest);
         enrichmentService.enrichBPACreateRequest(bpaRequest, mdmsData, null);
@@ -442,9 +442,10 @@ public class BPAService {
         String tenantId = centralInstanceUtil.getStateLevelTenant(bpaRequest.getBPA().getTenantId());
 
 
-        //TODO : Need to remove after adding mdms data
-      //  Object mdmsData = util.mDMSCall(requestInfo, tenantId);
-
+        // Get MDMS Data for request validation
+        Object mdmsData = util.mDMSCall(requestInfo, tenantId);
+        // Validate the update request
+        bpaValidator.validateMdmsData( bpaRequest, mdmsData);
 
         BPA bpa = bpaRequest.getBPA();
 

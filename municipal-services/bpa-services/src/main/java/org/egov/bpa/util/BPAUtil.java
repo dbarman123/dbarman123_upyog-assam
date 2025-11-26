@@ -104,6 +104,20 @@ public class BPAUtil {
 		bpaMasterDtls.add(MasterDetail.builder().name(BPAConstants.CalculationType).build());
 		bpaMasterDtls.add(MasterDetail.builder().name(BPAConstants.CHECKLIST_NAME).build());
 		bpaMasterDtls.add(MasterDetail.builder().name(BPAConstants.NOC_TYPE_MAPPING).build());
+//		New MDMS masters added for BPA
+		bpaMasterDtls.add(MasterDetail.builder().name(BPAConstants.PERMISSIBLE_ZONE).build());
+		bpaMasterDtls.add(MasterDetail.builder().name(BPAConstants.BP_AUTHORITY).build());
+		bpaMasterDtls.add(MasterDetail.builder().name(BPAConstants.CONCERNED_AUTHORITIES).build());
+		bpaMasterDtls.add(MasterDetail.builder().name(BPAConstants.CONSTRUCTION_TYPE).build());
+		bpaMasterDtls.add(MasterDetail.builder().name(BPAConstants.DISTRICTS).build());
+		bpaMasterDtls.add(MasterDetail.builder().name(BPAConstants.PLANNING_AREA).build());
+		bpaMasterDtls.add(MasterDetail.builder().name(BPAConstants.PP_AUTHORITY).build());
+		bpaMasterDtls.add(MasterDetail.builder().name(BPAConstants.REVENUE_VILLAGE).build());
+		bpaMasterDtls.add(MasterDetail.builder().name(BPAConstants.RTP_CATEGORIES).build());
+		bpaMasterDtls.add(MasterDetail.builder().name(BPAConstants.STATES).build());
+		bpaMasterDtls.add(MasterDetail.builder().name(BPAConstants.ULB_WARD_DETAILS).build());
+		bpaMasterDtls.add(MasterDetail.builder().name(BPAConstants.VILLAGES).build());
+
 		ModuleDetail bpaModuleDtls = ModuleDetail.builder().masterDetails(bpaMasterDtls)
 				.moduleName(BPAConstants.BPA_MODULE).build();
 

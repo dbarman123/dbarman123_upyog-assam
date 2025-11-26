@@ -106,6 +106,33 @@ public class BPAConstants {
 
 	public static final String NOC_TYPE_MAPPING = "NocTypeMapping";
 
+// New Master names : PermissibleZone, bpAuthority, concernedAuthorities, constructionType, districts, planningArea, ppAuthority, revenueVillage, rtpCategories, states, ulbWardDetails, villages
+
+	public static final String PERMISSIBLE_ZONE = "PermissibleZone";
+
+	public static final String BP_AUTHORITY = "bpAuthorities";
+
+	public static final String CONCERNED_AUTHORITIES = "concernedAuthorities";
+
+	public static final String CONSTRUCTION_TYPE = "constructionTypes";
+
+	public static final String DISTRICTS = "districts";
+
+	public static final String PLANNING_AREA = "planningAreas";
+
+	public static final String PP_AUTHORITY = "ppAuthorities";
+
+	public static final String REVENUE_VILLAGE = "revenueVillages";
+
+	public static final String RTP_CATEGORIES = "rtpCategories";
+
+	public static final String STATES = "states";
+
+	public static final String ULB_WARD_DETAILS = "ulbWardDetails";
+
+	public static final String VILLAGES = "villages";
+
+
 	// FINANCIAL YEAR
 
 	public static final String MDMS_EGF_MASTER = "egf-master";
