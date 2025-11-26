@@ -26,8 +26,8 @@ export const buildingPermitConfig = [
           hideInEmployee: true,
           isMandatory: true,
           texts: {
-            header:"",
-            submitBarLabel: "CS_COMMON_NEXT",
+            header:""
+            //submitBarLabel: "CS_COMMON_NEXT",
           },
         },
         {
