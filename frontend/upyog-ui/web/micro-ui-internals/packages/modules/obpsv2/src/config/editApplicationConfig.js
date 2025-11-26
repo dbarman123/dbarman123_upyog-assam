@@ -27,7 +27,7 @@ export const editApplicationConfig = [
           isMandatory: true,
           texts: {
             header:"",
-            submitBarLabel: "CS_COMMON_NEXT",
+           // submitBarLabel: "CS_COMMON_NEXT",
           },
         },
         {

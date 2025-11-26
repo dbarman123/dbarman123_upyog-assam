@@ -77,7 +77,7 @@ const formatformData = (formData) => {
     });
 };
 
-const FormAcknowledgement = async (application, tenantInfo, t) => {
+const FormAcknowledgement = async (application, tenantInfo, t, applicationNumber) => {
 
   const { formType, formData } = application || {};
 
@@ -113,7 +113,7 @@ const FormAcknowledgement = async (application, tenantInfo, t) => {
     email: tenantInfo?.emailId,
     phoneNumber: tenantInfo?.contactNumber,
     heading: t("FORM_DETAILS"),
-    applicationNumber: application?.applicationNo || "NA",
+    applicationNumber: applicationNumber || "NA",
     details: detailsSection,
   };
 };

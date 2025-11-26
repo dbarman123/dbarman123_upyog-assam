@@ -19,6 +19,15 @@ const PropertyValidation = ({ t, config, onSelect, formData, searchResult }) => 
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const tenantId = Digit.ULBService.getCitizenCurrentTenant(true);
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => {
+        setError(null);
+      }, 2000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
   // Regex to match the TIN pattern: TIN followed by exactly 10 digits
   const isValidPropertyID = (propertyID) => {
     const regex = /^([A-Z]{3}\d{10}|\d{16}|\d+\/\d+)$/;
@@ -75,16 +84,29 @@ const PropertyValidation = ({ t, config, onSelect, formData, searchResult }) => 
     }
   };
 
-  const goNext = () => {
+  const goNext = async() => {
     if (!isValidPropertyID(propertyID)) {
       setPropertyDetails(null);
       setError("Invalid Property ID. Please enter a valid TIN number.");
       return;
     }
-    if (!propertyDetails) {
-      setError("Please validate property before proceeding");
-      return;
+    try {
+    const property = await OBPSV2Services.propertyValidate({
+      tenantId: tenantId,
+      propertyNumber: propertyID,
+    });
+    if (property.valid) {
+      setPropertyDetails(property);
+      setError(null);
+    } else {
+      setPropertyDetails(null);
+      setError(property.message);
     }
+  } catch (error) {
+    setError("Error fetching property details");
+  } finally {
+    setLoading(false); // Set loading state to false once the request is completed
+  }
     if (propertyDetails && !propertyDetails.taxPaid) {
       setError("Please pay the taxes to proceed");
       return; // Don't proceed if taxes are not paid
@@ -99,7 +121,7 @@ const PropertyValidation = ({ t, config, onSelect, formData, searchResult }) => 
     <React.Fragment>
       <Timeline currentStep={1} flow={"buildingPermit" || "editApplication"} />
       
-      <FormStep config={propertyDetails ? config : ""} onSelect={goNext} onSkip={onSkip} t={t}>                                                                                                                                                                                                                                                                                                                 
+      <FormStep config={propertyDetails ? config : ""} onSelect={getPropertyDetails} onSkip={onSkip} t={t}>                                                                                                                                                                                                                                                                                                                 
       <Header>{t("BPA_PROPERTY_VALIDATION")}</Header>
       <div>{t("Please Enter a valid property Number to search")}</div>
       <div style={{ display: "flex", alignItems: "center", position: "relative" }}>
@@ -132,6 +154,11 @@ const PropertyValidation = ({ t, config, onSelect, formData, searchResult }) => 
             <Loader />
           </div>
         )}
+        {propertyDetails && !error && (
+        <div>
+          <SubmitBar label ={t("CS_COMMON_NEXT")} onSubmit={goNext}/>
+        </div>
+    )}
       </FormStep>
 
       {/* Show e.rror Toast */}

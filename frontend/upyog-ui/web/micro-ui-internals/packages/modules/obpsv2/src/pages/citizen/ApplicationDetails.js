@@ -31,6 +31,7 @@ import {
   import DocumentsPreview from "../../../../templates/ApplicationDetails/components/DocumentsPreview";
   import useScrutinyFormDetails from "../../../../../libraries/src/hooks/obpsv2/useScrutinyFormDetails";
   import FormAcknowledgement from "./Create/FormAcknowledgement";
+  import Accordion from "../../../../../react-components/src/atoms/Accordion"
   // import getBPAAcknowledgementData from "../../utils/getBPAAcknowledgementData";
   
   /**
@@ -775,7 +776,8 @@ import {
     const acknowledgementData = await FormAcknowledgement(
       { formType, formData },
       tenantInfo,
-      t
+      t,
+      acknowledgementIds
     );
 
     Digit.Utils.pdf.generate(acknowledgementData);
@@ -1181,219 +1183,50 @@ import {
               </div>
               </>
             )}
-            <StatusTable>
-
-            </StatusTable>
+        
             {additionalDetails?.submitReportinspection_pending?.length > 0 ? (
               <div>
               <StatusTable>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                  }}
-                >
-                  <CardLabel
-                    style={{
-                      fontSize: "20px",
-                      marginTop: "24px",
-                      fontWeight: "bold",
-                    }}
-                  >
-                    {t("SUBMIT_REPORT_INSPECTION_PENDING")}
-                  </CardLabel>
-
-                  {!expanded.submitReport && (
-                    <LinkButton
-                      label={t("VIEW_DETAILS")}
-                      onClick={() => toggleExpanded("submitReport")}
-                      style={{ marginRight: "1rem" }}
-                    />
-                  )}
-
-                  <LinkButton
-                    label={
-                      <div className="response-download-button">
-                        <span>
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="24"
-                            height="24"
-                            viewBox="0 0 24 24"
-                            fill="#a82227"
-                          >
-                            <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" />
-                          </svg>
-                        </span>
-                        <span className="download-button">
-                          {t("CS_COMMON_DOWNLOAD")}
-                        </span>
-                      </div>
-                    }
-                    onClick={() => handleDownloadPdf("SUBMIT_REPORT")}
-                    className="w-full"
-                  />
-                </div>
-
-                {expanded.submitReport && (
-                  <React.Fragment>
-                    {getDetailsRow(additionalDetails?.submitReportinspection_pending?.[0])}
-
-                    <div style={{ marginTop: "1rem" }}>
-                      <LinkButton
-                        label={t("COLLAPSE")}
-                        onClick={() => toggleExpanded("submitReport")}
-                      />
-                    </div>
-                  </React.Fragment>
-                )}
-              </StatusTable>
+              <Accordion
+                title={t("SUBMIT_REPORT_DETAILS")}
+                t={t}
+                onDownload={() => handleDownloadPdf("SUBMIT_REPORT")}
+              >
+                {getDetailsRow(additionalDetails?.submitReportinspection_pending?.[0])}
+              </Accordion>
+            </StatusTable>
               </div>
             ):null}
           {(form22 && form23A) ? (
             <div>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <CardLabel style={{ fontSize: "20px", marginTop: "24px", fontWeight: "bold" }}>{t("FORM_22_DETAILS")}</CardLabel>
-              {!expanded.form22 && (
-                <LinkButton
-                  label={t("VIEW_DETAILS")}
-                  onClick={() => toggleExpanded("form22")}
-                  style={{ marginRight: "1rem" }}
-                />
-              )}
-              <LinkButton
-                label={
-                  <div className="response-download-button">
-                    <span>
-                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#a82227">
-                        <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" />
-                      </svg>
-                    </span>
-                    <span className="download-button">{t("CS_COMMON_DOWNLOAD")}</span>
-                  </div>
-                }
-                onClick={() => handleDownloadPdf("FORM_22")}
-                className="w-full"
-              />
-
-            </div>
-
-            {expanded.form22 && (
-              <React.Fragment>
-                <StatusTable>
+            <StatusTable>
+              <Accordion
+                title={t("FORM_22_DETAILS")}
+                t={t}
+                onDownload={() => handleDownloadPdf("FORM_22")}
+              >
                 {getDetailsRow(form22)}
+              </Accordion>
+            </StatusTable>
 
-                <div style={{ marginTop: "1rem" }}>
-                  <LinkButton
-                    label={t("COLLAPSE")}
-                    onClick={() => toggleExpanded("form22")}
-                  />
-                </div>
-                </StatusTable>
-              </React.Fragment>
-            )}
-        
-
-          <StatusTable>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <CardLabel style={{ fontSize: "20px", marginTop: "24px", fontWeight: "bold" }}>{t("FORM_23A_DETAILS")}</CardLabel>
-              {!expanded.form23A && (
-                <LinkButton
-                  label={t("VIEW_DETAILS")}
-                  onClick={() => toggleExpanded("form23A")}
-                  style={{ marginRight: "1rem" }}
-                />
-              )}
-              <LinkButton
-                label={
-                  <div className="response-download-button">
-                    <span>
-                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#a82227">
-                        <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" />
-                      </svg>
-                    </span>
-                    <span className="download-button">{t("CS_COMMON_DOWNLOAD")}</span>
-                  </div>
-                }
-                onClick={() => handleDownloadPdf("FORM_23A")}
-                className="w-full"
-              />
-
-            </div>
-
-            {expanded.form23A && (
-              <React.Fragment>
+            <StatusTable>
+              <Accordion
+                title={t("FORM_23A_DETAILS")}
+                t={t}
+                onDownload={() => handleDownloadPdf("FORM_23A")}
+              >
                 {getDetailsRow(form23A)}
-
-                <div style={{ marginTop: "1rem" }}>
-                  <LinkButton
-                    label={t("COLLAPSE")}
-                    onClick={() => toggleExpanded("form23A")}
-                  />
-                </div>
-              </React.Fragment>
-            )}
-          </StatusTable>
-          <StatusTable>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <CardLabel style={{ fontSize: "20px", marginTop: "24px", fontWeight: "bold" }}>{t("FORM_23B_DETAILS")}</CardLabel>
-              {!expanded.form23B && (
-                <LinkButton
-                  label={t("VIEW_DETAILS")}
-                  onClick={() => toggleExpanded("form23B")}
-                  style={{ marginRight: "1rem" }}
-                />
-              )}
-              <LinkButton
-                label={
-                  <div className="response-download-button">
-                    <span>
-                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#a82227">
-                        <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" />
-                      </svg>
-                    </span>
-                    <span className="download-button">{t("CS_COMMON_DOWNLOAD")}</span>
-                  </div>
-                }
-                onClick={() => handleDownloadPdf("FORM_23B")}
-                className="w-full"
-              />
-
-            </div>
-
-            {expanded.form23B && (
-              <React.Fragment>
+              </Accordion>
+            </StatusTable>
+            <StatusTable>
+              <Accordion
+                title={t("FORM_23B_DETAILS")}
+                t={t}
+                onDownload={() => handleDownloadPdf("FORM_23B")}
+              >
                 {getDetailsRow(form23B)}
-
-                <div style={{ marginTop: "1rem" }}>
-                  <LinkButton
-                    label={t("COLLAPSE")}
-                    onClick={() => toggleExpanded("form23B")}
-                  />
-                </div>
-              </React.Fragment>
-            )}
-
-          </StatusTable>
+              </Accordion>
+            </StatusTable>
           </div>
           ):null}
             </StatusTable>
