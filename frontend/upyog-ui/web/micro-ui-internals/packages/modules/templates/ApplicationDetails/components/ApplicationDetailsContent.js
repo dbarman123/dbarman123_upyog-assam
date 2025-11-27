@@ -43,6 +43,7 @@ import ArrearSummary from "../../../common/src/payments/citizen/bills/routes/bil
 import useScrutinyFormDetails from "../../../../libraries/src/hooks/obpsv2/useScrutinyFormDetails";
 import FormAcknowledgement from "../../../obpsv2/src/pages/citizen/Create/FormAcknowledgement";
 import Accordion from "../../../../react-components/src/atoms/Accordion";
+import GisDetails from "../../../obpsv2/src/components/GisDetails";
 function ApplicationDetailsContent({
   applicationDetails,
   workflowDetails,
@@ -745,25 +746,7 @@ function ApplicationDetailsContent({
                 {getDetailsRow(detail?.additionalDetails?.form23BDetails?.[0]?.value)}
               </Accordion>
             </StatusTable>
-              <StatusTable>
-                <Accordion
-                  title={t("GIS_DETAILS")}
-                  t={t}
-                  isFlag={false}
-                >
-                  {gisData && gisData.length > 0 && (
-                    <>
-                      <Row label={t("LATITUDE")} text={gisData[0].latitude?.toString() || "-"} />
-                      <Row label={t("LONGITUDE")} text={gisData[0].longitude?.toString() || "-"} />
-                      <Row label={t("DISTRICT")} text={gisData[0].details?.district || "-"} />
-                      <Row label={t("LANDUSE")} text={gisData[0].details?.landuse || "-"} />
-                      <Row label={t("VILLAGE")} text={gisData[0].details?.village || "-"} />
-                      <Row label={t("AREA_HECTARE")} text={gisData[0].details?.areaHectare || "-"} />
-                      <Row label={t("WARD_NO")} text={gisData[0].details?.ward || "-"} />
-                    </>
-                  )}
-             </Accordion>
-            </StatusTable>
+              <GisDetails acknowledgementIds={applicationData?.applicationNo} tenantId={applicationData?.tenantId} t={t} />
             </div>
           ):null}
           
