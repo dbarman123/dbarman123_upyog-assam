@@ -49,10 +49,6 @@ export const checkForNotNull = (value = "") => {
 export const checkForNA = (value = "") => {
   return checkForNotNull(value) ? value : "NA";
 };
- // Extract tenant suffix from tenant id
-export const extractTenantSuffix = (tenantId) => {
-  return tenantId?.split('.')?.[1] || tenantId;
-};
 
 export const showHidingLinksForStakeholder = (roles = []) => {
   let userInfos = sessionStorage.getItem("Digit.citizen.userRequestObject");

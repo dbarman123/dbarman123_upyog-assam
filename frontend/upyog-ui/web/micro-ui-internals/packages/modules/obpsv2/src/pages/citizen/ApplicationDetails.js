@@ -32,7 +32,6 @@ import {
   import useScrutinyFormDetails from "../../../../../libraries/src/hooks/obpsv2/useScrutinyFormDetails";
   import FormAcknowledgement from "./Create/FormAcknowledgement";
   import Accordion from "../../../../../react-components/src/atoms/Accordion";
-  import { extractTenantSuffix } from "../../utils";
   // import getBPAAcknowledgementData from "../../utils/getBPAAcknowledgementData";
   
   /**
@@ -152,9 +151,7 @@ import {
     useEffect(() => {
       const fetchGisData = async () => {
         try {
-          const fullTenantId = Digit.ULBService.getCitizenCurrentTenant(true) || Digit.ULBService.getCurrentTenantId();
-          const tenantId = extractTenantSuffix(fullTenantId);
-          console.log("TEEEE",tenantId)
+          const tenantId = Digit.ULBService.getCitizenCurrentTenant(true) || Digit.ULBService.getCurrentTenantId();
           const response = await Digit.OBPSV2Services.gisSearch({
             GisSearchCriteria: {
               applicationNo: acknowledgementIds,
@@ -341,8 +338,7 @@ import {
          // Create multipart form data
          const formData = new FormData();
          formData.append("file", file);
-         const fullTenantId = Digit.ULBService.getCitizenCurrentTenant(true) || Digit.ULBService.getCurrentTenantId();
-         const tenantId = extractTenantSuffix(fullTenantId);
+         const tenantId = Digit.ULBService.getCitizenCurrentTenant(true) || Digit.ULBService.getCurrentTenantId();
          // Construct GIS request wrapper
          const gisRequestWrapper = {
            RequestInfo: {
