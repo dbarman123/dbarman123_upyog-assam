@@ -393,4 +393,7 @@ public class BPAConfiguration {
 	  @Value("${egov.idgen.bpa.drawingNum.format}")
 	  private String drawingNoIdGenFormat;
 
+	  @Value("${rtp.reassign.action.allowed}")
+	  private String rtpReassignAction;
+
 }

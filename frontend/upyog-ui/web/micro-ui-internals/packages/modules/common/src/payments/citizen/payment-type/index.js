@@ -20,8 +20,6 @@ import { useParams, useHistory, useLocation, Redirect } from "react-router-dom";
 import { stringReplaceAll } from "../bills/routes/bill-details/utils";
 import $ from "jquery";
 import { makePayment } from "./payGov";
-import TimerServices from "../timer-Services/timerServices";
-import { timerEnabledForBusinessService } from "../bills/routes/bill-details/utils";
 import { startHdfcPayment } from "./hdfcCollectNow";
 
 export const SelectPaymentType = (props) => {
@@ -212,16 +210,7 @@ export const SelectPaymentType = (props) => {
       <form onSubmit={handleSubmit(onSubmit)}>
         <Header>{t("PAYMENT_CS_HEADER")}</Header>
         <Card>
-        {timerEnabledForBusinessService(businessService) && (
-            <CardSubHeader 
-              style={{ 
-                textAlign: 'right', 
-                fontSize: "24px"
-              }}
-            >
-          <TimerServices businessService={businessService} setTime={setTime} timerValues={state?.timerValue} t={t} SlotSearchData={state?.SlotSearchData  } />
-            </CardSubHeader>
-          )}
+
           <div className="payment-amount-info" style={{ marginBottom: "26px" }}>
             <CardLabel className="dark">{t("PAYMENT_CS_TOTAL_AMOUNT_DUE")}</CardLabel>
             <CardSectionHeader> ₹ { paymentAmount !== undefined ? Number(paymentAmount).toFixed(2) : Number(billDetails?.totalAmount).toFixed(2)}</CardSectionHeader>
@@ -235,7 +224,7 @@ export const SelectPaymentType = (props) => {
               render={(props) => <RadioButtons selectedOption={props.value} options={menu} onSelect={props.onChange} />}
             />
           )}
-          {!showToast && <SubmitBar label={t("PAYMENT_CS_BUTTON_LABEL")} submit={true} disabled={timerEnabledForBusinessService(businessService)? Time ===0:null} />}       
+          {!showToast && <SubmitBar label={t("PAYMENT_CS_BUTTON_LABEL")} submit={true} />}       
         </Card>
       </form>
       <InfoBanner label={t("CS_COMMON_INFO")} text={t("CS_PAYMENT_REDIRECT_NOTICE")} />

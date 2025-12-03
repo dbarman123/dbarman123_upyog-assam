@@ -204,7 +204,6 @@ public class BPAService {
     /**
      * calls calculation service calculate and generte demand accordingly
      *
-     * @param applicationType
      * @param bpaRequest
      */
 	private void addCalculation(BPARequest bpaRequest, String feeType) {
@@ -235,7 +234,7 @@ public class BPAService {
     public List<BPA> search(BPASearchCriteria criteria, RequestInfo requestInfo) {
         List<BPA> bpas = new LinkedList<>();
         //TODO: remove this comment after bpaValidator is fixed and master data is added
-     //   bpaValidator.validateSearch(requestInfo, criteria);
+        bpaValidator.validateSearch(requestInfo, criteria);
         LandSearchCriteria landcriteria = new LandSearchCriteria();
         landcriteria.setTenantId(criteria.getTenantId());
         landcriteria.setLocality(criteria.getLocality());
@@ -268,7 +267,6 @@ public class BPAService {
                             collect(java.util.stream.Collectors.toCollection(ArrayList::new));
                     log.info("land ids for bpa application : {}", landIds);
                     //In case of landId is not present in BPA then try to fetch from additional details
-                    populateLandToBPAFromAdditionalDetail(bpas);
                     if(landIds.isEmpty()){
                         return bpas;
                     }
@@ -290,21 +288,6 @@ public class BPAService {
      *
      * @param bpas - list of bpas application
      */
-    private void populateLandToBPAFromAdditionalDetail(List<BPA> bpas) {
-        bpas.stream().filter(bpa -> bpa.getLandId() ==null).forEach(
-                bpa -> {
-                    Map<String, String> additionalDetails = bpa.getAdditionalDetails() != null ? (Map<String, String>) bpa.getAdditionalDetails()
-                            : new HashMap<String, String>();
-                    LandInfo landInfo = null;
-                    if (additionalDetails.get(BPAConstants.LAND_INFO_KEY) != null){
-                        log.info("land info found in additional details for bpa : {}", bpa.getApplicationNo());
-                        landInfo = BPAUtil.getLandInfoFromString(additionalDetails.get(BPAConstants.LAND_INFO_KEY));
-                        additionalDetails.remove(BPAConstants.LAND_INFO_KEY);
-                        bpa.setAdditionalDetails(additionalDetails);
-                    }
-                    bpa.setLandInfo(landInfo);
-                });
-    }
 
     /**
      * search the BPA records created by and create for the logged in User
@@ -427,7 +410,7 @@ public class BPAService {
     // Search the Land from name and then from BPA after extracting teh land id
     private List<BPA> getBPAFromApplicantName(BPASearchCriteria criteria, LandSearchCriteria landcriteria, RequestInfo requestInfo) {
         List<BPA> bpas = new LinkedList<>();
-
+        log.info("Call with name to Land::" + criteria.getName());
         landcriteria.setName(criteria.getName());
         ArrayList<LandInfo> landInfo = landService.searchLandInfoToBPA(requestInfo, landcriteria);
         ArrayList<String> landId = new ArrayList<>();
@@ -514,6 +497,14 @@ public class BPAService {
         // Handle RTP details update without workflow (only for citizens)
         BPA existingBPA = searchResult.get(0);
 
+        //Handle file store id for update of documents like Planning permit, Building permit, Occupancy certificate
+        boolean updateRequired = enrichmentService.enrichFileStoreIdsForBPAUpdate(bpa, existingBPA);
+        if(updateRequired){
+            log.info("File store ids updated for application no: {}", bpa.getApplicationNo());
+            repository.update(bpaRequest, BPAConstants.UPDATE);
+            return bpaRequest.getBPA();
+        }
+
         /* RTP details can be updated without workflow only when all the below conditions are met:
          * 1. The existing application should not have RTP details as null
          * 2. The incoming application should not have RTP details as null
@@ -535,6 +526,8 @@ public class BPAService {
 		switch (action.toUpperCase()) {
 
 		case "RTP_IS_CHANGED":
+            actionValidator.validateActionForRTPUpdateWithoutWorkflowUpdate(bpaRequest, action);
+
 			reassignRTP(bpaRequest);
 			log.info("RTP details updated successfully without workflow for citizen application: {}",
 					bpa.getApplicationNo());
@@ -565,7 +558,7 @@ public class BPAService {
 			bpaRequest.getBPA().setBuildingPermitNo(getBuildingPermitNo(bpaRequest));
 			bpaRequest.getBPA().setBuildingPermitDate(util.getCurrentTimestampMillis());
 			log.info("Building Permit No. generated : " + bpaRequest.getBPA().getBuildingPermitNo());
-			// TO_BE_CHANGED
+			// TODO: TO_BE_CHANGED and add oc certificate no generation
 			bpaRequest.getBPA().setOccupancyCertificateNo(getOccupancyCertificateNo(bpaRequest));
 			bpaRequest.getBPA().setOccupancyCertificateDate(util.getCurrentTimestampMillis());
 			log.info("Occupancy Certificate No. generated : " + bpaRequest.getBPA().getOccupancyCertificateNo());
@@ -857,7 +850,6 @@ public class BPAService {
      *
      * @param bpaRequest
      * @param fileName
-     * @param document   return PdfDocument
      */
     private PdfDocument createTempReport(BPARequest bpaRequest, String fileName) {
 

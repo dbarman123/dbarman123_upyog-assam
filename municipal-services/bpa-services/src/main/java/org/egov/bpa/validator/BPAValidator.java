@@ -202,6 +202,11 @@ public class BPAValidator {
 	 */
 //TODO need to make the changes in the data
 	public void validateSearch(RequestInfo requestInfo, BPASearchCriteria criteria) {
+		
+		log.info("Validating Search Parameters ");
+		log.info("User Type: " + requestInfo.getUserInfo().getType());
+		log.info("criteria.isEmpty(): " + criteria.isEmpty());
+		
 		if (!requestInfo.getUserInfo().getType().equalsIgnoreCase(BPAConstants.CITIZEN) && criteria.isEmpty())
 			throw new CustomException(BPAErrorConstants.INVALID_SEARCH, "Search without any paramters is not allowed");
 
@@ -227,6 +232,7 @@ public class BPAValidator {
 			throw new CustomException(BPAErrorConstants.INVALID_SEARCH, "No search parameters are expected");
 		else {
 			List<String> allowedParams = Arrays.asList(allowedParamStr.split(","));
+			log.info("Allowed Parameters: " + allowedParams);
 			validateSearchParams(criteria, allowedParams);
 		}
 	}
@@ -262,6 +268,12 @@ public class BPAValidator {
 		
 		if (criteria.getApprovalDate() != null && (criteria.getApprovalDate() > new Date().getTime()))
 			throw new CustomException(BPAErrorConstants.INVALID_SEARCH, "Permit Order Genarated date cannot be a future date");
+		
+		if (criteria.getName() != null && !allowedParams.contains("name"))
+			throw new CustomException(BPAErrorConstants.INVALID_SEARCH, "Search on name is not allowed");
+
+		if (criteria.getDistrict() != null && !allowedParams.contains("district"))
+			throw new CustomException(BPAErrorConstants.INVALID_SEARCH, "Search on district is not allowed");
 		
 		if (criteria.getFromDate() != null && (criteria.getFromDate() > new Date().getTime()))
 			throw new CustomException(BPAErrorConstants.INVALID_SEARCH, "From date cannot be a future date");

@@ -24,8 +24,6 @@ public class BPAConstants {
 	
 	public static final String RISKTYPE = "riskType";
 
-	public static final String LAND_INFO_KEY = "landInfo";
-
 	public static final String BPA_LOW_MODULE_CODE = "BPA_LOW";
 
 	public static final String COMMON_MASTERS_MODULE = "common-masters";
@@ -460,5 +458,5 @@ public class BPAConstants {
 	public static final String EMAIL_SUBJECT = "APPLICATION STATUS UPDATE OF : %s";
 
 
-
+	public static final String UPDATE_FILESTORE_ID = "UPDATE_FILESTORE_ID";
 }

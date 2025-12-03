@@ -1,10 +1,9 @@
 package org.egov.bpa.workflow;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
+import org.egov.bpa.config.BPAConfiguration;
+import org.egov.bpa.service.BPAService;
 import org.egov.bpa.util.BPAConstants;
 import org.egov.bpa.web.model.BPA;
 import org.egov.bpa.web.model.BPARequest;
@@ -25,9 +24,12 @@ public class ActionValidator {
 
 	private WorkflowService workflowService;
 
+	private BPAConfiguration config;
+
 	@Autowired
-	public ActionValidator(WorkflowService workflowService) {
+	public ActionValidator(WorkflowService workflowService, BPAConfiguration config) {
 		this.workflowService = workflowService;
+		this.config = config;
 	}
 
 	/**
@@ -118,6 +120,15 @@ public class ActionValidator {
 		}
 		if (!errorMap.isEmpty())
 			throw new CustomException(errorMap);
+	}
+
+	public void validateActionForRTPUpdateWithoutWorkflowUpdate(BPARequest request, String action) {
+		String actions = config.getRtpReassignAction();
+		List<String> rtpActions = Arrays.asList(actions.split(","));
+
+		if(rtpActions.contains(action)) {
+			throw new CustomException("INVALID_RTP_REASSIGN","RTP can not be changed at this state");
+		}
 	}
 
 

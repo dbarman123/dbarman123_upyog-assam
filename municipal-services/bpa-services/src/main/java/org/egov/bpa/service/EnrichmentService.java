@@ -2,6 +2,7 @@ package org.egov.bpa.service;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.egov.bpa.config.BPAConfiguration;
@@ -411,6 +412,35 @@ public class EnrichmentService {
 			bpa.setWorkflow(wfNew);
 		} else {
 			bpa.getWorkflow().setAssignes(new LinkedList<>(assignes));
+		}
+	}
+
+	public boolean enrichFileStoreIdsForBPAUpdate(BPA bpa, BPA existingBPA) {
+
+		Map<String, Object> additionalDetails = bpa.getAdditionalDetails() instanceof Map
+				? (Map<String, Object>) bpa.getAdditionalDetails()
+				: null;
+
+		if (additionalDetails == null || !additionalDetails.containsKey(BPAConstants.UPDATE_FILESTORE_ID)) {
+			return false;
+		}
+
+		// Mark update initiated
+		additionalDetails.remove(BPAConstants.UPDATE_FILESTORE_ID);
+		log.info("FileStoreId update initiated from workflow for BPA: {}", bpa.getApplicationNo());
+		log.info("additionalDetails after key removal: {}", additionalDetails);
+
+		// Update filestore IDs only if new value is present and existing value is empty
+		updateFileStoreId(existingBPA::setPpFileStoreId, existingBPA.getPpFileStoreId(), bpa.getPpFileStoreId());
+		updateFileStoreId(existingBPA::setBpFileStoreId, existingBPA.getBpFileStoreId(), bpa.getBpFileStoreId());
+		updateFileStoreId(existingBPA::setOcFileStoreId, existingBPA.getOcFileStoreId(), bpa.getOcFileStoreId());
+
+		return true;
+	}
+
+	private void updateFileStoreId(Consumer<String> setter, String existingValue, String newValue) {
+		if (StringUtils.isNotEmpty(newValue) && StringUtils.isEmpty(existingValue)) {
+			setter.accept(newValue);
 		}
 	}
 
