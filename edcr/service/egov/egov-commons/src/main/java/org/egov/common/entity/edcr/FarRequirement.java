@@ -216,14 +216,25 @@ public class FarRequirement extends MdmsFeatureRule {
     }
 
     @Override
-    public String toString() {
-        return "FarRequirement [permissibleLight=" + permissibleLight + ", permissibleMedium=" + permissibleMedium
-                + ", permissibleFlattered=" + permissibleFlattered + ", maxTDRLoading=" + maxTDRLoading + ", baseFar="
-                + baseFar + ", farGuardRoomArea=" + farGuardRoomArea + ", farCareTakerRoomArea=" + farCareTakerRoomArea
-                + ", farCanopyLength=" + farCanopyLength + ", farCanopyWidth=" + farCanopyWidth + ", farCanopyHeight="
-                + farCanopyHeight + ", farBalconyWidth=" + farBalconyWidth + ", farBalconySetback=" + farBalconySetback
-                + ", farBalconyLength=" + farBalconyLength + ", farEntranceLobbyArea=" + farEntranceLobbyArea
-                + ", farMaxBalconyExemption=" + farMaxBalconyExemption + ", farCorridorArea=" + farCorridorArea
-                + ", farProjectionWidth=" + farProjectionWidth + ", farProjectionLength=" + farProjectionLength + "]";
-    }
+	public String toString() {
+		return "FarRequirement [permissibleLight=" + permissibleLight + ", permissibleMedium=" + permissibleMedium
+				+ ", permissibleFlattered=" + permissibleFlattered + ", maxTDRLoading=" + maxTDRLoading
+				+ ", farGuardRoomArea=" + farGuardRoomArea + ", farCareTakerRoomArea=" + farCareTakerRoomArea
+				+ ", farCanopyLength=" + farCanopyLength + ", farCanopyWidth=" + farCanopyWidth + ", farCanopyHeight="
+				+ farCanopyHeight + ", farBalconyWidth=" + farBalconyWidth + ", farBalconySetback=" + farBalconySetback
+				+ ", farBalconyLength=" + farBalconyLength + ", farEntranceLobbyArea=" + farEntranceLobbyArea
+				+ ", farMaxBalconyExemption=" + farMaxBalconyExemption + ", farCorridorArea=" + farCorridorArea
+				+ ", farProjectionWidth=" + farProjectionWidth + ", farProjectionLength=" + farProjectionLength
+				+ ", farPermittedRoomAreaPercentage=" + farPermittedRoomAreaPercentage + ", baseFar=" + baseFar
+				+ ", getFromBuildingHeight()=" + getFromBuildingHeight() + ", getToBuildingHeight()="
+				+ getToBuildingHeight() + ", getFromPlotDepth()=" + getFromPlotDepth() + ", getToPlotDepth()="
+				+ getToPlotDepth() + ", getSubOccupancy()=" + getSubOccupancy() + ", getId()=" + getId()
+				+ ", getFromPlotArea()=" + getFromPlotArea() + ", getFromRoadWidth()=" + getFromRoadWidth()
+				+ ", getToRoadWidth()=" + getToRoadWidth() + ", getToPlotArea()=" + getToPlotArea() + ", getState()="
+				+ getState() + ", getCity()=" + getCity() + ", getZone()=" + getZone() + ", getSubZone()="
+				+ getSubZone() + ", getOccupancy()=" + getOccupancy() + ", getRiskType()=" + getRiskType()
+				+ ", getPermissible()=" + getPermissible() + ", getFeatureName()=" + getFeatureName()
+				+ ", getValuePermissible()=" + getValuePermissible() + ", getActive()=" + getActive() + ", toString()="
+				+ super.toString() + ", hashCode()=" + hashCode() + ", getClass()=" + getClass() + "]";
+	}
 }
