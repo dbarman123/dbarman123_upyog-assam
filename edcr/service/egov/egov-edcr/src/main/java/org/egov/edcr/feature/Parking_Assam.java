@@ -559,7 +559,7 @@ public class Parking_Assam extends Parking {
 				
 				basement = basement.add(floor.getParking().getBasementCars().stream().map(Measurement::getArea)
 						.reduce(BigDecimal.ZERO, BigDecimal::add)).setScale(2, RoundingMode.UP);
-				covered = basement.add(floor.getParking().getCoverCars().stream().map(Measurement::getArea)
+				covered = covered.add(floor.getParking().getCoverCars().stream().map(Measurement::getArea)
 						.reduce(BigDecimal.ZERO, BigDecimal::add)).setScale(2, RoundingMode.UP);
 			}
 		}

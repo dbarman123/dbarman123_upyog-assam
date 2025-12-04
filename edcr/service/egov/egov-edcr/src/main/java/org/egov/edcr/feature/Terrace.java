@@ -47,24 +47,26 @@
 
 package org.egov.edcr.feature;
 
+import static org.egov.edcr.constants.EdcrReportConstants.TERRACE;
+import static org.egov.edcr.constants.EdcrReportConstants.TERRACE_STAIRCASE;
+import static org.egov.edcr.service.FeatureUtil.mapReportDetails;
+
 import java.math.BigDecimal;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.egov.common.entity.edcr.*;
+import org.egov.common.entity.edcr.Block;
+import org.egov.common.entity.edcr.Plan;
+import org.egov.common.entity.edcr.ReportScrutinyDetail;
+import org.egov.common.entity.edcr.Result;
+import org.egov.common.entity.edcr.ScrutinyDetail;
 import org.egov.edcr.service.MDMSCacheManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import static org.egov.edcr.constants.CommonKeyConstants.*;
-import static org.egov.edcr.constants.EdcrReportConstants.*;
-import static org.egov.edcr.service.FeatureUtil.mapReportDetails;
 
 @Service
 public class Terrace extends FeatureProcess {
@@ -141,6 +143,7 @@ public class Terrace extends FeatureProcess {
      */
     private void validate(Plan pl, Block block) {
 
+    	org.egov.common.entity.edcr.Terrace terrace = block.getTerrace();
         BigDecimal terraceArea = block.getTerrace().getArea();
 
         LOG.debug("Terrace: Block {} — Terrace area = {}", block.getNumber(), terraceArea);
@@ -154,7 +157,29 @@ public class Terrace extends FeatureProcess {
         pl.getReportOutput().getScrutinyDetails().add(scrutinyDetail);
 
         LOG.info("Terrace: Validation added to report for block {}", block.getNumber());
+        
+    
+        List<BigDecimal> headroomHeights = terrace.getStaircaseHeadroomHt();
+
+        if (headroomHeights != null && !headroomHeights.isEmpty()) {
+
+            ScrutinyDetail sdHeadroom = createStaircaseHeadroomScrutinyDetail();
+
+            for (BigDecimal ht : headroomHeights) {
+
+                Map<String, String> rowHt =
+                        createStaircaseHeadroomRow(Result.Accepted.getResultVal(), ht);
+
+                sdHeadroom.getDetail().add(rowHt);
+            }
+
+            pl.getReportOutput().getScrutinyDetails().add(sdHeadroom);
+            LOG.info("Terrace: Added staircase headroom height table for block {}", block.getNumber());
+        } else {
+            LOG.info("Terrace: No staircase headroom height extracted for block {}", block.getNumber());
+        }
     }
+    
 
     /**
      * Creates a scrutiny detail section for terrace reporting.
@@ -196,6 +221,33 @@ public class Terrace extends FeatureProcess {
 
         return mapReportDetails(detail);
     }
+    
+    private Map<String, String> createStaircaseHeadroomRow(String status, BigDecimal height) {
+
+        ReportScrutinyDetail detail = new ReportScrutinyDetail();
+
+        detail.setRuleNo(RULE_NO_TERRACE_STAIRCASE); 
+        detail.setDescription(TERRACE_STAIRCASE);
+        detail.setRequired("-"); 
+        detail.setProvided(height != null ? height.toString() : "-");
+        detail.setStatus(status);
+
+        return mapReportDetails(detail);
+    }
+
+    private ScrutinyDetail createStaircaseHeadroomScrutinyDetail() {
+
+        ScrutinyDetail sd = new ScrutinyDetail();
+        sd.setKey(Common_Terrace_staircase);
+        sd.addColumnHeading(1, RULE_NO);
+        sd.addColumnHeading(2, DESCRIPTION);
+        sd.addColumnHeading(3, REQUIRED);
+        sd.addColumnHeading(4, PROVIDED);
+        sd.addColumnHeading(5, STATUS);
+
+        return sd;
+    }
+
 
     /**
      * Returns amendments for the Terrace feature.

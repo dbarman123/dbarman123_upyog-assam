@@ -47,6 +47,19 @@
 
 package org.egov.common.entity.edcr;
 
+import java.math.BigDecimal;
+import java.util.List;
+
 public class Terrace extends Measurement {
     private static final long serialVersionUID = 50L;
+    
+    private List<BigDecimal> staircaseHeadroomHt;
+
+	public List<BigDecimal> getStaircaseHeadroomHt() {
+		return staircaseHeadroomHt;
+	}
+
+	public void setStaircaseHeadroomHt(List<BigDecimal> staircaseHeadroomHt) {
+		this.staircaseHeadroomHt = staircaseHeadroomHt;
+	}
 }

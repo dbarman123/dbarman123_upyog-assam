@@ -57,11 +57,11 @@
 			<id>JBoss Repository</id>
 			<url>https://repository.jboss.org/nexus/content/groups/public/</url>
 		</repository>
-		<!-- <repository>
+		<repository>
 			<id>AsposeJavaAPI</id>
 			<name>Aspose Java API</name>
 			<url>http://releases.aspose.com/repo/</url>
-		</repository>  -->
+		</repository> 
 		<repository>
 			<id>javaxt.com</id>
 			<url>https://www.javaxt.com/maven</url>
@@ -1084,11 +1084,11 @@
 	</dependencyManagement>
 
 	<dependencies>
-		<!--	<dependency>
+			<dependency>
                             <groupId>com.aspose</groupId>
                             <artifactId>aspose-cad</artifactId>
                             <version>20.10</version>
-                        </dependency> -->
+                        </dependency> 
 
 		<!-- SERVLET SPEC JBOSS DEPENDENCIES START -->
 		<dependency>
