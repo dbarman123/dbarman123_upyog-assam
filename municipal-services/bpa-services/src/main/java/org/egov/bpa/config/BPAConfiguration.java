@@ -396,4 +396,12 @@ public class BPAConfiguration {
 	  @Value("${rtp.reassign.action.allowed}")
 	  private String rtpReassignAction;
 
+	@Value("${service.retry.maxAttempts}")
+	private int maxAttempts;
+
+	@Value("${service.retry.backoffMs}")
+	private long backoffMs;
+
+
+
 }
