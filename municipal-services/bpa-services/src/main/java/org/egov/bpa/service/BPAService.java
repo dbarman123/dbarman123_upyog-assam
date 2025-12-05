@@ -2,7 +2,6 @@ package org.egov.bpa.service;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.math.BigDecimal;
 import java.net.URL;
 import java.net.URLConnection;
 import java.text.DateFormat;
@@ -200,28 +199,6 @@ public class BPAService {
             bpaRequest.getBPA().setLandInfo(ocBpas.get(0).getLandInfo());
         }
     }
-
-    /**
-     * calls calculation service calculate and generte demand accordingly
-     *
-     * @param bpaRequest
-     */
-	private void addCalculation(BPARequest bpaRequest, String feeType) {
-
-		BPA bpa = bpaRequest.getBPA();
-		bpa.setTenantId(bpa.getTenantId());
-		bpa.setApplicationType("RESIDENTIAL_RCC");
-		List<Floor> floors = new ArrayList<>();
-		floors.add(new Floor(0, bpa.getLandInfo().getTotalPlotArea(), BigDecimal.ZERO));
-		floors.add(new Floor(1, bpa.getLandInfo().getTotalPlotArea(), BigDecimal.ZERO));
-		bpa.setFloors(floors);
-		bpa.setWallType("");
-		bpa.setFeeType(feeType);
-		bpa.setTotalBuiltUpArea(bpa.getLandInfo().getTotalPlotArea());
-		bpaRequest.setBPA(bpa);
-
-		calculationService.addCalculation(bpaRequest);
-	}
 
     /**
      * Searches the Bpa for the given criteria if search is on owner paramter
@@ -486,8 +463,6 @@ public class BPAService {
 
         BusinessService businessService = workflowService.getBusinessService(bpa, bpaRequest.getRequestInfo(),
                 bpa.getApplicationNo());
-		List<Floor> floors = new ArrayList<>();
-//				edcrService.getFloorsFromEDCRDetails(bpaRequest.getRequestInfo(), bpaRequest.getBPA());
 
         List<BPA> searchResult = getBPAWithBPAId(bpaRequest);
         if (CollectionUtils.isEmpty(searchResult) || searchResult.size() > 1) {
@@ -537,8 +512,7 @@ public class BPAService {
 			enrichmentService.enrichBPAUpdateRequest(bpaRequest, null);
 			wfIntegrator.callWorkFlow(bpaRequest);
 			repository.update(bpaRequest, BPAConstants.UPDATE_ALL_BUILDING_PLAN);
-			bpaRequest.getBPA().setFloors(floors);
-			addCalculation(bpaRequest, "PLANNING_PERMIT_FEE");
+			calculationService.addCalculation(bpaRequest, "PLANNING_PERMIT_FEE");
 			landService.updateLandInfo(bpaRequest);
 			break;
 
@@ -577,7 +551,7 @@ public class BPAService {
 
         if ("PENDING_CHAIRMAN_PRESIDENT_MB".equalsIgnoreCase(bpaRequest.getBPA().getStatus())
                 || "PENDING_CHAIRMAN_PRESIDENT_GP".equalsIgnoreCase(bpaRequest.getBPA().getStatus())) {
-            addCalculation(bpaRequest, "BUILDING_PERMIT_FEE");
+        	calculationService.addCalculation(bpaRequest, "BUILDING_PERMIT_FEE");
         }
 		return bpaRequest.getBPA();
 
@@ -1040,9 +1014,9 @@ public class BPAService {
 		List<CalulationCriteria> input = calcRequest.getCalulationCriteria();
 
 		for (CalulationCriteria obj : input) {
-			List<Floor> floors = edcrService.getFloorsFromEDCRDetails(requestInfo, obj.getBpa());
-			obj.getBpa().setFloors(floors);
-			System.out.println(floors);
+			Map<String, Object> edcrDetails = edcrService.getEDCRFeeCalculationDetails(requestInfo, obj.getBpa());
+			List<Floor> floors = (List<Floor>) edcrDetails.get(BPAConstants.FLOOR);
+			obj.setFloors(floors);
 		}
 
 		return calculationService.callBpaCalculatorEstimate(calcRequest);

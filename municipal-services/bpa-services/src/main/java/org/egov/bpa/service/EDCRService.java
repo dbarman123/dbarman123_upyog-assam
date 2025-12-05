@@ -9,7 +9,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang3.StringUtils;
 import org.egov.bpa.config.BPAConfiguration;
 import org.egov.bpa.repository.BPARepository;
 import org.egov.bpa.repository.ServiceRequestRepository;
@@ -326,30 +325,6 @@ public class EDCRService {
 
 		return edcrDetails;
 	}
-	
-	public List<Floor> getFloorsFromEDCRDetails(org.egov.common.contract.request.RequestInfo requestInfo, BPA bpa) {
-
-		DocumentContext context = fetchEDCRInfo(requestInfo, bpa);
-
-		// GET FLOOR DETAILS
-		List<Floor> floors = new ArrayList<>();
-		List<Object> edcrFloors = context.read("edcrDetail.*.planDetail.blocks[*].building.floors[*]");
-		Integer totalFloors = edcrFloors.size();
-		log.info("Total No. of Floors: "+totalFloors);
-
-		for (int i = 0; i < totalFloors; i++) {
-		    String builtUpPath = "$.edcrDetail[0].planDetail.blocks[0].building.floors[" + i + "].occupancies[0].builtUpArea";
-		    String floorAreaPath = "$.edcrDetail[0].planDetail.blocks[0].building.floors[" + i + "].occupancies[0].floorArea";
-
-		    BigDecimal builtUpArea = context.read(builtUpPath, BigDecimal.class);
-		    BigDecimal floorArea = context.read(floorAreaPath, BigDecimal.class);
-
-		    Floor floor = new Floor(i, builtUpArea, floorArea);
-		    floors.add(floor);
-		}
-
-		return floors;
-	}
 
 	private DocumentContext fetchEDCRInfo(org.egov.common.contract.request.RequestInfo requestInfo, BPA bpa) {
 		String edcrNo = bpa.getEdcrNumber();
@@ -411,6 +386,77 @@ public class EDCRService {
 		List<String> nocsType = context.read(BPAConstants.EDCR_SUGGESTED_REQUIRED_NOCs_PATH);
 		
 		return nocsType;
+	}
+
+	private DocumentContext fetchShortEDCRInfo(org.egov.common.contract.request.RequestInfo requestInfo, BPA bpa) {
+		String edcrNo = bpa.getEdcrNumber();
+		StringBuilder uri = new StringBuilder(config.getEdcrHost());
+
+		uri.append(config.getShortEdcrDetailEndPoint());
+		uri.append("?").append("tenantId=").append(BPAConstants.BPA_ASSAM);
+		uri.append("&").append("edcrNumber=").append(edcrNo);
+		RequestInfo edcrRequestInfo = new RequestInfo();
+		BeanUtils.copyProperties(requestInfo, edcrRequestInfo);
+		LinkedHashMap responseMap = null;
+		try {
+			responseMap = (LinkedHashMap) serviceRequestRepository.fetchResult(uri,
+					new RequestInfoWrapper(edcrRequestInfo));
+		} catch (ServiceCallException se) {
+			throw new CustomException(BPAErrorConstants.EDCR_ERROR, " EDCR Number is Invalid");
+		}
+
+		if (CollectionUtils.isEmpty(responseMap))
+			throw new CustomException(BPAErrorConstants.EDCR_ERROR, "The response from EDCR service is empty or null");
+
+		String jsonString = new JSONObject(responseMap).toString();
+		DocumentContext context = JsonPath.using(Configuration.defaultConfiguration()).parse(jsonString);
+		return context;
+	}
+	
+	public Map<String, Object> getEDCRFeeCalculationDetails(org.egov.common.contract.request.RequestInfo requestInfo, BPA bpa) {
+
+		DocumentContext context = fetchEDCRInfo(requestInfo, bpa);
+		
+		Map<String, Object> edcrDetails = new HashMap<String, Object>();
+		
+		List<Floor> floors = getFloorsFromEDCRDetails(context);
+		System.out.println(floors);
+		List<String> occupancy = context.read("edcrDetail.*.planDetail.planInformation.occupancy");
+		List<String> materialType = context.read("edcrDetail.*.materialType");
+		if(occupancy == null || occupancy.size() == 0){
+			occupancy.add("");
+		}
+		if(materialType == null || materialType.size() == 0){
+			materialType.add("");
+		}
+
+		edcrDetails.put(BPAConstants.FLOOR, floors);
+		edcrDetails.put(BPAConstants.APPLICATIONTYPE, occupancy.get(0).toString().toUpperCase());
+		edcrDetails.put(BPAConstants.WALLTYPE, materialType.get(0).toString().toUpperCase());
+		
+		return edcrDetails;
+	}
+	
+	public List<Floor> getFloorsFromEDCRDetails(DocumentContext context) {
+
+		// GET FLOOR DETAILS
+		List<Floor> floors = new ArrayList<>();
+		List<Object> edcrFloors = context.read("edcrDetail.*.planDetail.blocks[*].building.floors[*]");
+		Integer totalFloors = edcrFloors.size();
+		log.info("Total No. of Floors: "+totalFloors);
+
+		for (int i = 0; i < totalFloors; i++) {
+		    String builtUpPath = "$.edcrDetail[0].planDetail.blocks[0].building.floors[" + i + "].occupancies[0].builtUpArea";
+		    String floorAreaPath = "$.edcrDetail[0].planDetail.blocks[0].building.floors[" + i + "].occupancies[0].floorArea";
+
+		    BigDecimal builtUpArea = context.read(builtUpPath, BigDecimal.class);
+		    BigDecimal floorArea = context.read(floorAreaPath, BigDecimal.class);
+
+		    Floor floor = new Floor(i, builtUpArea, floorArea);
+		    floors.add(floor);
+		}
+		
+		return floors;
 	}
 	
 

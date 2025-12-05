@@ -397,6 +397,10 @@ public class BPAConstants {
 	
 	public static final String SERVICETYPE = "serviceType";
 	
+	public static final String FLOOR = "floor";
+	
+	public static final String WALLTYPE = "walltype";
+	
 	public static final String APPLICATIONTYPE = "applicationType";
 	
 	public static final String PERMIT_NO = "permitNumber";

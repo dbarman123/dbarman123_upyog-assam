@@ -129,6 +129,9 @@ public class BPAConfiguration {
 	@Value("${egov.edcr.getPlan.endpoint}")
 	private String getPlanEndPoint;
 
+	@Value("${egov.edcr.getPlan.edcrdetails.endpoint}")
+	private String shortEdcrDetailEndPoint;
+
 	// Institutional key word
 	@Value("${egov.ownershipcategory.institutional}")
 	private String institutional;

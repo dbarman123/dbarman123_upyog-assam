@@ -280,6 +280,7 @@ public class CalculationService {
 
 		BPA bpa = calulationCriteria.getBpa();
 		BigDecimal constructionCost = bpa.getConstructionCost();
+		List<Floor> floors = calulationCriteria.getFloors();
 		EstimatesAndSlabs estimatesAndSlabs = new EstimatesAndSlabs();
 		ArrayList<TaxHeadEstimate> estimates = new ArrayList<>();
 
@@ -289,10 +290,11 @@ public class CalculationService {
 		Map<String, Object> calcTypeUpper = calculationTypeMap.get(1);
 		
 //		Calculating fee for each floor
-		for (Floor floor : bpa.getFloors()) {
+		for (Floor floor : floors) {
 
 			BigDecimal totalTax = BigDecimal.ZERO;
 			BigDecimal totalBuiltupArea = floor.getBuiltUpArea();
+			log.info("Total Built Up Area : "+totalBuiltupArea+", Floor Level : "+floor.getLevel());
 
 			if (floor.getLevel() == 0) {
 				totalTax = totalTax.add(calculateEstimate(totalBuiltupArea, constructionCost, calcTypeGround));

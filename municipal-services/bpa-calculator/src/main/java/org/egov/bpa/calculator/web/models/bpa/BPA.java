@@ -96,8 +96,6 @@ public class BPA   {
     this.id = id;
     return this;
   }
-  
-  private List<Floor> floors = null;
 
   /**
    * Unique Identifier(UUID) of the bpa application for internal reference.
@@ -354,14 +352,6 @@ public class BPA   {
   public void setDocuments(List<Document> documents) {
     this.documents = documents;
   }
-
-	public List<Floor> getFloors() {
-		return floors;
-	}
-
-	public void setFloors(List<Floor> floors) {
-		this.floors = floors;
-	}
 
   public BPA landInfo(LandInfo landInfo) {
     this.landInfo = landInfo;
