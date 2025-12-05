@@ -14,4 +14,12 @@ export const getLocalities = {
     await StoreService.defaultData(tenant, tenant, Digit.StoreData.getCurrentLanguage());
     return (await LocationService.getGramPanchayats(tenant)).TenantBoundary[0];
   },
+  village: async (tenant) => {
+    await StoreService.defaultData(tenant, tenant, Digit.StoreData.getCurrentLanguage());
+    return (await LocationService.getVillage(tenant)).TenantBoundary[0];
+  },
+  revenuevillage: async (tenant) => {
+    await StoreService.defaultData(tenant, tenant, Digit.StoreData.getCurrentLanguage());
+    return (await LocationService.getRevenueVillage(tenant)).TenantBoundary[0];
+  },
 };

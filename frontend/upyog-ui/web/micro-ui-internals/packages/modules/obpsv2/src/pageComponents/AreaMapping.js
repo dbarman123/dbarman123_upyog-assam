@@ -12,6 +12,7 @@ const AreaMapping = ({ t, config, onSelect, formData, searchResult }) => {
   const [revenueVillages, setRevenueVillages] = useState([]);
   const [wards, setWards] = useState([]);
   const [villages, setVillages] = useState([]);
+  const stateId = Digit.ULBService.getStateId();
   
  // State for all dropdown values
 const [district, setDistrict] = useState(formData?.areaMapping?.district || (searchResult?.areaMapping?.district ? { code: searchResult.areaMapping.district, name: searchResult.areaMapping.district, i18nKey: searchResult.areaMapping.district } : ""));
@@ -33,28 +34,8 @@ const [ward, setWard] = useState(formData?.areaMapping?.ward || (searchResult?.a
 const [villageName, setVillageName] = useState(formData?.areaMapping?.villageName || (searchResult?.areaMapping?.villageName ? { code: searchResult.areaMapping.villageName, name: searchResult.areaMapping.villageName, i18nKey: searchResult.areaMapping.villageName } : ""));
 
 
-// const { data: areaMappingData, isLoading } = Digit.Hooks.useEnabledMDMS(
-//     "as", 
-//     "BPA", 
-//     [
-//       { name: "districts" }, 
-//       { name: "planningAreas" }, 
-//       { name: "ppAuthorities" }, 
-//       { name: "concernedAuthorities" },
-//       { name: "bpAuthorities" }, 
-//       { name: "revenueVillages" }, 
-//       { name: "villages" },
-//       { name: "ulbWardDetails" }
-//     ],
-//     {
-//       select: (data) => {
-//         const formattedData = data?.BPA || {};
-//         return formattedData;
-//       },
-//     }
-//   );
 
-  const { data : areaMappingData , isLoading} = Digit.Hooks.useEnabledMDMS("as", "egov-location", [{ name: "egov-location" }], {
+  const { data : areaMappingData , isLoading} = Digit.Hooks.useEnabledMDMS(stateId, "egov-location", [{ name: "egov-location" }], {
     select: (data) => {
       const formattedData = data?.["egov-location"]?.["egov-location"]?.[0];
       return formattedData;
@@ -62,31 +43,47 @@ const [villageName, setVillageName] = useState(formData?.areaMapping?.villageNam
   });
 
 
-  console.log("areaMappingData", areaMappingData);
+  const tenantMasterDetails =
+  bpAuthority?.code && planningArea?.code
+    ? [{ name: "tenants", ulbGrade: bpAuthority.code, planningArea: planningArea.code }]
+    : [{ name: "tenants" }];
+
+  const { data: tenantData } = Digit.Hooks.useEnabledMDMS(
+    stateId, 
+    "tenant", 
+    tenantMasterDetails,
+    {
+      select: (data) => {
+        const formattedData = data?.["tenant"]?.["tenants"];
+        return formattedData?.filter((tenant) =>  (bpAuthority?.code === tenant?.city?.ulbGrade && planningArea.code===tenant?.city?.planningAreaCode));
+      },
+      enabled: !!bpAuthority?.code, // Only fetch when bpAuthority.code exists
+    }
+  );
+
+  console.log("tenantData", bpAuthority,concernedAuthority);
+
+
+  const { data: fetchedLocalities } = Digit.Hooks.useBoundaryLocalities(
+    concernedAuthority?.code,
+    bpAuthority?.code==="GRAM_PANCHAYAT" ? "village" : "revenuevillage",
+    {
+      enabled: !!concernedAuthority && !!bpAuthority,
+    },
+    t
+  );
 
 
 
 
-  // Initialize districts from MDMS data
-  // useEffect(() => {
-  //   if (areaMappingData?.districts) {
-  //     const formattedDistricts = areaMappingData.districts.map((district) => ({
-  //       code: district.districtCode,
-  //       name: district.districtName,
-  //       i18nKey: district.districtCode,
-  //     })).sort((a, b) => a.code.localeCompare(b.code));
-  //     setDistricts(formattedDistricts);
-  //   }
-  // }, [areaMappingData]);
-
-   // ✅ Initialize Districts
+   // Initialize Districts
   useEffect(() => {
     if (areaMappingData?.districts) {
       const formattedDistricts = areaMappingData.districts.map((dist) => ({
         code: dist.districtCode,
         name: dist.districtName,
         i18nKey: dist.districtCode,
-      }));
+      })).sort((a,b)=> a.code.localeCompare(b.code));
       setDistricts(formattedDistricts);
     }
   }, [areaMappingData]);
@@ -157,131 +154,73 @@ useEffect(() => {
   }
 }, [district, planningArea, areaMappingData]);
 
-  // // Update concerned authorities based on BP authority and PP authority
-  // useEffect(() => {
-  //   if (bpAuthority && bpAuthority && areaMappingData?.districts) {
-  //     const filteredConcernedAuthorities = areaMappingData.bpAuthorities
-  //       .filter(authority => authority.planningAreaCode === planningArea?.code && authority.authorityType === bpAuthority?.code)
-  //       .map(authority => ({
-  //         code: authority.bpAuthorityCode,
-  //         name: authority.bpAuthorityName,
-  //         i18nKey: authority.bpAuthorityCode,
-  //       }))
-  //       .sort((a, b) => a.code.localeCompare(b.code));
-  //     setConcernedAuthorities(filteredConcernedAuthorities);
-  //   } else {
-  //     setConcernedAuthorities([]);
-  //   }
-  // }, [bpAuthority, planningArea, areaMappingData]);
 
-  // useEffect(() => {
-  //   if (areaMappingData?.concernedAuthorities) {
-  //     const formattedBpAuthorities = areaMappingData.concernedAuthorities.map((concernedAuthority) => ({
-  //       code: concernedAuthority.authorityType,
-  //       name: concernedAuthority.authorityType,
-  //       i18nKey: concernedAuthority.authorityType,
-  //     })).sort((a, b) => a.code.localeCompare(b.code));
-  //     setBpAuthorities(formattedBpAuthorities);
-  //   }
-  // }, [areaMappingData]);
-
-  // Update planning areas when district changes
-  // useEffect(() => {
-  //   if (district && areaMappingData?.planningAreas) {
-  //     const filteredPlanningAreas = areaMappingData.planningAreas
-  //       .filter(area => area.districtCode === district?.code)
-  //       .map(area => ({
-  //         code: area.planningAreaCode,
-  //         name: area.planningAreaName,
-  //         i18nKey: area.planningAreaCode,
-  //       }))
-  //       .sort((a, b) => a.code.localeCompare(b.code));
-  //     setPlanningAreas(filteredPlanningAreas);
-  //   } else {
-  //     setPlanningAreas([]);
-  //   }
-  // }, [district, areaMappingData]);
-
-
-  // // Update PP authorities when planning area changes
-  // useEffect(() => {
-  //   if (planningArea && areaMappingData?.ppAuthorities) {
-  //     const filteredPpAuthorities = areaMappingData.ppAuthorities
-  //       .filter(authority => authority.planningAreaCode === planningArea?.code)
-  //       .map(authority => ({
-  //         code: authority.ppAuthorityCode,
-  //         name: authority.ppAuthorityName,
-  //         i18nKey: authority.ppAuthorityCode,
-  //       }))
-  //       .sort((a, b) => a.code.localeCompare(b.code));
-  //     setPpAuthorities(filteredPpAuthorities);
-  //   } else {
-  //     setPpAuthorities([]);
-  //   }
-  // }, [planningArea, areaMappingData]);
-
-  // ✅ PP Authority (from selected Planning Area)
-
-
-
-
-
-
-  // Update wards when concerned authority changes (only for MUNICIPAL_BOARD)
-  useEffect(() => {
-    if (concernedAuthority && bpAuthority?.code === "MUNICIPAL_BOARD" && areaMappingData?.ulbWardDetails) {
-      const filteredWards = areaMappingData.ulbWardDetails
-        .filter(ward => ward.ulbCode === concernedAuthority?.code)
-        .map(ward => ({
-          code: ward.wardCode,
-          name: ward.wardName,
-          i18nKey: ward.wardCode,
-        }))
-        .sort((a, b) => {
-          // Extract numbers from ward names for proper numeric sorting
-          const aNum = parseInt(a.name.match(/\d+/)?.[0] || '0');
-          const bNum = parseInt(b.name.match(/\d+/)?.[0] || '0');
-          return aNum - bNum;
-        });
-      setWards(filteredWards);
+  // setting the concerned Authority based on tenants
+    useEffect(() => {
+    if (tenantData && tenantData.length > 0) {
+      const formattedConcernedAuthorities = tenantData.map((tenant) => ({
+        code: tenant.code,
+        name: tenant.name, 
+        i18nKey: tenant.name,
+        ulbGrade: tenant.city?.ulbGrade,
+        planningAreaCode: tenant.city?.planningAreaCode,
+      }));
+      setConcernedAuthorities(formattedConcernedAuthorities);
     } else {
-      setWards([]);
+      setConcernedAuthorities([]);
     }
-  }, [concernedAuthority, bpAuthority, areaMappingData]);
+  }, [tenantData]);
 
-  // Update revenue villages when ward changes (only for MUNICIPAL_BOARD)
-  useEffect(() => {
-    if (ward && bpAuthority?.code === "MUNICIPAL_BOARD" && areaMappingData?.revenueVillages) {
-      const filteredRevenueVillages = areaMappingData.revenueVillages
-        .filter(village => village.wardCode === ward?.code)
-        .map(village => ({
-          code: village.revenueVillageCode,
-          name: village.revenueVillageName,
-          i18nKey: village.revenueVillageCode,
-        }))
-        .sort((a, b) => a.code.localeCompare(b.code));
-      setRevenueVillages(filteredRevenueVillages);
-    } else {
-      setRevenueVillages([]);
-    }
-  }, [ward, bpAuthority, areaMappingData]);
+  // Update Wards / Revenue Villages / Villages dynamically based on fetched localities
+useEffect(() => {
+  if (Array.isArray(fetchedLocalities) && fetchedLocalities.length > 0) {
+    
+    // --- MUNICIPAL BOARD logic ---
+    if (bpAuthority?.code === "MUNICIPAL_BOARD") {
+      // Extract and format Wards
+      const formattedWards = fetchedLocalities.map((ward) => ({
+        code: ward.code,
+        name: ward.name,
+        i18nKey: ward.name,
+        children: ward.children || [],
+      }));
 
-  // Update villages when concerned authority changes (only for GRAM_PANCHAYAT)
-  useEffect(() => {
-    if (concernedAuthority && bpAuthority?.code === "GRAM_PANCHAYAT" && areaMappingData?.villages) {
-      const filteredVillages = areaMappingData.villages
-        .filter(village => village.gramPanchayatCode === concernedAuthority?.code)
-        .map(village => ({
-          code: village.villageCode,
-          name: village.villageName,
-          i18nKey: village.villageCode,
+      // Flatten all Revenue Villages
+      const formattedRevenueVillages = fetchedLocalities.flatMap((ward) =>
+        (ward.children || []).map((child) => ({
+          code: child.code,
+          name: child.name,
+          i18nKey: child.name,
+          parentWardCode: ward.code,
         }))
-        .sort((a, b) => a.code.localeCompare(b.code));
-      setVillages(filteredVillages);
-    } else {
-      setVillages([]);
-    }
-  }, [concernedAuthority, bpAuthority, areaMappingData]);
+      );
+
+      setWards(formattedWards);
+      setRevenueVillages(formattedRevenueVillages);
+      setVillages([]); // clear villages for GP case
+
+    } 
+        // ---GRAM PANCHAYAT logic ---
+        else if (bpAuthority?.code === "GRAM_PANCHAYAT") {
+          const formattedVillages = fetchedLocalities.map((loc) => ({
+            code: loc.code,
+            name: loc.name,
+            i18nKey: loc.name,
+          }));
+          setVillages(formattedVillages);
+          setWards([]);
+          setRevenueVillages([]);
+        }
+        
+      } else {
+        // Reset all if no data
+        setVillages([]);
+        setWards([]);
+        setRevenueVillages([]);
+      }
+    }, [fetchedLocalities, bpAuthority]);
+
+
 
   // Custom handlers for dropdown changes
   const handleDistrictChange = (selectedDistrict) => {
@@ -460,7 +399,8 @@ useEffect(() => {
               <CardLabel>{`${t("REVENUE_VILLAGE")}`} <span className="check-page-link-button">*</span></CardLabel>
               <Dropdown
                 t={t}
-                option={revenueVillages}
+                // option={revenueVillages}
+                option={revenueVillages.filter(rv => rv.parentWardCode === ward?.code)}
                 optionKey="i18nKey"
                 id="revenueVillage"
                 selected={revenueVillage}

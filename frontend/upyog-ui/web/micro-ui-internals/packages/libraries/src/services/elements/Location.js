@@ -28,4 +28,24 @@ export const LocationService = {
     });
     return response;
   },
+
+  getVillage: async (tenantId) => {
+    const response = await ServiceRequest({
+      serviceName: "getVillage",
+      url: Urls.location.village,
+      params: { tenantId: tenantId },
+      useCache: true,
+    });
+    return response;
+  },
+
+  getRevenueVillage: async (tenantId) => {
+    const response = await ServiceRequest({
+      serviceName: "getRevenueVillage",
+      url: Urls.location.revenueVillage,
+      params: { tenantId: tenantId },
+      useCache: true,
+    });
+    return response;
+  },
 };

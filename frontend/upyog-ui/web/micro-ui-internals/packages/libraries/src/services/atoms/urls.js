@@ -8,6 +8,8 @@ const Urls = {
     localities: `/egov-location/location/v11/boundarys/_search?hierarchyTypeCode=ADMIN&boundaryType=Locality`,
     revenue_localities: `/egov-location/location/v11/boundarys/_search?hierarchyTypeCode=REVENUE&boundaryType=Locality`,
     gramPanchayats: `/egov-location/location/v11/boundarys/_search?hierarchyTypeCode=REVENUE&boundaryType=GP`,
+    village: `/egov-location/location/v11/boundarys/_search?hierarchyTypeCode=REVENUE&boundaryType=Village`,
+    revenueVillage: `/egov-location/location/v11/boundarys/_search?hierarchyTypeCode=REVENUE&boundaryType=WardNo`,
   },
 
   pgr_search: `/pgr-services/v2/request/_search`,
