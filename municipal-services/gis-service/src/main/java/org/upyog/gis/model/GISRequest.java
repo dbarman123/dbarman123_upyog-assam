@@ -34,4 +34,7 @@ public class GISRequest {
 
     @JsonProperty("rtpiId")
     private String rtpiId;
+
+    @JsonProperty("planningAreaCode")
+    private String planningAreaCode;
 }

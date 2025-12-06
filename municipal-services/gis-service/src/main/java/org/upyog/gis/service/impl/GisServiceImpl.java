@@ -58,9 +58,13 @@ public class GisServiceImpl implements GisService {
     @Override
     public GISResponse findZoneFromGeometry(MultipartFile file, GISRequestWrapper gisRequestWrapper) throws Exception {
         GISRequest gisRequest = gisRequestWrapper.getGisRequest();
-
-        String transformedTenantId = extractUlbName(gisRequest.getTenantId());
-        gisRequest.setTenantId(transformedTenantId);
+        gisRequest.setTenantId(gisRequest.getTenantId());
+        
+        // Ensure planningAreaCode is set from tenantId if not provided
+        String planningAreaCode = extractUlbName(gisRequest.getPlanningAreaCode());
+        gisRequest.setPlanningAreaCode(planningAreaCode);
+        
+        log.info("Processing request - tenantId: {}, planningAreaCode: {}", gisRequest.getTenantId(), planningAreaCode);
 
         String fileStoreId = null;
         double latitude = 0.0;
@@ -71,7 +75,7 @@ public class GisServiceImpl implements GisService {
 
             // Upload to Filestore
             log.info("Uploading KML file to Filestore: {}", file.getOriginalFilename());
-            fileStoreId = filestoreClient.uploadFile(file, gisRequest.getTenantId(), "gis", "kml-upload");
+            fileStoreId = filestoreClient.uploadFile(file, gisRequest.getPlanningAreaCode(), "gis", "kml-upload");
             log.info("File uploaded successfully with ID: {}", fileStoreId);
 
             // Parse KML to get geometry
@@ -87,7 +91,7 @@ public class GisServiceImpl implements GisService {
 
             // Query GISTCP API for district/zone/landuse information
             log.info("Querying GISTCP API for location information");
-            GistcpResponse gistcpResponse = gistcpClient.queryLocation(latitude, longitude, gisRequest.getTenantId());
+            GistcpResponse gistcpResponse = gistcpClient.queryLocation(latitude, longitude, gisRequest.getPlanningAreaCode());
             log.info("GISTCP query completed successfully");
 
             // Extract information from GISTCP response
@@ -114,7 +118,7 @@ public class GisServiceImpl implements GisService {
             GisLog successLog = createGisLog(gisRequest.getApplicationNo(), gisRequest.getRtpiId(), fileStoreId,
                     gisRequest.getTenantId(), STATUS_SUCCESS, "SUCCESS", "Successfully processed geometry and retrieved location data from GISTCP", detailsJson,
                     gisRequestWrapper.getRequestInfo() != null && gisRequestWrapper.getRequestInfo().getUserInfo() != null
-                        ? gisRequestWrapper.getRequestInfo().getUserInfo().getUuid() : "system", latitude, longitude);
+                        ? gisRequestWrapper.getRequestInfo().getUserInfo().getUuid() : "system", latitude, longitude, gisRequest.getPlanningAreaCode());
             logRepository.save(successLog);
 
             // Convert GISTCP response to JSON for the GIS response
@@ -139,6 +143,7 @@ public class GisServiceImpl implements GisService {
                     .fileStoreId(fileStoreId)
                     .latitude(latitude)
                     .longitude(longitude)
+                    .planningAreaCode(gisRequest.getPlanningAreaCode())
                     .build();
 
         } catch (Exception e) {
@@ -155,7 +160,7 @@ public class GisServiceImpl implements GisService {
             GisLog failureLog = createGisLog(gisRequest.getApplicationNo(), gisRequest.getRtpiId(), fileStoreId,
                     gisRequest.getTenantId(), STATUS_FAILURE, "FAILURE", e.getMessage(), errorDetails,
                     gisRequestWrapper.getRequestInfo() != null && gisRequestWrapper.getRequestInfo().getUserInfo() != null
-                        ? gisRequestWrapper.getRequestInfo().getUserInfo().getUuid() : "system", latitude, longitude);
+                        ? gisRequestWrapper.getRequestInfo().getUserInfo().getUuid() : "system", latitude, longitude, gisRequest.getPlanningAreaCode());
             logRepository.save(failureLog);
 
             throw new RuntimeException("Failed to process geometry file: " + e.getMessage(), e);
@@ -219,7 +224,7 @@ public class GisServiceImpl implements GisService {
      * @return GisLog object ready for Kafka publishing
      */
     private GisLog createGisLog(String applicationNo, String rtpiId, String fileStoreId, String tenantId, 
-                               String status, String responseStatus, String responseJson, JsonNode details, String createdBy, double latitude ,double longitude) {
+                               String status, String responseStatus, String responseJson, JsonNode details, String createdBy, double latitude, double longitude, String planningAreaCode) {
         return GisLog.builder()
                 .id(UUID.randomUUID().toString()) // Generate unique ID for Kafka
                 .applicationNo(applicationNo)
@@ -234,6 +239,7 @@ public class GisServiceImpl implements GisService {
                 .details(details)
                 .latitude(latitude)
                 .longitude(longitude)
+                .planningAreaCode(planningAreaCode)
                 .build();
     }
 

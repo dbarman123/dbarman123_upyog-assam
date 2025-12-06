@@ -54,7 +54,8 @@ public class GisController {
 
         try {
             log.info("Finding zone from polygon file: {} (tenant: {}, applicationNo: {}, rtpiId: {})", 
-                    file.getOriginalFilename(), gisRequestWrapper.getGisRequest().getTenantId(), 
+                    file.getOriginalFilename(), gisRequestWrapper.getGisRequest().getTenantId(),
+                    gisRequestWrapper.getGisRequest().getPlanningAreaCode(),
                     gisRequestWrapper.getGisRequest().getApplicationNo(), gisRequestWrapper.getGisRequest().getRtpiId());
 
             GISResponse response = gisService.findZoneFromGeometry(file, gisRequestWrapper);
@@ -98,6 +99,10 @@ public class GisController {
             if (criteria.getTenantId() != null && criteria.getTenantId().contains(".")) {
                 String[] ulbName = criteria.getTenantId().split("\\.");
                 criteria.setTenantId(ulbName[ulbName.length - 1]);
+            }
+            if(criteria.getPlanningAreaCode() != null && criteria.getPlanningAreaCode().contains(".")) {
+                String[] planningArea = criteria.getPlanningAreaCode().split("\\.");
+                criteria.setPlanningAreaCode(planningArea[planningArea.length - 1]);
             }
             log.info("Searching GIS logs with criteria: {}", searchRequest.getCriteria());
 
