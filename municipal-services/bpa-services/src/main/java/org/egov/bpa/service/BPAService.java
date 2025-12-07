@@ -151,7 +151,7 @@ public class BPAService {
 
 
         // Validating the create request
-        bpaValidator.validateMdmsData(bpaRequest, mdmsData);
+     //   bpaValidator.validateMdmsData(bpaRequest, mdmsData);
 
         landService.addLandInfoToBPA(bpaRequest);
         enrichmentService.enrichBPACreateRequest(bpaRequest, mdmsData, null);
@@ -445,7 +445,7 @@ public class BPAService {
         // Get MDMS Data for request validation
         Object mdmsData = util.mDMSCall(requestInfo, tenantId);
         // Validate the update request
-        bpaValidator.validateMdmsData( bpaRequest, mdmsData);
+        //bpaValidator.validateMdmsData( bpaRequest, mdmsData);
 
         BPA bpa = bpaRequest.getBPA();
 
