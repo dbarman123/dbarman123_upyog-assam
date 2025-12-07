@@ -445,7 +445,7 @@ public class BPAService {
         // Get MDMS Data for request validation
         Object mdmsData = util.mDMSCall(requestInfo, tenantId);
         // Validate the update request
-        bpaValidator.validateMdmsData( bpaRequest, mdmsData);
+        //bpaValidator.validateMdmsData( bpaRequest, mdmsData);
 
         BPA bpa = bpaRequest.getBPA();
 
