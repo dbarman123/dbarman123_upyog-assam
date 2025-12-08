@@ -1,6 +1,7 @@
 package org.egov.bpa.calculator.services;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -350,7 +351,10 @@ public class CalculationService {
 			break;
 		}
 
-		return amount.add(additionalFee);
+		amount = amount.add(additionalFee);
+		amount = amount.setScale(0, RoundingMode.HALF_UP);
+
+		return amount;
 	}
 
 	public List<Calculation> calculateFee(RequestInfo requestInfo, List<CalulationCriteria> criterias,
