@@ -104,7 +104,7 @@ const BPAAcknowledgement = ({ data, onSuccess }) => {
               <LinkButton label={t("CORE_COMMON_GO_BACK_TO_INBOX")} />
             </Link>
           )}
-          {mutation.isSuccess && (
+          {mutation.isSuccess && flow === "edit" && (
             <Link to={`/upyog-ui/citizen/obpsv2/application/${mutation.data?.bpa?.[0]?.applicationNo}/${tenantId}`}>
               <LinkButton label={t("CORE_COMMON_GO_BACK_TO_APPLICATION")} />
             </Link>
