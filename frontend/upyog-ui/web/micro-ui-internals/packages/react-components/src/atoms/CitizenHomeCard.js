@@ -11,32 +11,32 @@ const CitizenHomeCard = ({ header, links = [], state, Icon, Info, isInfo = false
       link: item.link ? item.link.replace("digit-ui", "upyog-ui") : item.link
     }));
   }
-  const updatedLinks = replaceDigitUiWithUpyogUi(links);
-  function updateDisplayName(data, roles) {
-    return data.map(item => {
-        if (item.id === 3074) {
-            const isCitizen = roles.some(role => role.code === "CITIZEN");
-            const isArchitect = roles.some(role => role.code === "BPA_ARCHITECT");
+  const updatedData = replaceDigitUiWithUpyogUi(links);
+//   function updateDisplayName(data, roles) {
+//     return data.map(item => {
+//         if (item.id === 3074) {
+//             const isCitizen = roles.some(role => role.code === "CITIZEN");
+//             const isArchitect = roles.some(role => role.code === "BPA_ARCHITECT");
             
-            if (isArchitect) {
-                return {
-                    ...item,
-                    i18nKey: "View as RTP"  
-                };
-            } else if (isCitizen) {
-                return {
-                    ...item,
-                    i18nKey: "Register as RTP"  
-                };
-            }
-        }
-        return item;
-    });
-}
+//             if (isArchitect) {
+//                 return {
+//                     ...item,
+//                     i18nKey: "View as RTP"  
+//                 };
+//             } else if (isCitizen) {
+//                 return {
+//                     ...item,
+//                     i18nKey: "Register as RTP"  
+//                 };
+//             }
+//         }
+//         return item;
+//     });
+// }
 
-const roles = Digit.SessionStorage.get("User")?.info?.roles;
+// const roles = Digit.SessionStorage.get("User")?.info?.roles;
 
-const updatedData = updateDisplayName(updatedLinks, roles);
+// const updatedData = updateDisplayName(updatedLinks, roles);
 
 
 
