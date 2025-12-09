@@ -1,6 +1,7 @@
 package org.egov.bpa.service;
 
 import static org.egov.bpa.util.BPAConstants.INPROGRESS_STATUS;
+import static org.egov.bpa.util.BPAConstants.ACTION_INITIATE;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -55,8 +56,15 @@ public class NocService {
 	@Autowired
 	private ObjectMapper mapper;
 
+	/**
+	 * Creates the list of applicable NOC types for a BPA application based on
+	 * permit type, EDCR response, site engineer suggestions and MDMS NOC mapping.
+	 *
+	 * @param bpaRequest The BPA request containing application details and request
+	 *                   info.
+	 * @param mdmsData   MDMS master data containing NOC type mapping configuration.
+	 */
 	@SuppressWarnings("unchecked")
-
 	public void createNocRequest(BPARequest bpaRequest, Object mdmsData) {
 
 		List<String> nocTypes = new ArrayList<>();
@@ -90,6 +98,15 @@ public class NocService {
 
 	}
 
+	/**
+	 * Builds a list of NOC request objects for each applicable NOC type and
+	 * initiates NOC creation workflow.
+	 *
+	 * @param bpaRequest The BPA request containing tenant and application details.
+	 * @param nocTypes   List of applicable NOC types to be created.
+	 * @param applType   Application type derived from EDCR, used to determine NOC
+	 *                   source.
+	 */
 	private void createNOCList(BPARequest bpaRequest, List<String> nocTypes, String applType) {
 
 		List<Noc> nocs = new ArrayList<>();
@@ -97,13 +114,14 @@ public class NocService {
 		String applicationNo = bpaRequest.getBPA().getApplicationNo();
 		ApplicationType applicationType = ApplicationType.valueOf(BPAConstants.NOC_APPLICATIONTYPE);
 		String source = config.getNocSourceConfig().get(applType);
+		Workflow workflow = Workflow.builder().action(ACTION_INITIATE).build();
 
 		log.info("Applicable NOCs are, " + nocTypes);
 
 		for (String nocType : nocTypes) {
 
 			Noc noc = Noc.builder().tenantId(tenantId).applicationType(applicationType).sourceRefId(applicationNo)
-					.nocType(nocType).source(source).build();
+					.nocType(nocType).source(source).workflow(workflow).build();
 			nocs.add(noc);
 		}
 
@@ -112,6 +130,15 @@ public class NocService {
 		createNoc(nocRequest);
 	}
 
+	/**
+	 * Determines the applicable NOCs whose eligibility depends on EDCR parameters.
+	 * Reads NOC conditions from MDMS and evaluates them against EDCR response.
+	 *
+	 * @param edcrResponse EDCR key–value details fetched for the application.
+	 * @param nocByOthers  List of NOC mapping entries other than Site Engineer
+	 *                     source.
+	 * @return List of applicable NOC types based on EDCR evaluation.
+	 */
 	private List<String> fetchNOCByOthers(Map<String, String> edcrResponse, List<Map<String, Object>> nocByOthers) {
 
 		Map<String, List<String>> nocTypeConditionsByOthers = nocByOthers.stream()
@@ -125,6 +152,16 @@ public class NocService {
 		}
 	}
 
+	/**
+	 * Filters the NOCs suggested by Site Engineer based on the list of allowed NOCs
+	 * configured in MDMS. Invalid suggestions are logged and ignored.
+	 *
+	 * @param siteEngrNocs         List of NOCs suggested by Site Engineer in the
+	 *                             BPA request.
+	 * @param allowedNocsBySiteEng Set of NOC types allowed for SITE_ENGINEER as per
+	 *                             MDMS mapping.
+	 * @return List of valid NOC types requested by Site Engineer.
+	 */
 	private List<String> fetchNOCBySiteEngr(List<NocType> siteEngrNocs, Set<String> allowedNocsBySiteEng) {
 
 		List<String> nocTypes = new ArrayList<>();

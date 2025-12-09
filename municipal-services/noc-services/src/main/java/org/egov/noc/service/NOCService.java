@@ -85,13 +85,14 @@ public class NOCService {
 				nocRequest.setNoc(noc);
 				result.addAll(create(nocRequest));
 			}
-			
+
 			return result;
-			
-		} else {
-			
+
+		} else if (nocRequest.getNoc() != null) {
+			// this condition is added for backward compatibility
 			return create(nocRequest);
 		}
+		return null;
 	}
 	
 	/**
