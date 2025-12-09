@@ -9,17 +9,23 @@ import org.springframework.stereotype.Service;
 
 /**
  * Service responsible for caching MDMS (Master Data Management System) responses.
- * <p>
- * This avoids repeated MDMS API calls for the same tenant and improves performance.
- * The cache is maintained in memory using {@link ConcurrentHashMap}, ensuring
- * thread-safety in concurrent environments.
- * </p>
  *
- * <p><b>Key Features:</b></p>
+ * <p>This cache prevents repeated MDMS API calls for the same tenantId,
+ * significantly improving performance and reducing network load.</p>
+ *
+ * <h3>Why ConcurrentHashMap?</h3>
+ * <p>Since MDMS responses are accessed by multiple threads handling parallel
+ * requests, {@link ConcurrentHashMap} ensures thread-safety without locking
+ * the entire map. It supports high concurrency and atomic operations such as
+ * {@code computeIfAbsent}, making it ideal for request-heavy applications.</p>
+ *
+ * <h3>Cache Behavior</h3>
  * <ul>
- *     <li>Caches MDMS data against tenantId.</li>
- *     <li>Uses computeIfAbsent for atomic cache insertions.</li>
- *     <li>Provides cache clearing method for refreshing stale data.</li>
+ *     <li>Each tenantId (e.g., <code>as</code>, <code>as.barpetagp</code>)
+ *         is stored as a separate cache key.</li>
+ *     <li>Once MDMS data is retrieved for a tenantId, subsequent calls will
+ *         serve data directly from the in-memory cache.</li>
+ *     <li>Cache can be cleared manually (e.g., during master data refresh).</li>
  * </ul>
  */
 @Service
