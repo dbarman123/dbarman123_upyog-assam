@@ -94,9 +94,9 @@ public class NOCConstants {
 	public static final String CIVIL_AVIATION_NOC_TYPE = "CIVIL_AVIATION";
 
 	// AAI Document Type Constants
-	public static final String DOC_TYPE_UNDERTAKING1A = "UNDERTAKING1A";
-	public static final String DOC_TYPE_SITEELEVATION = "SITEELEVATION";
-	public static final String DOC_TYPE_SITECORDINATES = "SITECORDINATES";
-	public static final String DOC_TYPE_AUTHORIZATION = "AUTHORIZATION";
-	public static final String DOC_TYPE_PERMISSION = "PERMISSION";
+	public static final String DOC_TYPE_UNDERTAKING1A = "NOC.UNDERTAKING1A";
+	public static final String DOC_TYPE_SITEELEVATION = "NOC.SITEELEVATION";
+	public static final String DOC_TYPE_SITECORDINATES = "NOC.SITECORDINATES";
+	public static final String DOC_TYPE_AUTHORIZATION = "NOC.AUTHORIZATION";
+	public static final String DOC_TYPE_PERMISSION = "NOC.PERMISSION";
 }
