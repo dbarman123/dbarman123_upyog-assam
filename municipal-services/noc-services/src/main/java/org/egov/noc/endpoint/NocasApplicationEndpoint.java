@@ -52,7 +52,7 @@ public class NocasApplicationEndpoint {
 	 * @throws Exception if authentication fails or XML generation fails
 	 */
 	@PayloadRoot(namespace = NAMESPACE_URI, localPart = "GetApplicationsRequest")
-	public void getApplications(@RequestPayload Element request, MessageContext messageContext) throws Exception {
+	public void getApplications(@RequestPayload Element request) throws Exception {
 		try {
 			String requestInfoJson = extractElementValue(request, "RequestInfo");
 			String tenantId = extractElementValue(request, "tenantId");
