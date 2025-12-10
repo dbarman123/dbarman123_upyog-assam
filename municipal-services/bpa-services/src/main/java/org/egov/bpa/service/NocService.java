@@ -78,6 +78,10 @@ public class NocService {
 			Map<String, Object> adMap = (Map<String, Object>) additionalDetails;
 			permitType = (String) adMap.get("permitType");
 		}
+		
+		if (StringUtils.isBlank(permitType)) {
+			throw new CustomException("ERROR", "Permit type can't be null.");
+		}
 
 		String nocPath = BPAConstants.NOC_TYPE_MAPPING_PATH.replace("{1}", permitType);
 		List<Object> nocMappingResponse = (List<Object>) JsonPath.read(mdmsData, nocPath);

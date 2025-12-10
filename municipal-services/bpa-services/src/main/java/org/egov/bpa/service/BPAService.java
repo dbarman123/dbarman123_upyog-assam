@@ -1029,7 +1029,11 @@ public class BPAService {
 		for (CalulationCriteria obj : input) {
 			Map<String, Object> edcrDetails = edcrService.getEDCRFeeCalculationDetails(requestInfo, obj.getBpa());
 			List<Floor> floors = (List<Floor>) edcrDetails.get(BPAConstants.FLOOR);
+			String wallType = (String) edcrDetails.get(BPAConstants.WALLTYPE);
+			String occupancy = (String) edcrDetails.get(BPAConstants.APPLICATIONTYPE);
 			obj.setFloors(floors);
+			obj.setWallType(wallType);
+			obj.setApplicationType(occupancy);
 		}
 
 		return calculationService.callBpaCalculatorEstimate(calcRequest);
