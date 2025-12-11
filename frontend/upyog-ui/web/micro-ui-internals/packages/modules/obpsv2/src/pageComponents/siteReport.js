@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   TextInput,
   CardLabel,
@@ -9,7 +9,9 @@ import {
 import { useTranslation } from "react-i18next";
 import DocumentsPreview from "../../../templates/ApplicationDetails/components/DocumentsPreview";
 
-const siteReport = ({submitReport, onChange}) => {
+const siteReport = ({submitReport, onChange, data}) => {
+  // Extract BPA data from FormComposer
+  const bpaData = data?.bpaData;
   const { t } = useTranslation();
   const [form, setForm] = useState({
     proposalNo: "",
@@ -17,7 +19,6 @@ const siteReport = ({submitReport, onChange}) => {
     applicantName: "",
     applicantAddress: "",
     architectName: "",
-    architectAddress: "",
     inspectorName: "",
     revenueVillage: "",
     pattaNo: "",
@@ -73,6 +74,41 @@ const siteReport = ({submitReport, onChange}) => {
     commentsOnProposal: "",
     commentsOnProposalRemarks: ""
   });
+
+  // Autofill form with BPA data
+  useEffect(() => {
+    if (bpaData?.applicationData) {
+      const appData = bpaData.applicationData;
+      const landInfo = appData?.landInfo || {};
+      const owners = landInfo?.owners || [];
+      const primaryOwner = owners[0] || {};
+      const address = landInfo?.address || {};
+      const areaMapping = appData?.areaMapping || {};
+      const adjoiningOwners = appData?.additionalDetails?.adjoiningOwners || {};
+      const rtpDetails = appData?.rtpDetails || {};
+      const architectName = rtpDetails?.rtpName ? rtpDetails.rtpName.split(',')[0] : '';
+      
+      setForm(prev => ({
+        ...prev,
+        proposalNo: t(appData?.applicationNo) || t(prev.proposalNo),
+        applicantName: t(primaryOwner?.name) || t(prev.applicantName),
+        applicantAddress: `${address?.houseNo || ''} ${address?.addressLine1 || ''} ${address?.addressLine2 || ''}`.trim() || prev.applicantAddress,
+        architectName: t(architectName) || t(prev.architectName),
+        masterPlanZone: t(areaMapping?.planningArea) || t(prev.masterPlanZone),
+        revenueVillage: t(areaMapping?.revenueVillage) || t(prev.revenueVillage),
+        pattaNo: t(landInfo?.newPattaNumber) || t(landInfo?.oldPattaNumber) || t(prev.pattaNo),
+        dagNo: t(landInfo?.newDagNumber) || t(landInfo?.oldDagNumber) || t(prev.dagNo),
+        plotArea: t(landInfo?.totalPlotArea) || t(prev.plotArea),
+        proposedUse: t(landInfo?.units?.[0]?.occupancyType) || t(prev.proposedUse),
+        mouza: t(areaMapping?.mouza) || t(prev.mouza),
+        north: t(adjoiningOwners?.north) || t(prev.north),
+        south: t(adjoiningOwners?.south) || t(prev.south),
+        east: t(adjoiningOwners?.east) || t(prev.east),
+        west: t(adjoiningOwners?.west) || t(prev.west)
+      }));
+    }
+  }, [bpaData]);
+
   const handleChange = (key, value) => {
     const updated = { ...form, [key]: value };
     setForm(updated);
@@ -108,35 +144,40 @@ const siteReport = ({submitReport, onChange}) => {
     lineHeight: "1.4", 
   };
   
-  const renderFieldWithRemarks = (labelKey, fieldKey) => (
-    <div style={{ display: "grid", gridTemplateColumns: "250px 1fr", rowGap: "8px", columnGap: "150px", marginBottom: "16px" }}>
-      <CardLabel style={{
-        fontWeight: 500,
-        textAlign: "left",
-        whiteSpace: "nowrap",
-        lineHeight: "1.4",
-        alignSelf: "start"
-      }}>
-        {t(labelKey)}
-      </CardLabel>
-  
-      <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-        <TextInput
-          style={{ width: "100%" }}
-          value={form[fieldKey]}
-          onChange={(e) => handleChange(fieldKey, e.target.value)}
-        />
-        <TextArea
-          style={{ width: "100%" }}
-          value={form[`${fieldKey}Remarks`]}
-          onChange={(e) => handleChange(`${fieldKey}Remarks`, e.target.value)}
-          maxLength={500}
-          placeholder={t("REMARKS")}
-          rows={3}
-        />
+  const renderFieldWithRemarks = (labelKey, fieldKey) => {
+    const isAutoFilled = ['north', 'south', 'east', 'west'].includes(fieldKey) && !!form[fieldKey];
+    
+    return (
+      <div style={{ display: "grid", gridTemplateColumns: "250px 1fr", rowGap: "8px", columnGap: "150px", marginBottom: "16px" }}>
+        <CardLabel style={{
+          fontWeight: 500,
+          textAlign: "left",
+          whiteSpace: "nowrap",
+          lineHeight: "1.4",
+          alignSelf: "start"
+        }}>
+          {t(labelKey)}
+        </CardLabel>
+    
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+          <TextInput
+            style={{ width: "100%" }}
+            value={form[fieldKey]}
+            onChange={(e) => handleChange(fieldKey, e.target.value)}
+            disable={isAutoFilled}
+          />
+          <TextArea
+            style={{ width: "100%" }}
+            value={form[`${fieldKey}Remarks`]}
+            onChange={(e) => handleChange(`${fieldKey}Remarks`, e.target.value)}
+            maxLength={500}
+            placeholder={t("REMARKS")}
+            rows={3}
+          />
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
   
   return (
     <React.Fragment>
@@ -150,6 +191,7 @@ const siteReport = ({submitReport, onChange}) => {
               style={inputStyle}
               value={form.proposalNo}
               onChange={(e) => handleChange("proposalNo", e.target.value)}
+              disable={!!form.proposalNo}
             />
           </div>
 
@@ -168,6 +210,7 @@ const siteReport = ({submitReport, onChange}) => {
               style={inputStyle}
               value={form.applicantName}
               onChange={(e) => handleChange("applicantName", e.target.value)}
+              disable={!!form.applicantName}
             />
           </div>
 
@@ -177,6 +220,7 @@ const siteReport = ({submitReport, onChange}) => {
               style={inputStyle}
               value={form.applicantAddress}
               onChange={(e) => handleChange("applicantAddress", e.target.value)}
+              disable={!!form.applicantAddress}
             />
           </div>
 
@@ -186,15 +230,7 @@ const siteReport = ({submitReport, onChange}) => {
               style={inputStyle}
               value={form.architectName}
               onChange={(e) => handleChange("architectName", e.target.value)}
-            />
-          </div>
-
-          <div style={fieldRowStyle}>
-            <CardLabel style={labelStyle}>{t("BPA_ARCHITECT_ADDRESS")}</CardLabel>
-            <TextInput
-              style={inputStyle}
-              value={form.architectAddress}
-              onChange={(e) => handleChange("architectAddress", e.target.value)}
+              disable={!!form.architectName}
             />
           </div>
 
@@ -217,6 +253,7 @@ const siteReport = ({submitReport, onChange}) => {
               style={inputStyle}
               value={form.revenueVillage}
               onChange={(e) => handleChange("revenueVillage", e.target.value)}
+              disable={!!form.revenueVillage}
             />
           </div>
 
@@ -226,6 +263,7 @@ const siteReport = ({submitReport, onChange}) => {
               style={inputStyle}
               value={form.pattaNo}
               onChange={(e) => handleChange("pattaNo", e.target.value)}
+              disable={!!form.pattaNo}
             />
           </div>
 
@@ -235,6 +273,7 @@ const siteReport = ({submitReport, onChange}) => {
               style={inputStyle}
               value={form.dagNo}
               onChange={(e) => handleChange("dagNo", e.target.value)}
+              disable={!!form.dagNo}
             />
           </div>
 
@@ -244,6 +283,7 @@ const siteReport = ({submitReport, onChange}) => {
               style={inputStyle}
               value={form.plotArea}
               onChange={(e) => handleChange("plotArea", e.target.value)}
+              disable={!!form.plotArea}
             />
           </div>
 
@@ -253,6 +293,7 @@ const siteReport = ({submitReport, onChange}) => {
               style={inputStyle}
               value={form.proposedUse}
               onChange={(e) => handleChange("proposedUse", e.target.value)}
+              disable={!!form.proposedUse}
             />
           </div>
 
@@ -262,6 +303,7 @@ const siteReport = ({submitReport, onChange}) => {
               style={inputStyle}
               value={form.masterPlanZone}
               onChange={(e) => handleChange("masterPlanZone", e.target.value)}
+              disable={!!form.masterPlanZone}
             />
           </div>
 
@@ -280,6 +322,7 @@ const siteReport = ({submitReport, onChange}) => {
               style={inputStyle}
               value={form.mouza}
               onChange={(e) => handleChange("mouza", e.target.value)}
+              disable={!!form.mouza}
             />
           </div>
 

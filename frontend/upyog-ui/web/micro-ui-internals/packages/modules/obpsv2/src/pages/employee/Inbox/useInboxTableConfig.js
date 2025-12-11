@@ -186,6 +186,7 @@ const useInboxTableConfig = ({ parentRoute, onPageSizeChange, formState, totalCo
                         closeModal={closeModal}
                         setSelectedAction={setSelectedAction}
                         bpaStatus={row?.original?.status}
+                        tenantId={row?.original?.tenantId}
                     />
                 )}
                 {(showToast||error) && !selectedAction && (

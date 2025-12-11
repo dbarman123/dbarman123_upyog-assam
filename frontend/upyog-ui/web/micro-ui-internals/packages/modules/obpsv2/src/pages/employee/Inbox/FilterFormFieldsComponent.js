@@ -76,7 +76,7 @@ const FilterFormFieldsComponent = ({
   return (
     <Fragment>
       <FilterFormField>
-        <Controller
+        {/* <Controller
           name="applicationStatus"
           control={controlFilterForm}
           render={(props) => {
@@ -109,7 +109,7 @@ const FilterFormFieldsComponent = ({
             </>
           }
         }
-        />
+        /> */}
         
       </FilterFormField>
 

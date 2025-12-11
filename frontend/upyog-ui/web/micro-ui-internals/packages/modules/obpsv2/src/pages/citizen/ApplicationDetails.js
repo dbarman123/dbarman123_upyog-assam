@@ -792,13 +792,14 @@ import {
         break;
       case "EDIT":
         let url=window.location.href;
-        let redirectingUrl= url.split("/application/")[0] + "/editApplication/" + url.split("/application/")[1].split("/")[0];
+        let applicationNo = url.split("/application/")[1].split("/")[0];
+        let redirectingUrl= url.split("/application/")[0] + "/editApplication/" + applicationNo + "/" + tenantId;
 
         redirectToPage(redirectingUrl);    
         break;
       case "APPLY_FOR_SCRUTINY":
         let scrutinyurl=window.location.href;
-        let scrutinyRedirectingUrl= scrutinyurl.split("/application/")[0] +  `/rtp/apply/home?applicationNo=${bpaId}`;
+        let scrutinyRedirectingUrl= scrutinyurl.split("/application/")[0] +  `/rtp/apply/home?applicationNo=${bpaId}&tenantId=${tenantId}`;
         redirectToPage(scrutinyRedirectingUrl);
         break;
       case "APPROVE":

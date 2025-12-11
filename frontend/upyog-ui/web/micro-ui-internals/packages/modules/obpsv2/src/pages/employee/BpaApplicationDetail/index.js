@@ -354,7 +354,10 @@ const BPAEmployeeDetails = () => {
         })}
         fieldStyle={{ marginRight: 0 }}
         submitInForm={false}
-        defaultValues={defaultValues}
+        defaultValues={{
+          ...defaultValues,
+          bpaData: data,
+        }}
         onFormValueChange={onFormValueChange}
         breaklineStyle={{ border: "0px" }}
         className={"employeeCard-override"}

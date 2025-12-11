@@ -5,7 +5,11 @@ import { getPattern, stringReplaceAll, sortDropdownNames  } from "../utils";
 
 const RTPForm = ({ t, config, onSelect, userType, formData, ownerIndex = 0, addNewOwner, isShowToast, isSubmitBtnDisable, setIsShowToast }) => {
     const { pathname: url } = useLocation();
-    const tenantId =Digit.ULBService.getCitizenCurrentTenant(true)
+    // Extract applicationNo from URL
+    const location = useLocation();
+    const urlParams = new URLSearchParams(location.search);
+    const applicationNo = urlParams.get('applicationNo');
+    const tenantId = urlParams.get('tenantId');
     const stateId = Digit.ULBService.getStateId();
     const [citymoduleList, setCitymoduleList] = useState([]);
     const [name, setName] = useState(formData?.Scrutiny?.[0]?.applicantName);
@@ -16,11 +20,6 @@ const RTPForm = ({ t, config, onSelect, userType, formData, ownerIndex = 0, addN
     const [uploadMessage, setUploadMessage] = useState("");
     const [showToast, setShowToast] = useState(null);
     const history = useHistory();
-    const location = useLocation();
-    
-    // Extract applicationNo from URL
-    const urlParams = new URLSearchParams(location.search);
-    const applicationNo = urlParams.get('applicationNo');
 
     // Fetch BPA data if applicationNo is present
     const { data: bpaData } = Digit.Hooks.obpsv2.useBPASearchApi(

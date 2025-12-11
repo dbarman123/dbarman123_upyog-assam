@@ -191,6 +191,7 @@ const useInboxTableConfig = ({ parentRoute, onPageSizeChange, formState, totalCo
                         setSelectedAction={setSelectedAction}
                         refetch={refetch}
                         bpaStatus={row?.original?.status}
+                        tenantId={row?.original?.tenantId}
                     />
                 )}
                 {(showToast||error) && !selectedAction && (

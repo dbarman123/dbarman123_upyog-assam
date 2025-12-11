@@ -3,7 +3,7 @@ import { Card, Modal, TextArea, UploadFile, Heading, CloseBtn, CardLabel, CardLa
 import { OBPSV2Services } from "../../../../libraries/src/services/elements/OBPSV2";
 import { useTranslation } from "react-i18next";
 ///TODO: Remove unwanted multiple search calls, instead use once and cache the response in a state of useRef 
-const Action = ({ selectedAction, applicationNo, closeModal, setSelectedAction, setToastMessage, setShowToast: parentSetShowToast, refetch,bpaStatus}) => {
+const Action = ({ selectedAction, applicationNo, closeModal, setSelectedAction, setToastMessage, setShowToast: parentSetShowToast, refetch,bpaStatus,tenantId}) => {
   const { t } = useTranslation();
   const [comments, setComments] = useState("");
   const [uploadedFile, setUploadedFile] = useState(null);
@@ -35,7 +35,6 @@ const Action = ({ selectedAction, applicationNo, closeModal, setSelectedAction, 
   ];
 
   const [assignResponse, setAssignResponse] = useState(null);
-  const tenantId = Digit.ULBService.getCitizenCurrentTenant(true) || Digit.ULBService.getCurrentTenantId();
   const { data: mdmsData, isLoading } = Digit.Hooks.useEnabledMDMS("as", "BPA", [{ name: "PermissibleZone" }], {
     select: (data) => {
       return data?.BPA?.PermissibleZone || {};
@@ -123,7 +122,7 @@ const Action = ({ selectedAction, applicationNo, closeModal, setSelectedAction, 
           setGisValidationSuccess(false);
           break;
         case "EDIT":
-          const redirectingUrl = `${window.location.origin}/upyog-ui/citizen/obpsv2/editApplication/${applicationNo}`;
+          const redirectingUrl = `${window.location.origin}/upyog-ui/citizen/obpsv2/editApplication/${applicationNo}/${tenantId}`;
           redirectToPage(redirectingUrl);
           break;
         case "PAY":
@@ -141,7 +140,7 @@ const Action = ({ selectedAction, applicationNo, closeModal, setSelectedAction, 
           break;
         case "APPLY_FOR_SCRUTINY":
           let scrutinyurl = window.location.href;
-          let scrutinyRedirectingUrl = scrutinyurl.split("/inbox")[0] + `/apply/home?applicationNo=${applicationNo}`;
+          let scrutinyRedirectingUrl = scrutinyurl.split("/inbox")[0] + `/apply/home?applicationNo=${applicationNo}&tenantId=${tenantId}`;
           redirectToPage(scrutinyRedirectingUrl);
           break;
         case "RECOMMEND_TO_CHAIRMAN_DA":

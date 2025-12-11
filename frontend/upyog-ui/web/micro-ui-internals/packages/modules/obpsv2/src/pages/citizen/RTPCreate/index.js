@@ -67,8 +67,9 @@ const RTPCreate = ({ parentRoute }) => {
           setParams(result?.data?.edcrDetail);
           const urlParams = new URLSearchParams(location.search);
           const applicationNo = urlParams.get('applicationNo');
+          const tenantId = urlParams.get('tenantId');
           const redirectUrl = applicationNo
-            ? `/upyog-ui/citizen/obpsv2/rtp/apply/acknowledgement?applicationNo=${applicationNo}`
+            ? `/upyog-ui/citizen/obpsv2/rtp/apply/acknowledgement?applicationNo=${applicationNo}&tenantId=${tenantId}`
             : `/upyog-ui/citizen/obpsv2/rtp/apply/acknowledgement`;
           history.replace(
             redirectUrl,

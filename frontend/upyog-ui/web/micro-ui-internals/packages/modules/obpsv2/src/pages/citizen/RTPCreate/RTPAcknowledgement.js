@@ -13,6 +13,7 @@ const RTPAcknowledgement = (props) => {
   // Extract applicationNo from URL
   const urlParams = new URLSearchParams(location.search);
   const applicationNo = urlParams.get('applicationNo');
+  const tenantId = urlParams.get('tenantId');
   useEffect(() => { 
     if (props?.data?.type == "ERROR" && !showToast) setShowToast(true); 
   }, [props?.data?.data]);
@@ -88,7 +89,7 @@ const RTPAcknowledgement = (props) => {
       console.log('Starting BPA process for applicationNo:', applicationNo);
       // BPA Search call using applicationNumber from URL
       const bpaSearchResponse = await Digit.OBPSV2Services.search({
-        tenantId: Digit.ULBService.getCitizenCurrentTenant(true) || Digit.ULBService.getCurrentTenantId(),
+        tenantId: tenantId,
         filters: { applicationNo }
       });
       

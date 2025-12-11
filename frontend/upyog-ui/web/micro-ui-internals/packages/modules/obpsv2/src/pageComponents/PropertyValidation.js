@@ -30,6 +30,9 @@ const PropertyValidation = ({ t, config, onSelect, formData, searchResult }) => 
   }, [error]);
   // Regex to match the TIN pattern: TIN followed by exactly 10 digits
   const isValidPropertyID = (propertyID) => {
+    if (!propertyID || typeof propertyID !== 'string') {
+      return false;
+    }
     const regex = /^([A-Z]{3}\d{10}|\d{16}|\d+\/\d+)$/;
     return regex.test(propertyID.replace(/\s/g, ''));
   };

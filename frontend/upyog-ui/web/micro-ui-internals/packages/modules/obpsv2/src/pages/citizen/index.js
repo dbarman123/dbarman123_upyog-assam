@@ -30,7 +30,7 @@ const App = ({ path }) => {
         <PrivateRoute path={`${path}/rtp/inbox`} component={(props) => <RTPInbox {...props} parentRoute={path} />} />
         <PrivateRoute path={`${path}/rtp/search/application`} component={(props) => <Search {...props} parentRoute={path} />} />
         <PrivateRoute path={`${path}/search/application`} component={(props) => <Search {...props} parentRoute={path} />} />
-        <PrivateRoute path={`${path}/editApplication/:applicationNo`} component={BPAEdit}/>
+        <PrivateRoute path={`${path}/editApplication/:applicationNo/:tenantId`} component={BPAEdit}/>
       </Switch>
       </div>
     </React.Fragment>

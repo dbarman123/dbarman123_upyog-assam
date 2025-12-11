@@ -18,9 +18,9 @@ import { useHistory } from "react-router-dom";
 import { checkForNA, getOrderDocuments } from "../../../utils";
 import DocumentsPreview from "../../../../../templates/ApplicationDetails/components/DocumentsPreview";
 import Timeline from "../../../components/Timeline";
-import FormAcknowledgement from "./FormAcknowledgement";
-import useScrutinyFormDetails from "../../../../../../libraries/src/hooks/obpsv2/useScrutinyFormDetails";
-import Accordion from "../../../../../../react-components/src/atoms/Accordion";
+// import FormAcknowledgement from "./FormAcknowledgement";
+// import useScrutinyFormDetails from "../../../../../../libraries/src/hooks/obpsv2/useScrutinyFormDetails";
+// import Accordion from "../../../../../../react-components/src/atoms/Accordion";
 const ActionButton = ({ jumpTo }) => {
   const history = useHistory();
 
@@ -44,11 +44,11 @@ const ActionButton = ({ jumpTo }) => {
 const CheckPage = ({ onSubmit, value = {} }) => {
   const { t } = useTranslation();
   const [agree, setAgree] = useState(false);
-  const [expanded, setExpanded] = useState({
-    form22: false,
-    form23A: false,
-    form23B: false,
-  });
+  // const [expanded, setExpanded] = useState({
+  //   form22: false,
+  //   form23A: false,
+  //   form23B: false,
+  // });
   const toggleExpanded = (key) => {
     setExpanded((prev) => ({ ...prev, [key]: !prev[key] }));
   };
@@ -61,12 +61,10 @@ const CheckPage = ({ onSubmit, value = {} }) => {
   //     ({ form22, form23A, form23B, loading } = useScrutinyFormDetails("DCR102025WDMEL", "assam"));
   //   }
   const tenantId = Digit.ULBService.getCurrentTenantId();
-  const { form22, form23A, form23B, loading } = useScrutinyFormDetails("DCR102025WDMEL", tenantId);
+  // const { form22, form23A, form23B, loading } = useScrutinyFormDetails("DCR102025WDMEL", tenantId);
   const {areaMapping={}, applicant = {}, address = {}, land = {}, documents = {}, propertyValidation ={} } = value;
   const flow = window.location.href.includes("editApplication") ? "editApplication" : "buildingPermit"
-  const baseRoute = flow === "editApplication" 
-    ? `/upyog-ui/citizen/obpsv2/editApplication/${window.location.pathname.split("/").find((seg, i, arr) => arr[i - 1] === "editApplication")}`
-    : `/upyog-ui/citizen/obpsv2/building-permit`
+  const baseRoute = flow === "editApplication" ? window.location.pathname.split("/check")[0] : window.location.pathname.split("/check")[0];
   const setDeclarationHandler = () => {
     setAgree(!agree);
   };
@@ -78,43 +76,43 @@ const CheckPage = ({ onSubmit, value = {} }) => {
     textAlign: "left",
     fontSize: "14px",
   };
-const handleDownloadPdf = async (formType) => {
-  try {
-    let formData = null;
-    let tenantId = Digit.ULBService.getCitizenCurrentTenant(true) || Digit.ULBService.getCurrentTenantId();
-    const tenantInfo  = tenants.find((tenant) => tenant.code === tenantId);
-    const applicationNumber = window.location.href.split("editApplication/")[1].split("/")[0];
-    switch (formType) {
-      case "FORM_22":
-        formData = value?.form||form22;
-        break;
-      case "FORM_23A":
-        formData = value?.form23A || form23A;
-        break;
-      case "FORM_23B":
-        formData = value?.form23B||form23B;
-        break;
-      default:
-        formData = null;
-    }
+// const handleDownloadPdf = async (formType) => {
+//   try {
+//     let formData = null;
+//     let tenantId = Digit.ULBService.getCitizenCurrentTenant(true) || Digit.ULBService.getCurrentTenantId();
+//     const tenantInfo  = tenants.find((tenant) => tenant.code === tenantId);
+//     const applicationNumber = window.location.href.split("editApplication/")[1].split("/")[0];
+//     switch (formType) {
+//       case "FORM_22":
+//         formData = value?.form||form22;
+//         break;
+//       case "FORM_23A":
+//         formData = value?.form23A || form23A;
+//         break;
+//       case "FORM_23B":
+//         formData = value?.form23B||form23B;
+//         break;
+//       default:
+//         formData = null;
+//     }
 
-    if (!formData) {
-      console.error("No data found for", formType);
-      return;
-    }
+//     if (!formData) {
+//       console.error("No data found for", formType);
+//       return;
+//     }
 
-    const acknowledgementData = await FormAcknowledgement(
-      { formType, formData },
-      tenantInfo,
-      t,
-      applicationNumber
-    );
+//     const acknowledgementData = await FormAcknowledgement(
+//       { formType, formData },
+//       tenantInfo,
+//       t,
+//       applicationNumber
+//     );
 
-    Digit.Utils.pdf.generate(acknowledgementData);
-  } catch (err) {
-    console.error("PDF download failed for", formType, err);
-  }
-};
+//     Digit.Utils.pdf.generate(acknowledgementData);
+//   } catch (err) {
+//     console.error("PDF download failed for", formType, err);
+//   }
+// };
 
 
   
@@ -691,7 +689,7 @@ const handleDownloadPdf = async (formType) => {
               }
             </StatusTable>
             
-            <StatusTable>
+            {/* <StatusTable>
               <Accordion
                 title={t("FORM_22_DETAILS")}
                 t={t}
@@ -718,7 +716,7 @@ const handleDownloadPdf = async (formType) => {
               >
                 {getDetailsRow(value?.form23B || form23B)}
               </Accordion>
-            </StatusTable>
+            </StatusTable> */}
           </React.Fragment>
         ) : null}
 

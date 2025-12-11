@@ -15,17 +15,15 @@ import { Loader } from "@upyog/digit-ui-react-components";
 
 const Edit = () => {
   const queryClient = useQueryClient();
-  const { applicationNo } = useParams();
+  const { applicationNo, tenantId } = useParams();
   const match = useRouteMatch();
   const { t } = useTranslation();
   const { pathname } = useLocation();
   const history = useHistory();
   const stateId = Digit.ULBService.getStateId();
-  const tenantId = Digit.ULBService.getCitizenCurrentTenant(true) || Digit.ULBService.getCurrentTenantId();
-
   const [params, setParams, clearParams] = Digit.Hooks.useSessionStorage("OBPSV2_CREATE", {});
   const { isLoading, isError, error, data, refetch } =Digit.Hooks.obpsv2.useBPASearchApi({
-    tenantId,
+    tenantId: tenantId,
     filters: { applicationNo },
     config: { staleTime: Infinity, cacheTime: Infinity }
   });
