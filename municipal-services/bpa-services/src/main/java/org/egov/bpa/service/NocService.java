@@ -76,7 +76,11 @@ public class NocService {
 		String permitType = null;
 		if (additionalDetails instanceof Map) {
 			Map<String, Object> adMap = (Map<String, Object>) additionalDetails;
-			permitType = (String) adMap.get("permitType");
+			Object nocDetails = adMap.get("nocDetails");
+			if (nocDetails instanceof Map) {
+				Map<String, Object> nocMap = (Map<String, Object>) nocDetails;
+				permitType = (String) nocMap.get("permitType");
+			}
 		}
 		
 		if (StringUtils.isBlank(permitType)) {
